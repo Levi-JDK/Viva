@@ -1,0 +1,154 @@
+:root {
+    --tierra-oscuro: #8B4513;
+    --tierra-medio: #CD853F;
+    --tierra-claro: #DEB887;
+    --verde-artesanal: #6B8E23;
+    --naranja-artesanal: #D2691E;
+    --beige-suave: #F5F5DC;
+}
+
+.text-tierra-oscuro {
+    color: var(--tierra-oscuro);
+}
+
+.text-tierra-medio {
+    color: var(--tierra-medio);
+}
+
+.text-verde-artesanal {
+    color: var(--verde-artesanal);
+}
+
+.text-naranja-artesanal {
+    color: var(--naranja-artesanal);
+}
+
+.bg-tierra-oscuro {
+    background-color: var(--tierra-oscuro);
+}
+
+.bg-tierra-medio {
+    background-color: var(--tierra-medio);
+}
+
+.bg-tierra-claro {
+    background-color: var(--tierra-claro);
+}
+
+.bg-verde-artesanal {
+    background-color: var(--verde-artesanal);
+}
+
+.bg-naranja-artesanal {
+    background-color: var(--naranja-artesanal);
+}
+
+.bg-beige-suave {
+    background-color: var(--beige-suave);
+}
+
+.from-tierra-oscuro {
+    --tw-gradient-from: var(--tierra-oscuro);
+}
+
+.from-verde-artesanal {
+    --tw-gradient-from: var(--verde-artesanal);
+}
+
+.from-naranja-artesanal {
+    --tw-gradient-from: var(--naranja-artesanal);
+}
+
+.to-tierra-medio {
+    --tw-gradient-to: var(--tierra-medio);
+}
+
+.to-verde-artesanal {
+    --tw-gradient-to: var(--verde-artesanal);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.section-hero {
+    background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg);
+    background-size: cover;
+    background-attachment: scroll;
+}
+
+.auth-container {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.212);
+}
+
+.form-transition {
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-enter {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.slide-exit {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--naranja-artesanal), var(--tierra-medio));
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--tierra-medio), var(--tierra-oscuro));
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(210, 105, 30, 0.3);
+}
+
+.input-focus:focus {
+    border-color: var(--tierra-medio);
+    box-shadow: 0 0 0 3px rgba(205, 133, 63, 0.1);
+}
+
+.social-btn {
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+    background: var(--beige-suave);
+    transform: translateY(-1px);
+}
+
+.fade-in {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-success {
+    color: var(--verde-artesanal);
+    background-color: rgba(107, 142, 35, 0.1);
+    border-color: var(--verde-artesanal);
+}
+
+.message-error {
+    color: #dc2626;
+    background-color: rgba(220, 38, 38, 0.1);
+    border-color: #dc2626;
+}
+
+/* Base styles for web */

@@ -1,0 +1,122 @@
+/* Responsive Styles for VIVA */
+
+/* General Mobile Adjustments */
+@media (max-width: 768px) {
+
+    /* Header Mobile Fixes */
+    header .logo-text p {
+        display: none;
+    }
+
+    header .container>div {
+        gap: 0.5rem !important;
+    }
+
+    .btn-primary.header-login {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Landing Page Hero */
+    .section-hero {
+        min-height: 80vh;
+        padding-top: 120px;
+        padding-bottom: 60px;
+    }
+
+    .section-hero h1 {
+        font-size: 2.5rem;
+        line-height: 1.2;
+    }
+
+    /* Trust Section */
+    .trust-card {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .trust-card:last-child {
+        border-bottom: none;
+    }
+
+    /* Categories Grid */
+    #categorias .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    /* Login Page Adjustments */
+    .auth-container {
+        margin: 1rem;
+        min-height: calc(100vh - 2rem);
+    }
+
+    #container {
+        min-height: 700px;
+        max-width: 100%;
+        margin: 0 10px;
+    }
+
+    .form-container {
+        width: 100% !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .form-container form {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .sign-up-container,
+    .sign-in-container {
+        opacity: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .mobile-show-login .sign-in-container {
+        opacity: 1;
+        z-index: 10;
+        pointer-events: all;
+    }
+
+    .mobile-show-register .sign-up-container {
+        opacity: 1;
+        z-index: 10;
+        pointer-events: all;
+    }
+
+    /* Hide Desktop Overlay on Mobile */
+    .overlay-container {
+        display: none !important;
+    }
+
+    /* Mobile Switches */
+    .mobile-switch {
+        display: block !important;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-hero h1 {
+        font-size: 2rem;
+    }
+
+    #categorias .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .product-card img {
+        height: 150px;
+    }
+}

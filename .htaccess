@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /viva/
+
+# Si el archivo o carpeta existe físicamente (como una imagen), lo carga normal
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Si NO existe, se lo manda todo a tu archivo donde tienes el código de rutas
+# (Suponiendo que tu código de rutas está en index.php)
+RewriteRule ^(.*)$ index.php [QSA,L]
