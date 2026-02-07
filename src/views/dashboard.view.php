@@ -34,24 +34,36 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>src/styles/web.css">
     <style>
+        /* Smooth Transition Styles */
         .content-section {
             display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
+
         .content-section.active {
             display: block;
-            animation: fadeIn 0.3s ease-in;
+            opacity: 1;
+            transform: translateY(0);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .content-section.closing {
+            display: block; /* Ensure it stays visible during exit animation */
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none; /* Prevent clicks during exit */
         }
         
-        .avatar-hover-overlay {
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        /* Menu Item Active Indicator Animation */
+        .menu-item {
+            border-left: 4px solid transparent; /* Reserve space for border/shadow */
         }
-        .avatar-container:hover .avatar-hover-overlay {
-            opacity: 1;
+        
+        .menu-item.active-item {
+            background-color: var(--beige-suave);
+            border-left-color: var(--naranja-artesanal);
+            /* box-shadow: inset 4px 0 0 0 var(--naranja-artesanal);  Alternative if border doesn't animate well */
         }
     </style>
 </head>
@@ -101,28 +113,28 @@
             <aside id="sidebar" class="lg:w-64 w-full bg-white rounded-xl shadow-lg p-6 h-fit lg:sticky lg:top-24">
                 <h2 class="text-lg font-bold text-tierra-oscuro mb-4">Mi Cuenta</h2>
                 <nav class="space-y-2">
-                    <button onclick="showSection('profile')" class="menu-item active w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave">
+                    <button onclick="showSection('profile')" class="menu-item active w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave hover:translate-x-2">
                         <i class="fas fa-user text-tierra-medio"></i>
                         <span class="font-medium text-gray-700">Mi Perfil</span>
                     </button>
-                    <button onclick="showSection('orders')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave">
+                    <button onclick="showSection('orders')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave hover:translate-x-2">
                         <i class="fas fa-shopping-bag text-tierra-medio"></i>
                         <span class="font-medium text-gray-700">Mis Pedidos</span>
                     </button>
-                    <button onclick="showSection('favorites')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave">
+                    <button onclick="showSection('favorites')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave hover:translate-x-2">
                         <i class="fas fa-heart text-tierra-medio"></i>
                         <span class="font-medium text-gray-700">Favoritos</span>
                     </button>
-                    <button onclick="showSection('settings')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave">
+                    <button onclick="showSection('settings')" class="menu-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave hover:translate-x-2">
                         <i class="fas fa-cog text-tierra-medio"></i>
                         <span class="font-medium text-gray-700">Configuración</span>
                     </button>
                     <hr class="my-4 border-gray-200">
-                    <a href="<?= BASE_URL ?>" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave text-gray-700">
+                    <a href="<?= BASE_URL ?>" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-beige-suave text-gray-700 hover:translate-x-2">
                         <i class="fas fa-arrow-left text-tierra-medio"></i>
                         <span class="font-medium">Volver al Inicio</span>
                     </a>
-                    <button onclick="logout()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-red-50 text-red-600">
+                    <button onclick="logout()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 hover:bg-red-50 text-red-600 hover:translate-x-2">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="font-medium">Cerrar Sesión</span>
                     </button>
@@ -200,14 +212,14 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico</label>
                                     <input type="email" id="input-email" value="<?= htmlspecialchars($email_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
                                 </div>
-                                <div>
+                                <!-- <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
                                     <input type="tel" id="input-telefono" value="+57 300 123 4567" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Ciudad</label>
                                     <input type="text" id="input-ciudad" value="Bogotá, Colombia" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
-                                </div>
+                                </div> -->
                             </div>    
                     </div>
                 </section>
@@ -263,12 +275,7 @@
                                 </div>
                             </div>
 
-                            <!-- Empty State (if no orders) -->
-                            <!-- <div class="text-center py-12">
-                                <i class="fas fa-shopping-bag text-6xl text-gray-300 mb-4"></i>
-                                <p class="text-gray-500 mb-4">No tienes pedidos aún</p>
-                                <a href="<?= BASE_URL ?>" class="btn-primary text-white px-6 py-3 rounded-lg inline-block">Explorar Productos</a>
-                            </div> -->
+                          
                         </div>
                     </div>
                 </section>
@@ -374,23 +381,63 @@
         </div>
     </div>
 
+
     <script>
+        let isTransitioning = false; // Flag to prevent rapid clicks
+        
         function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
+            // Prevent multiple transitions at once
+            if (isTransitioning) return;
             
-            // Remove active class from all menu items
+            const currentSection = document.querySelector('.content-section.active');
+            const targetSection = document.getElementById(sectionId);
+            
+            // Si la sección ya es la activa, no hacer nada
+            if (currentSection && currentSection.id === sectionId) return;
+
+            // Actualizar menú activo
             document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active-item');
+                // Removemos las clases antiguas por si acaso
                 item.classList.remove('bg-beige-suave', 'border-l-4', 'border-naranja-artesanal');
+                
+                if (item.getAttribute('onclick')?.includes(sectionId)) {
+                    item.classList.add('active-item');
+                }
             });
-            
-            // Show selected section
-            document.getElementById(sectionId).classList.add('active');
-            
-            // Add active class to clicked menu item
-            event.target.closest('.menu-item').classList.add('bg-beige-suave', 'border-l-4', 'border-naranja-artesanal');
+
+            // Animación de salida para la sección actual
+            if (currentSection) {
+                isTransitioning = true; // Set flag
+                
+                currentSection.classList.add('closing');
+                currentSection.classList.remove('active');
+                
+                // Esperar a que termine la transición (300ms = 0.3s)
+                setTimeout(() => {
+                    currentSection.classList.remove('closing');
+                    currentSection.style.display = 'none'; // Asegurar que se oculte
+                    
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                        // Pequeño delay para permitir que el navegador renderice el display:block antes de la opacidad
+                        requestAnimationFrame(() => {
+                            targetSection.classList.add('active');
+                            isTransitioning = false; // Clear flag
+                        });
+                    } else {
+                        isTransitioning = false; // Clear flag even if no target
+                    }
+                }, 300);
+            } else {
+                // Si no hay sección activa (ej: carga inicial), mostrar directamente
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    requestAnimationFrame(() => {
+                        targetSection.classList.add('active');
+                    });
+                }
+            }
         }
 
         function logout() {
@@ -404,30 +451,25 @@
 
         function toggleEdit() {
             const inputs = document.querySelectorAll('.profile-input');
-            const changePhotoBtn = document.getElementById('change-photo-btn');
             const btnEditar = document.getElementById('btn-editar');
             const saveCancelButtons = document.getElementById('save-cancel-buttons');
             
             // Save original data
             originalFormData = {
                 nombre: document.getElementById('input-nombre').value,
-                email: document.getElementById('input-email').value,
-                telefono: document.getElementById('input-telefono').value,
-                ciudad: document.getElementById('input-ciudad').value,
-                direccion: document.getElementById('input-direccion').value
+                apellido: document.getElementById('input-apellido').value,
+                email: document.getElementById('input-email').value
             };
             
-            // Enable all inputs
+            // Enable inputs
             inputs.forEach(input => {
+                // No habilitar email si es inmutable
+                if (input.id === 'input-email') return;
+
                 input.disabled = false;
                 input.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
                 input.classList.add('bg-white', 'text-gray-800');
             });
-            
-            // Enable change photo button
-            changePhotoBtn.disabled = false;
-            changePhotoBtn.classList.remove('text-gray-400', 'cursor-not-allowed');
-            changePhotoBtn.classList.add('text-naranja-artesanal', 'hover:underline');
             
             // Toggle buttons
             btnEditar.classList.add('hidden');
@@ -435,22 +477,64 @@
             saveCancelButtons.classList.add('flex');
         }
 
-        function saveProfile() {
-            // Here you would send the data to the server
-            // For now, just show a success message
-            alert('✅ Perfil actualizado correctamente');
-            
-            // Disable editing mode
-            disableEditMode();
+        async function saveProfile() {
+            const nombre = document.getElementById('input-nombre').value;
+            const apellido = document.getElementById('input-apellido').value;
+            const btnGuardar = document.querySelector('#save-cancel-buttons button:first-child');
+            const originalText = btnGuardar.innerHTML;
+
+            // Mostrar estado de carga
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+
+            const formData = new FormData();
+            formData.append('accion', 'update_profile');
+            formData.append('nombre', nombre);
+            formData.append('apellido', apellido);
+
+            try {
+                const response = await fetch(BASE_URL + 'dashboard', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Verificar si la respuesta es JSON válido
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    throw new Error("Respuesta no válida del servidor");
+                }
+
+                const data = await response.json();
+
+                if (data.clase === 'mensaje-exito') {
+                    showToast(data.mensaje, 'success');
+                    
+                    // Actualizar UI
+                    document.querySelector('h3.text-xl').textContent = `${nombre} ${apellido}`;
+                    document.getElementById('avatar-image').alt = `${nombre} ${apellido}`;
+                    
+                    // Actualizar datos originales
+                    originalFormData.nombre = nombre;
+                    originalFormData.apellido = apellido; // Guardar apellido también
+
+                    disableEditMode();
+                } else {
+                    showToast('Error: ' + data.mensaje, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al conectar con el servidor', 'error');
+            } finally {
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = originalText;
+            }
         }
 
         function cancelEdit() {
             // Restore original data
             document.getElementById('input-nombre').value = originalFormData.nombre;
-            document.getElementById('input-email').value = originalFormData.email;
-            document.getElementById('input-telefono').value = originalFormData.telefono;
-            document.getElementById('input-ciudad').value = originalFormData.ciudad;
-            document.getElementById('input-direccion').value = originalFormData.direccion;
+            document.getElementById('input-apellido').value = originalFormData.apellido;
+            // No need to restore email as it's disabled
             
             // Disable editing mode
             disableEditMode();
@@ -458,7 +542,6 @@
 
         function disableEditMode() {
             const inputs = document.querySelectorAll('.profile-input');
-            const changePhotoBtn = document.getElementById('change-photo-btn');
             const btnEditar = document.getElementById('btn-editar');
             const saveCancelButtons = document.getElementById('save-cancel-buttons');
             
@@ -468,11 +551,6 @@
                 input.classList.remove('bg-white', 'text-gray-800');
                 input.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
             });
-            
-            // Disable change photo button
-            changePhotoBtn.disabled = true;
-            changePhotoBtn.classList.remove('text-naranja-artesanal', 'hover:underline');
-            changePhotoBtn.classList.add('text-gray-400', 'cursor-not-allowed');
             
             // Toggle buttons
             btnEditar.classList.remove('hidden');
@@ -520,6 +598,8 @@
             }
         });
     </script>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+    <script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
     <script src="<?= BASE_URL ?>src/scripts/profile.js"></script>
 </body>
 </html>

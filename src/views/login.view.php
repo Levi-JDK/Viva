@@ -65,6 +65,7 @@
 		</div>
 	</div>
 	<!-- <?php require_once 'partials/footer_login.php'; ?> -->
+	<script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
 	<script src="<?= BASE_URL ?>src/scripts/login-ui.js"></script>
 	<script src="<?= BASE_URL ?>src/scripts/auth.js"></script>
 </body>

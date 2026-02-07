@@ -113,6 +113,11 @@ CREATE TABLE IF NOT EXISTS tab_menu_user
 -- Tabla de bancos
 CREATE TABLE IF NOT EXISTS tab_bancos
 (
+
+
+
+
+    
     id_banco   VARCHAR  NOT NULL,                                       -- Código del banco
     nom_banco  VARCHAR  NOT NULL,                                       -- Nombre del banco
     dir_banco  VARCHAR  NOT NULL,                                       -- Dirección del banco
@@ -227,8 +232,6 @@ CREATE TABLE IF NOT EXISTS tab_productores
 (
     tipo_doc_productor DECIMAL(1,0)  NOT NULL,                           -- Tipo de documento del productor
     id_productor       DECIMAL(10,0) NOT NULL CHECK (id_productor BETWEEN 1 AND 9999999999), -- Número de documento
-    nom_prod           VARCHAR       NOT NULL,                            -- Nombre del productor
-    ape_prod           VARCHAR       NOT NULL,                            -- Apellido del productor
     id_user            INTEGER       NOT NULL,                            -- Usuario asociado en la plataforma
     dir_prod           VARCHAR       NOT NULL,                            -- Dirección del productor
     nom_emprend        VARCHAR       NOT NULL,                            -- Nombre del emprendimiento

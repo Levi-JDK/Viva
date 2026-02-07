@@ -3,7 +3,6 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 // Verificar que el usuario esté autenticado
 // Si hay una sesión antigua sin id_user pero con email, obtener el id_user
 if (!isset($_SESSION['id_user']) && isset($_SESSION['email'])) {
@@ -12,18 +11,14 @@ if (!isset($_SESSION['id_user']) && isset($_SESSION['email'])) {
         require_once ROOT_PATH . 'vendor/autoload.php';
         require_once ROOT_PATH . 'src/functions/Database.php';
         require_once ROOT_PATH . 'src/functions/config.php';
-        
         $dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
         $dotenv->load();
-        
         $config = require ROOT_PATH . 'src/functions/config.php';
         $db = new Database($config, $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD']);
         $pdo = $db->connection;
-        
         $stmt = $pdo->prepare("SELECT id_user FROM tab_users WHERE mail_user = :email");
         $stmt->execute([':email' => $_SESSION['email']]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
         if ($result) {
             $_SESSION['id_user'] = $result['id_user'];
         } else {
@@ -62,6 +57,55 @@ try {
     $pdo = $db->connection;
 } catch (Exception $e) {
     die("Error de conexión a base de datos: " . $e->getMessage());
+}
+
+// ============================================================================
+// MANEJAR PETICIONES POST (ACTUALIZAR PERFIL, ETC.)
+// ============================================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+    
+    // Verificar sesión nuevamente por seguridad
+    if (!isset($_SESSION['id_user'])) {
+        echo json_encode(['clase' => 'mensaje-error', 'mensaje' => 'Sesión no válida o expirada.']);
+        exit;
+    }
+
+    $accion = $_POST['accion'] ?? '';
+
+    if ($accion === 'update_profile') {
+        $nombre = trim($_POST['nombre'] ?? '');
+        $apellido = trim($_POST['apellido'] ?? '');
+        $id_usuario = $_SESSION['id_user'];
+
+        if (empty($nombre) || empty($apellido)) {
+            echo json_encode(['clase' => 'mensaje-error', 'mensaje' => 'El nombre y apellido son obligatorios.']);
+            exit;
+        }
+
+        try {
+            $sql = "UPDATE tab_users SET nom_user = :nombre, ape_user = :apellido WHERE id_user = :id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':nombre' => $nombre,
+                ':apellido' => $apellido,
+                ':id' => $id_usuario
+            ]);
+
+            // Actualizar variables de sesión para reflejar el cambio inmediatamente
+            $_SESSION['nombre'] = $nombre;
+
+            echo json_encode(['clase' => 'mensaje-exito', 'mensaje' => 'Perfil actualizado correctamente.']);
+            exit;
+        } catch (PDOException $e) {
+            echo json_encode(['clase' => 'mensaje-error', 'mensaje' => 'Error al actualizar: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+    
+    // Si la acción no es válida
+    echo json_encode(['clase' => 'mensaje-error', 'mensaje' => 'Acción no reconocida.']);
+    exit;
 }
 
 // Obtener datos del usuario actual

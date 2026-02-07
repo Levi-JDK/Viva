@@ -42,22 +42,77 @@
                 </div>
 
                 <!-- Navigation - Hidden on mobile -->
-                <nav class="hidden lg:flex items-center space-x-8">
+                <nav class="hidden lg:flex items-center space-x-8 pr-10">
                     <a href="#inicio" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">Inicio</a>
                     <a href="#categorias" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">Categorías</a>
                     <a href="#ofertas" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">Ofertas</a>
-                    <a href="#vender" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">Vender</a>
                 </nav>
 
                 <!-- Login Button -->
                 <!-- Login Button -->
-                <div class="flex items-center space-x-4 ">
+                <div class="flex items-center space-x-4 pr-10">
                     <div id="user-section">
-                        <a href="<?= BASE_URL."login" ?>" class="btn-primary header-login text-white px-6 py-2 rounded-full font-medium hover:shadow-lg ">
-                            Iniciar Sesión
-                        </a>
+                        <?php if ($is_logged_in): ?>
+                            <!-- User Dropdown -->
+                            <div class="relative user-menu">
+                                <button id="userMenuBtn" class="flex items-center space-x-2 hover:opacity-80 transition-opacity focus:outline-none">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden shadow-md">
+                                        <img src="<?= BASE_URL . $foto_usuario ?>?v=<?= time() ?>" 
+                                             alt="<?= htmlspecialchars($nombre_usuario) ?>" 
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                    <span class="hidden md:block font-medium text-tierra-oscuro"><?= htmlspecialchars($nombre_usuario) ?></span>
+                                    <i class="fas fa-chevron-down text-sm text-gray-600"></i>
+                                </button>
+                                
+                                <!-- Dropdown Menu -->
+                                <div id="userDropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible transform scale-95 transition-all duration-200 z-50">
+                                    <div class="px-4 py-3 border-b border-gray-100">
+                                        <p class="text-sm font-semibold text-tierra-oscuro"><?= htmlspecialchars($nombre_usuario) ?></p>
+                                        <p class="text-xs text-gray-500"><?= htmlspecialchars($email_usuario) ?></p>
+                                    </div>
+                                    <ul class="py-2">
+                                        <li>
+                                            <a href="<?= BASE_URL ?>dashboard#profile" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-beige-suave transition-colors">
+                                                <i class="fas fa-user w-5"></i>
+                                                <span class="ml-3">Mi Perfil</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="<?= BASE_URL ?>dashboard#orders" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-beige-suave transition-colors">
+                                                <i class="fas fa-shopping-bag w-5"></i>
+                                                <span class="ml-3">Mis Pedidos</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="<?= BASE_URL ?>dashboard#favorites" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-beige-suave transition-colors">
+                                                <i class="fas fa-heart w-5"></i>
+                                                <span class="ml-3">Favoritos</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="<?= BASE_URL ?>dashboard#settings" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-beige-suave transition-colors">
+                                                <i class="fas fa-cog w-5"></i>
+                                                <span class="ml-3">Configuración</span>
+                                            </a>
+                                        </li>
+                                        <li class="border-t border-gray-100 mt-2 pt-2">
+                                            <a href="<?= BASE_URL ?>logout" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                                                <i class="fas fa-sign-out-alt w-5"></i>
+                                                <span class="ml-3">Cerrar Sesión</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <!-- Login Button -->
+                            <a href="<?= BASE_URL ?>login" class="btn-primary header-login text-white px-6 py-2 rounded-full font-medium hover:shadow-lg">
+                                Iniciar Sesión
+                            </a>
+                        <?php endif; ?>
                     </div>
-                    <button id="cartBtn" class="relative text-gray-700 pl-4">
+                    <button id="cartBtn" class="relative text-gray-700 pl-10">
                          <i class="fas fa-shopping-cart text-xl "></i>
                         <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 rounded-full">0</span>
                     </button>
@@ -86,21 +141,31 @@
                     <a href="#inicio" class="text-gray-700 hover:text-naranja-artesanal font-medium">Inicio</a>
                     <a href="#categorias" class="text-gray-700 hover:text-naranja-artesanal font-medium">Categorías</a>
                     <a href="#ofertas" class="text-gray-700 hover:text-naranja-artesanal font-medium">Ofertas</a>
-                   <!-- <a href="#vender" class="text-gray-700 hover:text-naranja-artesanal font-medium">Vender</a> --> 
                 </nav>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section id="inicio" class="hero-bg min-h-screen flex items-center section-hero">
-        <div class="container mx-auto px-4 text-center text-white">
+    <section id="inicio" class="relative min-h-screen flex items-center overflow-hidden">
+        <!-- Hero Background -->
+        <div class="absolute inset-0 z-0">
+            <picture>
+                <source media="(max-width: 640px)" srcset="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg">
+                <img src="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg" 
+                     alt="Artesanías Colombianas" 
+                     class="w-full h-full object-cover">
+            </picture>
+            <div class="absolute inset-0 bg-black/50"></div>
+        </div>
+
+        <div class="container mx-auto px-4 text-center text-white relative z-10">
             <div class="max-w-4xl mx-auto fade-in">
                 <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                    Conecta con nuestras <span class="text-yellow-300">raíces</span>
+                    Conecta con nuestro <span class="text-yellow-300">mercado real</span>
                 </h1>
                 <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
-                    Compra y apoya a los artesanos indígenas de Colombia. Cada compra preserva tradiciones milenarias.
+                    Conoce los productos de naturaleza autoctona y artesanal de Colombia.
                 </p>
                 <button onclick="scrollToSection('categorias')" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">
                     <span>Explorar ahora</span>
@@ -140,7 +205,25 @@
     </section>
 
     <!-- Categories Section -->
-    <section id="categorias" class="py-16 bg-white">
+    <section id="categorias" class="py-16 bg-gradient-to-b from-tierra-claro to-beige-suave/30">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
+                    Nuestros afiliados
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Category Cards -->
+                
+        
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section id="categorias" class="py-16 bg-gradient-to-b from-blanco-/30 to-tierra-claro">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
@@ -188,6 +271,12 @@
             </div>
         </div>
     </section>
+
+    
+
+
+
+
 
     <!-- Featured Products Section -->
     <section id="ofertas" class="py-16 bg-gray-50">
@@ -475,7 +564,7 @@
         <button class="btn-primary w-full py-2 text-white rounded-lg">Finalizar compra</button>
     </div>
 </aside>
-    <script src="<?= BASE_URL ?>src/scripts/script1.js"></script>
-    <script src="<?= BASE_URL ?>src/scripts/script_landing.js"></script>
+    <script src="<?= BASE_URL ?>src/scripts/script1.js?v=4"></script>
+    <script src="<?= BASE_URL ?>src/scripts/script_landing.js?v=4"></script>
 </body>
 </html>
