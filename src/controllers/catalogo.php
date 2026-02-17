@@ -39,19 +39,16 @@ $min_precio = isset($_GET['min_price']) && is_numeric($_GET['min_price']) ? $_GE
 $max_precio = isset($_GET['max_price']) && is_numeric($_GET['max_price']) ? $_GET['max_price'] : null;
 // Obtener productos
 try {
-    $params = [
-        ':search' => $search,
-        ':categoria' => $categoria,
-        ':min_precio' => $min_precio,
-        ':max_precio' => $max_precio
-    ];
-    $productos = []; // $db->ejecutar('buscarProductos', $params)->fetchAll(PDO::FETCH_ASSOC);
+    // For now, get all products - filtering can be added later
+    $stmt = $db->ejecutar('obtenerProductosCatalogo', []);
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Obtener categorías para el sidebar
-    $categorias_list = []; // $db->ejecutar('obtenerConteoCategorias')->fetchAll(PDO::FETCH_ASSOC);
+    // Obtener categorías para el sidebar (placeholder for future)
+    $categorias_list = [];
     
 } catch (Exception $e) {
     $error_message = "Error al cargar productos: " . $e->getMessage();
+    error_log($error_message);
     $productos = [];
     $categorias_list = [];
 }

@@ -314,89 +314,23 @@
                     Las mejores creaciones de nuestros artesanos, seleccionadas especialmente para ti
                 </p>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Product Cards -->
-                <div class="product-card bg-white rounded-2xl overflow-hidden h-full flex flex-col">
-                    <div class="h-48 bg-gradient-to-br from-tierra-claro to-beige-suave relative">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="<?= BASE_URL ?>images/wayuu.jpg" alt="">
-                        </div>
-                        <span class="absolute top-3 left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">Oferta</span>
-                    </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <h3 class="font-semibold text-tierra-oscuro mb-2">Canasto Wayuu Tradicional</h3>
-                        <p class="text-sm text-gray-600 mb-2">Comunidad Wayuu - La Guajira</p>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-lg font-bold text-tierra-oscuro">$120.000</span>
-                                <span class="text-sm text-gray-400 line-through ml-2">$150.000</span>
-                            </div>
-                            <button onclick="addToCart('Canasto Wayuu Tradicional', 120000)" 
-                                    class="bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white px-4 py-2 rounded-lg text-sm hover:shadow-lg transition-all">
-                                     Comprar
-                            </button>
-                        </div>
-                    </div>
+
+            <?php if (!empty($featured_products)): ?>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <?php 
+                    $show_price = false; // Hide price on landing page
+                    foreach ($featured_products as $product): 
+                        require __DIR__ . '/partials/card_producto.php';
+                    endforeach; 
+                    ?>
                 </div>
-                <div class="product-card bg-white rounded-2xl overflow-hidden h-full flex flex-col">
-                    <div class="h-48 bg-gradient-to-br from-verde-artesanal to-tierra-claro relative">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="<?= BASE_URL ?>images/mochila-arhuaca.jpg" alt="">
-                        </div>
-                    </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <h3 class="font-semibold text-tierra-oscuro mb-2">Mochila Arhuaca Original</h3>
-                        <p class="text-sm text-gray-600 mb-2">Comunidad Arhuaca - Sierra Nevada</p>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-lg font-bold text-tierra-oscuro">$280.000</span>
-                            </div>
-                            <button class="bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white px-4 py-2 rounded-lg text-sm hover:shadow-lg transition-all">
-                                Comprar
-                            </button>
-                        </div>
-                    </div>
+            <?php else: ?>
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>
+                    <p class="text-lg">Próximamente nuevos productos</p>
                 </div>
-                <div class="product-card bg-white rounded-2xl overflow-hidden h-full flex flex-col">
-                    <div class="h-48 bg-gradient-to-br from-naranja-artesanal to-tierra-medio relative">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="<?= BASE_URL ?>images/vasija embera.jpg" alt="">
-                        </div>
-                        <span class="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">Popular</span>
-                    </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <h3 class="font-semibold text-tierra-oscuro mb-2">Vasija Embera Decorativa</h3>
-                        <p class="text-sm text-gray-600 mb-2">Comunidad Emberá - Chocó</p>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-lg font-bold text-tierra-oscuro">$95.000</span>
-                            </div>
-                            <button class="bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white px-4 py-2 rounded-lg text-sm hover:shadow-lg transition-all">
-                                Comprar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="product-card bg-white rounded-2xl overflow-hidden h-full flex flex-col">
-                    <div class="h-48 bg-gradient-to-br from-tierra-medio to-verde-artesanal relative">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <img src="<?= BASE_URL ?>images/sombrero.jpg" alt="">
-                        </div>
-                    </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <h3 class="font-semibold text-tierra-oscuro mb-2">Sombrero Vueltiao</h3>
-                        <p class="text-sm text-gray-600 mb-2">Comunidad Zenú - Córdoba</p>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-lg font-bold text-tierra-oscuro">$225.000</span>
-                            </div>
-                            <button class="bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white px-4 py-2 rounded-lg text-sm hover:shadow-lg transition-all">
-                                Comprar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
+
             <div class="text-center mt-8">
                 <button class="btn-primary text-white px-8 py-3 rounded-full font-medium hover:shadow-xl">
                     <a href="<?= BASE_URL ?>catalogo">Ver todos los productos</a>

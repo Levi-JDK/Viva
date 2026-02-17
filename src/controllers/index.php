@@ -60,6 +60,16 @@ try {
     error_log("Error al obtener stands destacados: " . $e->getMessage());
 }
 
+// Get featured products for the landing page (max 4)
+$featured_products = [];
+try {
+    $db = Database::getInstance();
+    $stmt = $db->ejecutar('obtenerProductosDestacados', [':limit' => 4]);
+    $featured_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    error_log("Error al obtener productos destacados: " . $e->getMessage());
+}
+
 // Usamos ROOT_PATH para que el include sea absoluto desde el disco
 require_once ROOT_PATH . "src/views/index.view.php";
 ?>

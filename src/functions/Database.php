@@ -106,6 +106,41 @@ class Database {
                 :descripcion_stand, :img_stand, :portada_stand
             )
         ");
+        
+        // Obtener productos destacados con info de stand y primera imagen
+        $this->statements['obtenerProductosDestacados'] = $this->connection->prepare("
+            SELECT 
+                p.id_producto,
+                p.id_productor,
+                p.nom_producto,
+                p.precio_producto,
+                p.descripcion_producto,
+                s.nom_stand,
+                s.img_stand,
+                (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
+            FROM tab_productos p
+            LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
+            WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+            ORDER BY p.created_at DESC
+            LIMIT :limit
+        ");
+        
+        // Obtener todos los productos para catálogo
+        $this->statements['obtenerProductosCatalogo'] = $this->connection->prepare("
+            SELECT 
+                p.id_producto,
+                p.id_productor,
+                p.nom_producto,
+                p.precio_producto,
+                p.descripcion_producto,
+                s.nom_stand,
+                s.img_stand,
+                (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
+            FROM tab_productos p
+            LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
+            WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+            ORDER BY p.created_at DESC
+        ");
 
 
     }

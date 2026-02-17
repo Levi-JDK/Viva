@@ -142,30 +142,13 @@
                         <p class="text-gray-500 text-sm">Revisa que la palabra esté bien escrita o intenta con menos filtros.</p>
                     </div>
                 <?php else: ?>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                        <?php foreach ($productos as $prod): ?>
-                            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100 overflow-hidden flex flex-col h-full group">
-                                <div class="relative h-56 bg-white flex items-center justify-center p-4 border-b border-gray-50">
-                                    <img src="<?= BASE_URL . $prod['imagen'] ?>" alt="<?= htmlspecialchars($prod['nom_producto']) ?>" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
-                                </div>
-                                <div class="p-4 flex-1 flex flex-col">
-                                    <span class="text-sm font-bold text-gray-900 text-2xl mb-1">
-                                        $ <?= number_format($prod['precio_producto'], 0, ',', '.') ?>
-                                    </span>
-                                    <h2 class="text-sm text-gray-600 font-medium leading-snug line-clamp-2 mb-2 flex-1">
-                                        <?= htmlspecialchars($prod['nom_producto']) ?>
-                                    </h2>
-                                    <?php if ($prod['precio_producto'] > 100000): ?>
-                                        <p class="text-xs text-green-600 font-bold mb-1">Envío gratis</p>
-                                    <?php endif; ?>
-                                    <p class="text-xs text-gray-400 mb-3">Por <?= htmlspecialchars($prod['nom_categoria']) ?></p>
-                                    
-                                    <button class="w-full mt-auto bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white py-2 rounded-md text-sm font-medium transition-colors">
-                                        Ver detalle
-                                    </button>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <?php 
+                        $show_price = true; // Show price in catalog
+                        foreach ($productos as $product): 
+                            require ROOT_PATH . 'src/views/partials/card_producto.php';
+                        endforeach; 
+                        ?>
                     </div>
                 <?php endif; ?>
             </div>
