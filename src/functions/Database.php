@@ -142,6 +142,11 @@ class Database {
             ORDER BY p.created_at DESC
         ");
 
+        // Obtener detalle completo del producto (Producto + Stand + Imágenes + Ubicación)
+        $this->statements['obtenerDetalleProducto'] = $this->connection->prepare("
+            SELECT * FROM fun_obtener_detalle_producto(:id_producto)
+        ");
+
 
     }
 

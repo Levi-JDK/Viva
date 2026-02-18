@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gray-50 font-sans antialiased text-gray-800">
 
-    <?php require_once __DIR__ . '/partials/header.php'; ?>
+    <?php require_once __DIR__ . '/partials/navbar.php'; ?>
 
     <main class="container mx-auto px-4 py-8 mt-20">
         <?php if ($error_message): ?>
@@ -66,12 +66,34 @@
                                 <?= htmlspecialchars($producto['nom_producto']) ?>
                             </h1>
 
-                            <div class="flex items-center text-sm text-gray-500 mb-6">
-                                <i class="fas fa-store mr-2"></i>
-                                <span>Vendido por <strong class="text-gray-700"><?= htmlspecialchars($producto['nom_productor']) ?></strong></span>
-                                <span class="mx-2">•</span>
-                                <i class="fas fa-map-marker-alt mr-2"></i>
-                                <span><?= htmlspecialchars($producto['ubicacion']) ?></span>
+                            <!-- Stand Card -->
+                            <div class="mt-4 mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex items-start gap-4">
+                                <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="flex-shrink-0 group">
+                                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-all">
+                                        <img src="<?= !empty($producto['img_stand']) ? BASE_URL . $producto['img_stand'] : BASE_URL . 'images/default_store.png' ?>" 
+                                             alt="<?= htmlspecialchars($producto['nom_stand'] ?? 'Stand') ?>" 
+                                             class="w-full h-full object-cover">
+                                    </div>
+                                </a>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-naranja-artesanal uppercase tracking-wider mb-1">Vendido por</p>
+                                    <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="block group">
+                                        <h3 class="text-lg font-bold text-tierra-oscuro truncate group-hover:text-naranja-artesanal transition-colors">
+                                            <?= htmlspecialchars($producto['nom_stand'] ?? $producto['nom_productor']) ?>
+                                        </h3>
+                                    </a>
+                                    <?php if (!empty($producto['slogan_stand'])): ?>
+                                        <p class="text-xs text-gray-500 italic truncate">"<?= htmlspecialchars($producto['slogan_stand']) ?>"</p>
+                                    <?php endif; ?>
+                                    <div class="flex items-center mt-2 text-xs text-gray-500">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        <span class="truncate"><?= htmlspecialchars($producto['ubicacion'] ?? 'Colombia') ?></span>
+                                        <span class="mx-2 text-gray-300">|</span>
+                                        <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="text-blue-600 hover:underline font-medium">
+                                            Ver perfil
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="text-3xl font-bold text-naranja-artesanal mb-6">

@@ -12,50 +12,31 @@ $$ LANGUAGE plpgsql;
 
 DO $$
 DECLARE
-    table_name text;
+    r record;
     trig_name  text;
-    tables text[] := ARRAY[
-        'tab_pmtros',
-        'tab_users',
-        'tab_menu',
-        'tab_menu_user',
-        'tab_bancos',
-        'tab_color',
-        'tab_tipos_doc',
-        'tab_paises',
-        'tab_departamentos',
-        'tab_ciudades',
-        'tab_grupos',
-        'tab_productores',
-        'tab_stand',
-        'tab_idiomas',
-        'tab_monedas',
-        'tab_oficios',
-        'tab_materia_prima',
-        'tab_categorias',
-        'tab_productos',
-        'tab_imagenes',
-        'tab_transportadoras',
-        'tab_formas_pago',
-        'tab_transito',
-        'tab_enc_fact',
-        'tab_det_fact',
-        'tab_envios',
-        'tab_kardex'
-    ];
 BEGIN
-    FOREACH table_name IN ARRAY tables
+    -- Recorrer todas las tablas que empiecen por 'tab_' en el esquema public
+    FOR r IN
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name LIKE 'tab_%'
+          AND table_type = 'BASE TABLE'
     LOOP
-        trig_name := 'trigger_set_updated_' || table_name;
+        trig_name := 'trigger_set_updated_' || r.table_name;
 
-        EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I;', trig_name, table_name);
+        -- Borrar trigger anterior si existe
+        EXECUTE format('DROP TRIGGER IF EXISTS %I ON %I;', trig_name, r.table_name);
 
+        -- Crear el trigger
         EXECUTE format($fmt$
             CREATE TRIGGER %I
             BEFORE UPDATE ON %I
             FOR EACH ROW
             EXECUTE FUNCTION set_updated();
-        $fmt$, trig_name, table_name);
+        $fmt$, trig_name, r.table_name);
+        
+        RAISE NOTICE 'Trigger updated for table: %', r.table_name;
     END LOOP;
 END $$;
 

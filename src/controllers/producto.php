@@ -42,7 +42,7 @@ $error_message = null;
 
 if ($id_producto) {
     try {
-        $stmt = $db->ejecutar('obtenerProductoPorId', [':id_producto' => $id_producto]);
+        $stmt = $db->ejecutar('obtenerDetalleProducto', [':id_producto' => $id_producto]);
         $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($producto) {

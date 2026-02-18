@@ -12,64 +12,8 @@
 <body class="bg-gray-100 font-sans">
     
     <!-- Reuse Header (Ideally should be a partial, but copying structure for now as per plan) -->
-    <header class="bg-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between gap-4">
-                <!-- Logo -->
-                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 flex-shrink-0">
-                    <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center">
-                        <img src="<?= BASE_URL ?>images/Logo.png" alt="VIVA" class="w-8 h-8 object-contain">
-                    </div>
-                    <div class="hidden md:block">
-                        <h1 class="text-xl font-bold text-tierra-oscuro">VIVA</h1>
-                    </div>
-                </a>
-
-                <!-- Search Bar -->
-                <form action="<?= BASE_URL ?>catalogo" method="GET" class="flex-1 max-w-3xl">
-                    <div class="relative w-full">
-                        <input 
-                            type="text" 
-                            name="q"
-                            value="<?= htmlspecialchars($search ?? '') ?>"
-                            placeholder="Buscar productos, marcas y más..." 
-                            class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-300 shadow-sm"
-                        >
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <button type="submit" class="absolute right-0 top-0 h-full px-4 bg-gray-100 border-l border-gray-300 hover:bg-gray-200 text-gray-600 rounded-r-sm">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-
-                <!-- User Actions -->
-                <div class="flex items-center space-x-6 text-sm flex-shrink-0">
-                    <?php if ($is_logged_in): ?>
-                        <div class="relative group">
-                            <button class="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
-                                <img src="<?= BASE_URL . $foto_usuario ?>?v=<?= time() ?>" class="w-8 h-8 rounded-full object-cover border border-gray-200">
-                                <span class="hidden lg:inline"><?= htmlspecialchars($nombre_usuario) ?></span>
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </button>
-                             <!-- Dropdown -->
-                             <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <a href="<?= BASE_URL ?>perfil" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Mi Perfil</a>
-                                <a href="<?= BASE_URL ?>perfil#orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Mis Compras</a>
-                                <div class="border-t border-gray-100 my-1"></div>
-                                <a href="<?= BASE_URL ?>logout" class="block px-4 py-2 text-red-600 hover:bg-red-50">Salir</a>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <a href="<?= BASE_URL ?>login" class="text-gray-700 hover:text-gray-900 font-medium">Ingresa</a>
-                        <a href="<?= BASE_URL ?>registro" class="text-gray-700 hover:text-gray-900 font-medium">Crea tu cuenta</a>
-                    <?php endif; ?>
-                    <a href="#" class="text-gray-700 hover:text-gray-900 relative">
-                        <i class="fas fa-shopping-cart text-lg"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Header -->
+    <?php require_once __DIR__ . '/partials/navbar.php'; ?>
 
     <main class="container mx-auto px-4 py-8">
         <div class="flex flex-col lg:flex-row gap-8">

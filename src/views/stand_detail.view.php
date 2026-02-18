@@ -9,15 +9,8 @@
 </head>
 <body class="bg-gray-50 font-sans antialiased">
     
-    <!-- Header with Back Button -->
-    <div class="bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-4">
-            <a href="<?= BASE_URL ?>test-stands" class="inline-flex items-center text-tierra-oscuro hover:text-naranja-artesanal transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>
-                <span>Volver a la galería</span>
-            </a>
-        </div>
-    </div>
+    <!-- Navbar -->
+    <?php require_once __DIR__ . '/partials/navbar.php'; ?>
 
     <!-- Stand Hero Section -->
     <div class="relative">
