@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db = Database::getInstance();
         $conn = $db->connection;
-        
+
         // --- Input Validation ---
         $nom_producto = $_POST['nom_producto'] ?? '';
         $precio = $_POST['precio_producto'] ?? 0;
@@ -47,13 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_oficio = $_POST['id_oficio'] ?? null;
         $id_materia = $_POST['id_materia'] ?? null;
         $desc = $_POST['desc_prod_personal'] ?? '';
-        
+
         if (empty($nom_producto) || empty($id_categoria) || empty($id_color)) {
             throw new Exception("Faltan campos obligatorios.");
         }
 
         // --- Server-Side Validation ---
-        
+
         // 1. Numeric Validation
         if (!is_numeric($precio) || $precio < 1) {
             throw new Exception("El precio debe ser un número válido mayor a 0.");
@@ -67,11 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!preg_match('/^[a-zA-Z0-9\s\.\,\-\_áéíóúÁÉÍÓÚñÑüÜ]+$/u', $nom_producto)) { // Added u modifier for unicode
             throw new Exception("El nombre del producto contiene caracteres no permitidos.");
         }
-        
+
         // Allow a wider range of characters for description including newlines, punctuation, etc.
         // Removed strict regex to allow free text (still sanitized below)
         if (!empty($desc) && strlen($desc) > 5000) {
-             throw new Exception("La descripción es demasiado larga (máx 5000 caracteres).");
+            throw new Exception("La descripción es demasiado larga (máx 5000 caracteres).");
         }
 
         // Sanitize for DB (though PDO binding handles most)
@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Handle Images with the generated ID
         $uploaded_paths = [];
         $target_directory = __DIR__ . '/../../images/products/';
-        
+
         if (isset($_FILES['imagen_producto'])) {
             $files = $_FILES['imagen_producto'];
             $count = is_array($files['name']) ? count($files['name']) : 1;
@@ -133,8 +133,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             for ($i = 0; $i < $count; $i++) {
-                if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
-                
+                if ($files['error'][$i] !== UPLOAD_ERR_OK)
+                    continue;
+
                 $current_file = [
                     'name' => $files['name'][$i],
                     'type' => $files['type'][$i],
@@ -152,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($uploaded_paths)) {
-             throw new Exception("Debe subir al menos una imagen válida.");
+            throw new Exception("Debe subir al menos una imagen válida.");
         }
 
         // 3. Insert Images
@@ -166,10 +167,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->commit();
         echo json_encode(['success' => true, 'message' => 'Producto publicado exitosamente.']);
 
-    } catch (Exception $e) {
-        if (isset($conn)) $conn->rollBack();
+    }
+    catch (Exception $e) {
+        if (isset($conn))
+            $conn->rollBack();
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-} else {
+}
+else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);
 }

@@ -121,7 +121,7 @@ class Database {
             FROM tab_productos p
             LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
             WHERE p.is_deleted = FALSE AND p.is_active = TRUE
-            ORDER BY p.created_at DESC
+            ORDER BY p.created_at ASC
             LIMIT :limit
         ");
         

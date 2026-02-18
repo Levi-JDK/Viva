@@ -63,7 +63,21 @@ function handleImageUpload($file, $target_dir, $prefix = 'img_', $web_path_folde
     // ============================================================================
     
     if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0777, true);
+        // Intentar crear directorio con permisos 0775 (más seguro que 0777)
+        if (!@mkdir($target_dir, 0775, true)) {
+            return [
+                'success' => false, 
+                'message' => 'No se pudo crear el directorio. Verifica permisos del servidor.'
+            ];
+        }
+    }
+    
+    // Verificar permisos de escritura ANTES de intentar subir
+    if (!is_writable($target_dir)) {
+        return [
+            'success' => false,
+            'message' => 'El directorio no tiene permisos de escritura. Contacta al administrador del servidor.'
+        ];
     }
 
     // ============================================================================

@@ -221,10 +221,10 @@
     <section id="categorias" class="py-16 bg-gradient-to-b from-tierra-claro to-beige-suave/30">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12 fade-in">
-                <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#4F270B] mb-4">
                     Nuestros afiliados
                 </h2>
-                <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                <p class="text-[#4F270B] text-lg max-w-2xl mx-auto">
                     Conoce a los emprendedores que hacen parte de nuestra comunidad artesanal
                 </p>
             </div>
@@ -244,7 +244,7 @@
                 <!-- View All Link -->
                 <div class="text-center mt-10">
                     <a href="<?= BASE_URL ?>test-stands" 
-                       class="inline-flex items-center text-naranja-artesanal hover:text-tierra-oscuro font-medium text-lg transition-colors">
+                            class="btn-primary text-white px-8 py-3 rounded-full font-medium text-lg hover:shadow-xl inline-flex items-center transition-all">
                         Ver todos los emprendimientos
                         <i class="fas fa-arrow-right ml-2"></i>
                     </a>
