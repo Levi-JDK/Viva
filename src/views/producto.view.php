@@ -107,7 +107,7 @@ require_once __DIR__ . '/partials/base_head.php';
 
                             <!-- Stand Card -->
                             <div class="mt-4 mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex items-start gap-4">
-                                <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="flex-shrink-0 group">
+                                <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="flex-shrink-0 group">
                                     <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-all">
                                         <img src="<?= !empty($producto['img_stand']) ? BASE_URL . $producto['img_stand'] : BASE_URL . 'images/default_store.png' ?>" 
                                              alt="<?= htmlspecialchars($producto['nom_stand'] ?? 'Stand') ?>" 
@@ -116,7 +116,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 </a>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-bold text-naranja-artesanal uppercase tracking-wider mb-1">Vendido por</p>
-                                    <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="block group">
+                                    <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="block group">
                                         <h3 class="text-lg font-bold text-tierra-oscuro truncate group-hover:text-naranja-artesanal transition-colors">
                                             <?= htmlspecialchars($producto['nom_stand'] ?? $producto['nom_productor']) ?>
                                         </h3>
@@ -128,7 +128,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         <span class="truncate"><?= htmlspecialchars($producto['ubicacion'] ?? 'Colombia') ?></span>
                                         <span class="mx-2 text-gray-300">|</span>
-                                        <a href="<?= BASE_URL ?>stand/<?= $producto['id_productor'] ?>" class="text-blue-600 hover:underline font-medium">
+                                        <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="text-blue-600 hover:underline font-medium">
                                             Ver perfil
                                         </a>
                                     </div>

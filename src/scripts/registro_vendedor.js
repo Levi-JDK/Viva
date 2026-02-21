@@ -104,6 +104,23 @@ function nextStep() {
         }
     }
 
+    // Validación específica para número de cuenta en el paso 2
+    if (isValid && currentStep === 2) {
+        const accountInput = currentFormStep.querySelector('input[name="numero_cuenta"]');
+        if (accountInput && accountInput.value.length > 12) {
+            if (window.showToast) {
+                showToast('El número de cuenta no puede tener más de 12 dígitos', 'error');
+            } else {
+                alert('El número de cuenta no puede tener más de 12 dígitos');
+            }
+            accountInput.classList.add('border-red-500');
+            accountInput.focus();
+            isValid = false;
+        } else if (accountInput) {
+            accountInput.classList.remove('border-red-500');
+        }
+    }
+
     if (isValid && currentStep < totalSteps) {
         currentStep++;
         if (currentStep === 3) showSummary();

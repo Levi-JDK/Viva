@@ -219,6 +219,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                    pattern="\d+"
                                    title="Solo se permiten números"
+                                   maxlength="12"
                                    class="w-full px-3 py-2 text-sm bg-fondo-oscuro border-none rounded-lg transition-all"
                                    placeholder="Ej: 1234567890">
                         </div>

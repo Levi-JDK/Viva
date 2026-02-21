@@ -72,14 +72,13 @@ require_once __DIR__ . '/partials/base_head.php';
     </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 pb-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="container mx-auto px-4 py-8 pb-16">
+        <div class="max-w-4xl mx-auto space-y-12">
             <!-- Main Column - Description -->
-            <div class="lg:col-span-2">
+            <div>
                 <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
                     <h2 class="text-2xl font-bold text-tierra-oscuro mb-4 flex items-center">
-                        <i class="fas fa-info-circle mr-3 text-naranja-artesanal"></i>
-                        Sobre este emprendimiento
+                        Descripción
                     </h2>
                     
                     <?php if (!empty($stand['descripcion_stand'])): ?>
@@ -115,54 +114,7 @@ require_once __DIR__ . '/partials/base_head.php';
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- Sidebar - Additional Info -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-                    <h3 class="text-xl font-bold text-tierra-oscuro mb-4">Información</h3>
-                    
-                    <div class="space-y-4">
-                        <!-- Producer ID -->
-                        <div class="border-b border-gray-200 pb-4">
-                            <p class="text-sm text-gray-500 mb-1">ID del Productor</p>
-                            <p class="text-lg font-semibold text-tierra-oscuro">#<?= $stand['id_productor'] ?></p>
-                        </div>
-
-                        <!-- Stand ID -->
-                        <div class="border-b border-gray-200 pb-4">
-                            <p class="text-sm text-gray-500 mb-1">ID del Stand</p>
-                            <p class="text-lg font-semibold text-tierra-oscuro">#<?= $stand['id_stand'] ?></p>
-                        </div>
-
-                        <!-- Created Date -->
-                        <div class="border-b border-gray-200 pb-4">
-                            <p class="text-sm text-gray-500 mb-1">Fecha de creación</p>
-                            <p class="text-lg font-semibold text-tierra-oscuro">
-                                <?= date('d/m/Y', strtotime($stand['created_at'])) ?>
-                            </p>
-                        </div>
-
-                        <?php if (!empty($stand['updated_at'])): ?>
-                        <!-- Updated Date -->
-                        <div class="pb-4">
-                            <p class="text-sm text-gray-500 mb-1">Última actualización</p>
-                            <p class="text-lg font-semibold text-tierra-oscuro">
-                                <?= date('d/m/Y', strtotime($stand['updated_at'])) ?>
-                            </p>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- CTA Button (placeholder for future contact/shop features) -->
-                    <div class="mt-6 pt-6 border-t border-gray-200">
-                        <a href="#" class="block w-full bg-naranja-artesanal text-white text-center py-3 rounded-lg hover:bg-tierra-oscuro transition-colors font-medium">
-                            <i class="fas fa-envelope mr-2"></i>Contactar
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-
 </body>
 </html>

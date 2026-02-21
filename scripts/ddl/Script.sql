@@ -342,7 +342,7 @@ CREATE TABLE IF NOT EXISTS tab_productos
     id_oficio               DECIMAL(12,0)                       NOT NULL,                                   -- Oficio asociado
     id_materia              DECIMAL(12,0)                       NOT NULL,                                   -- Materia prima principal
     precio_producto         DECIMAL(12,2)                       NOT NULL,
-    descripcion_producto    VARCHAR(255)                        NOT NULL,                                   -- Precio del producto
+    descripcion_producto    TEXT                                NOT NULL,                                   -- Precio del producto
     is_active               BOOLEAN                             NOT NULL DEFAULT TRUE,                      -- Estado activo
     created_by              VARCHAR                             NOT NULL DEFAULT current_user,              -- Usuario que creó
     created_at              TIMESTAMP WITHOUT TIME ZONE         NOT NULL DEFAULT CURRENT_TIMESTAMP,         -- Fecha de creación
@@ -394,6 +394,8 @@ CREATE TABLE IF NOT EXISTS tab_carrito(
     id_producto     DECIMAL(12,0)   NOT NULL,                           -- Producto en el carrito
     cantidad        INTEGER         NOT NULL CHECK(cantidad > 0),       -- Cantidad (mínimo 1)
     agregado_at     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de agregado
+    created_by      VARCHAR         NOT NULL DEFAULT current_user,      -- Usuario que creó
+    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación
     PRIMARY KEY(id_user, id_producto),
     FOREIGN KEY(id_user)    REFERENCES tab_users(id_user),
     FOREIGN KEY(id_producto) REFERENCES tab_productos(id_producto)
