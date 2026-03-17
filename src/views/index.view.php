@@ -4,7 +4,7 @@ $body_class = "font-sans bg-white scroll-smooth";
 $extra_css = '<link rel="stylesheet" href="' . BASE_URL . 'src/styles/responsive.css">';
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
-    <!-- Header -->
+    <!-- Prueba de GGA-->
     <!-- Header -->
     <?php require_once __DIR__ . '/partials/navbar.php'; ?>
     <!-- Hero Section -->
