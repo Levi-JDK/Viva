@@ -13,6 +13,7 @@ require_once __DIR__ . "/partials/header.php";
 			<!-- Sign Up Container -->
 			<div class="form-container sign-up-container absolute top-0 left-0 h-full w-full md:w-1/2 opacity-0 z-1 md:opacity-0 md:z-1">
 				<form id="form-registro" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Crear Cuenta</h1>
 					<div class="social-container my-4">
 						<a href="#" class="social border border-gray-300 rounded-full inline-flex justify-center items-center w-10 h-10 mx-1 hover:bg-gray-100 transition-colors"><i class="fab fa-google-plus-g text-oscuro"></i></a>
@@ -39,6 +40,7 @@ require_once __DIR__ . "/partials/header.php";
 			<!-- Sign In Container -->
 			<div class="form-container sign-in-container absolute top-0 left-0 h-full w-full md:w-1/2 z-2">
 				<form id="form-login" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Iniciar Sesión</h1>
 					<div class="social-container my-4">
 						<a href="#" class="social border border-gray-300 rounded-full inline-flex justify-center items-center w-10 h-10 mx-1 hover:bg-gray-100 transition-colors"><i class="fab fa-google-plus-g text-oscuro"></i></a>
@@ -51,7 +53,8 @@ require_once __DIR__ . "/partials/header.php";
 							<i class="fa fa-eye"></i>
 						</button>
 					</div>
-					<a href="#" class="text-oscuro text-sm no-underline my-4 hover:text-principal transition-colors">¿Olvidaste tu contraseña?</a>
+					<a href="<?= BASE_URL ?>recuperar" class="text-oscuro text-sm no-underline my-4 hover:text-principal transition-colors">¿Olvidaste tu contraseña?</a>
+
 					<button type="submit" class="rounded-full border border-principal bg-principal text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-secundario hover:-translate-y-0.5 active:scale-95 focus:outline-none mt-6 cursor-pointer">Iniciar Sesión</button>
 
 					<!-- Botón para móviles -->

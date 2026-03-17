@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/auth_helper.php';
-require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/mail_service.php';
 
 header('Content-Type: application/json');
 
@@ -83,6 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':apellido'   => $apellido
             ]);
 
+            // Enviar correo de bienvenida (en background, sin bloquear la respuesta)
+            try {
+                $mail = MailService::getInstance();
+                $mail->sendWelcomeEmail($email, $nombre . ' ' . $apellido);
+            } catch (Exception $e) {
+                error_log('[Auth] Error enviando correo de bienvenida: ' . $e->getMessage());
+            }
+
             echo json_encode(["mensaje" => "Usuario registrado correctamente.", "clase" => "mensaje-exito"]);
 
         } catch (PDOException $e) {
@@ -119,7 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 AuthHelper::setAuthCookie($token);
 
-                echo json_encode(["mensaje" => "Inicio de sesión exitoso", "clase" => "mensaje-exito"]);
+                $redirectTo = !empty($_POST['redirect']) ? $_POST['redirect'] : BASE_URL;
+                echo json_encode(["mensaje" => "Inicio de sesión exitoso", "clase" => "mensaje-exito", "redirect" => $redirectTo]);
             } else {
                 echo json_encode(["mensaje" => "❌ Correo o contraseña incorrectos", "clase" => "mensaje-error"]);
             }

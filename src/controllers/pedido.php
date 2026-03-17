@@ -3,7 +3,7 @@ require_once __DIR__ . '/../functions/auth_helper.php';
 $userData = AuthHelper::protectRoute();
 $id_user = $userData->id_user;
 
-require_once __DIR__ . '/../functions/Database.php';
+require_once __DIR__ . '/../functions/database.php';
 $id_factura = $_GET['id'] ?? null;
 
 if (!$id_factura || !is_numeric($id_factura)) {

@@ -33,7 +33,7 @@
  *
  * NOTA PARA PRODUCCIÓN
  * --------------------
- * Esta función depende de que Database.php ya haya sido incluido. Si el controlador
+ * Esta función depende de que database.php ya haya sido incluido. Si el controlador
  * aún no lo incluyó, la función lo importa por su cuenta con require_once.
  */
 
@@ -49,9 +49,9 @@ function cargar_datos_navbar(): void
 
     // Cargar los menús de la Navbar Principal para visitantes (Inicio, Categorías, Catálogo)
     try {
-        require_once __DIR__ . '/Database.php';
+        require_once __DIR__ . '/database.php';
         $db = Database::getInstance();
-        $stmtPublic = $db->connection->query("SELECT id_menu, nom_menu, url_menu, icono_menu, orden_menu FROM tab_menu WHERE id_menu IN (5, 6, 7) ORDER BY orden_menu ASC");
+        $stmtPublic = $db->ejecutar('obtenerMenuPublico');
         $GLOBALS['navbar_menus'] = $stmtPublic->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { }
 
@@ -65,7 +65,7 @@ function cargar_datos_navbar(): void
 
     try {
         // Database usa Singleton, así que no importa cuántas veces se llame getInstance()
-        require_once __DIR__ . '/Database.php';
+        require_once __DIR__ . '/database.php';
         $db = Database::getInstance();
 
         // Obtener datos del usuario autenticado
@@ -85,9 +85,25 @@ function cargar_datos_navbar(): void
         $stmtMenu = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $id_user]);
         $all_menus = $stmtMenu->fetchAll(PDO::FETCH_ASSOC);
 
-        // Separar Navbar Principal (5, 6, 7) del Dropdown de Perfil
-        $GLOBALS['navbar_menus'] = array_filter($all_menus, fn($m) => in_array($m['id_menu'], [5, 6, 7]));
-        $GLOBALS['dropdown_menus'] = array_filter($all_menus, fn($m) => !in_array($m['id_menu'], [5, 6, 7]));
+        // Separar Navbar Principal (1, 2, 3) del Dropdown de Perfil
+        $GLOBALS['navbar_menus'] = array_filter($all_menus, fn($m) => in_array($m['id_menu'], [1, 2, 3]));
+        $dropdown_raw = array_filter($all_menus, fn($m) => !in_array($m['id_menu'], [1, 2, 3]));
+
+        // Adaptar la URL de "Mi Stand" (ID 11) de forma dinámica para que apunte al stand público
+        $GLOBALS['dropdown_menus'] = array_map(function($m) use ($db, $id_user) {
+            if ($m['id_menu'] == 11) {
+                try {
+                    $stmt = $db->ejecutar('obtenerIdStandPorUser', [':id_user' => $id_user]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row && isset($row['id_stand'])) {
+                        $m['url_menu'] = 'stand?id=' . $row['id_stand'];
+                    }
+                } catch (Exception $e) {
+                    error_log('Error adaptando URL de Mi Stand: ' . $e->getMessage());
+                }
+            }
+            return $m;
+        }, $dropdown_raw);
 
     } catch (Exception $e) {
         // Error no crítico: el navbar simplemente muestra el estado de visitante.

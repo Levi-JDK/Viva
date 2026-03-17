@@ -24,9 +24,16 @@ if (!defined('BASE_URL')) {
 class AuthHelper {
 
     /**
-     * @var string Clave secreta para firmar el token (Idealmente desde $_ENV)
+     * @var string Clave secreta para firmar el token (desde $_ENV)
+     * @throws Exception Si JWT_SECRET no está configurada en .env
      */
-    private static string $secret_key = 'TU_SUPER_CLAVE_SECRETA_AQUI_CAMBIAME'; 
+    private static function getSecretKey(): string {
+        $key = $_ENV['JWT_SECRET'] ?? null;
+        if (empty($key)) {
+            throw new Exception('ERROR: JWT_SECRET no configurada en .env. Generar con: openssl rand -base64 32');
+        }
+        return $key;
+    } 
     
     /**
      * @var string Algoritmo de encriptación utilizado por Firebase JWT
@@ -54,7 +61,7 @@ class AuthHelper {
              'data' => $user_data
          ];
 
-         return JWT::encode($payload, self::$secret_key, self::$encrypt);
+         return JWT::encode($payload, self::getSecretKey(), self::$encrypt);
     }
 
     /**
@@ -106,7 +113,7 @@ class AuthHelper {
 
         try {
             // Decodifica y valida simultáneamente
-            $decoded = JWT::decode($jwt, new Key(self::$secret_key, self::$encrypt));
+            $decoded = JWT::decode($jwt, new Key(self::getSecretKey(), self::$encrypt));
             return match (true) {
                 isset($decoded->data) => $decoded->data,
                 default => false
@@ -196,7 +203,7 @@ class AuthHelper {
     public static function checkAccess(int $id_menu): void {
         $userData = self::protectRoute();
         
-        require_once __DIR__ . '/Database.php';
+        require_once __DIR__ . '/database.php';
         $db = Database::getInstance();
         $stmtMenu = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $userData->id_user]);
         $user_menus = $stmtMenu->fetchAll(\PDO::FETCH_ASSOC);

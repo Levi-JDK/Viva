@@ -1,0 +1,36 @@
+schema: spec-driven
+
+context: |
+  Tech stack: PHP 7+ (原生), PostgreSQL, Vanilla JS, TailwindCSS
+  Dependencies: phpdotenv, php-jwt, phpmailer, resend-php
+  Build: npm (TailwindCSS processing)
+  Architecture: MVC pattern con Controllers/Views/Functions
+  Database: PostgreSQL con funciones almacenadas (crearProductor, etc.)
+  Auth: JWT con cookies HttpOnly
+  Payment: Integración con ePayco
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+    - Consider security implications
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Document security requirements explicitly
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+    - Always consider OWASP Top 10 for security changes
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Never commit credentials or secrets
+  verify:
+    - Test on local environment before marking complete
+    - Compare implementation against every spec scenario
+  archive:
+    - Document lessons learned
+    - Preserve security-related decisions

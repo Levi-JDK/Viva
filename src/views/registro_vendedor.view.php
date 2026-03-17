@@ -153,7 +153,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 <input type="checkbox" name="acepta_terminos" required
                                        class="mt-0.5 w-4 h-4 rounded focus:ring-2 focus:ring-principal">
                                 <span class="text-xs text-gray-700 group-hover:text-oscuro">
-                                    Acepto los <a href="#" class="text-principal font-semibold hover:underline">Términos y Condiciones</a> de VIVA
+                                    Acepto los <a href="<?= BASE_URL ?>terminos_condiciones" target="_blank" class="text-principal font-semibold hover:underline">Términos y Condiciones</a> de VIVA
                                 </span>
                             </label>
                             
@@ -161,7 +161,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 <input type="checkbox" name="acepta_tratamiento_datos" required
                                        class="mt-0.5 w-4 h-4 rounded focus:ring-2 focus:ring-principal">
                                 <span class="text-xs text-gray-700 group-hover:text-oscuro">
-                                    Autorizo el <a href="#" class="text-principal font-semibold hover:underline">Tratamiento de mis Datos</a> según la ley 1581 de 2012
+                                    Autorizo el <a href="<?= BASE_URL ?>politica_privacidad" target="_blank" class="text-principal font-semibold hover:underline">Tratamiento de mis Datos</a> según la ley 1581 de 2012
                                 </span>
                             </label>
                         </div>

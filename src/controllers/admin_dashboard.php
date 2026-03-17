@@ -13,4 +13,13 @@ AuthHelper::checkAccess(1);
 require_once __DIR__ . '/../functions/navbar_usuario.php';
 cargar_datos_navbar();
 
+// Obtener parámetros globales y de configuración de landing
+require_once __DIR__ . '/../functions/database.php';
+try {
+    $db = Database::getInstance();
+    $pmtros = $db->obtenerConfiguracion();
+} catch (Exception $e) {
+    $pmtros = []; // Fallback seguro
+}
+
 require_once __DIR__ . '/../views/admin_dashboard.view.php';

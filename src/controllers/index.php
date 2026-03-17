@@ -1,12 +1,11 @@
 <?php
-require_once ROOT_PATH . 'src/functions/Database.php';
+require_once ROOT_PATH . 'src/functions/database.php';
 
 // Obtener stands destacados para la sección de afiliados (máx 3)
 $featured_stands = [];
 try {
     $db = Database::getInstance();
-    $stmt = $db->connection->prepare('SELECT * FROM tab_stand WHERE is_deleted = FALSE ORDER BY RANDOM() LIMIT 3');
-    $stmt->execute();
+    $stmt = $db->ejecutar('obtenerStandsDestacados', [':limit' => 3]);
     $featured_stands = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     error_log("Error al obtener stands destacados: " . $e->getMessage());
@@ -28,6 +27,14 @@ try {
     $categorias_destacadas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     error_log("Error al obtener categorías destacadas: " . $e->getMessage());
+}
+
+// Obtener textos y parámetros globales desde tab_pmtros
+$pmtros = [];
+try {
+    $pmtros = $db->obtenerConfiguracion();
+} catch (Exception $e) {
+    error_log("Error al obtener configuracion: " . $e->getMessage());
 }
 
 // Usamos ROOT_PATH para que el include sea absoluto desde el disco

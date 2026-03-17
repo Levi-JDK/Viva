@@ -2,7 +2,7 @@
 // Controlador para el detalle de producto
 
 
-require_once(__DIR__ . '/../functions/Database.php');
+require_once(__DIR__ . '/../functions/database.php');
 
 $db = Database::getInstance();
 

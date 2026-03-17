@@ -2,7 +2,7 @@
 
 // src/api/guardar_cliente.php
 // Endpoint POST: guarda o actualiza la dirección de envío del cliente en tab_clientes.
-// Usa fun_c_cliente vía Database.php. El botón de pago se habilita en el front tras éxito.
+// Usa fun_c_cliente vía database.php. El botón de pago se habilita en el front tras éxito.
 
 header('Content-Type: application/json');
 
@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
 $id_user = $userData->id_user;
 
@@ -36,7 +37,7 @@ if (!empty($errores)) {
 }
 
 try {
-    require_once dirname(__DIR__) . '/functions/Database.php';
+    require_once dirname(__DIR__) . '/functions/database.php';
     $db = Database::getInstance();
 
     // Obtener nombre y email del usuario para nom_client / mail_client
@@ -74,7 +75,7 @@ try {
     }
 
 } catch (Exception $e) {
-    error_log('[guardar_cliente] ' . $e->getMessage());
+    $response = ErrorHandler::jsonResponse($e, 'guardar_cliente');
     http_response_code(500);
-    echo json_encode(['exito' => false, 'mensaje' => 'Error al guardar la dirección.']);
+    echo json_encode(['exito' => false, 'mensaje' => $response['message']]);
 }

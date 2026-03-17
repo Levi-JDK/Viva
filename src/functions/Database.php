@@ -91,7 +91,7 @@ class Database {
         ");
 
         $this->statements['incrementarVistasProducto'] = $this->connection->prepare("
-            UPDATE tab_productos SET vistas = vistas + 1 WHERE id_producto = :id_producto
+            SELECT * FROM fun_u_vista_producto(:id_producto)
         ");
 
         $this->statements['obtenerProductoPorId'] = $this->connection->prepare("
@@ -113,13 +113,41 @@ class Database {
         
         $this->statements['obtenerStand'] = $this->connection->prepare("
             SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand 
+            FROM tab_stand WHERE id_stand = :id_s
+        ");
+
+        $this->statements['obtenerStandPrivado'] = $this->connection->prepare("
+            SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand 
             FROM tab_stand WHERE id_productor = :id_p
+        ");
+
+        $this->statements['obtenerIdStandPorUser'] = $this->connection->prepare("
+            SELECT s.id_stand 
+            FROM tab_stand s
+            INNER JOIN tab_productores p ON s.id_productor = p.id_productor
+            WHERE p.id_user = :id_user AND s.is_deleted = FALSE
+            LIMIT 1
         ");
 
         $this->statements['actualizarStand'] = $this->connection->prepare("
             SELECT fun_u_stand(
                 :id_productor, :id_stand, :nom_stand, :slogan_stand, 
                 :descripcion_stand, :img_stand, :portada_stand
+            )
+        ");
+
+        // Configuracion y Textos Landing
+        $this->statements['obtenerConfiguracionGlobal'] = $this->connection->prepare("
+            SELECT * FROM tab_pmtros WHERE id_parametro = 1 AND is_deleted = FALSE LIMIT 1
+        ");
+
+        $this->statements['actualizarParametrosGlob'] = $this->connection->prepare("
+            SELECT fun_u_parametros(
+                :id_parametro, :nom_plataforma, :dir_contacto, :correo_contacto,
+                :val_inifact, :val_finfact, :val_actfact, :val_observa,
+                :landing_hero_titulo, :landing_hero_subtitulo, :landing_hero_btn,
+                :landing_conf_1_tit, :landing_conf_1_sub, :landing_conf_2_tit, :landing_conf_2_sub,
+                :landing_conf_3_tit, :landing_conf_3_sub, :landing_filosofia_tit, :landing_filosofia_p1, :landing_filosofia_p2
             )
         ");
         
@@ -141,9 +169,16 @@ class Database {
             LIMIT :limit
         ");
 
+        $this->statements['obtenerMenuPublico'] = $this->connection->prepare("
+            SELECT id_menu, nom_menu, url_menu, icono_menu 
+            FROM tab_menu 
+            WHERE id_menu IN (1, 2, 3) 
+            ORDER BY id_menu ASC
+        ");
+
         // Funciones de Seguridad - Control de Accesos (Navegación Dinámica)
         $this->statements['obtenerNavegacionUsuario'] = $this->connection->prepare("
-            SELECT id_menu, nom_menu, url_menu, icono_menu, orden_menu 
+            SELECT id_menu, nom_menu, url_menu, icono_menu 
             FROM fun_obtener_navegacion_usuario(:id_user)
         ");
         $this->statements['asignarMenuUsuario'] = $this->connection->prepare("
@@ -152,6 +187,17 @@ class Database {
         $this->statements['revocarMenuUsuario'] = $this->connection->prepare("
             SELECT fun_revocar_menu(:id_user, :id_menu)
         "); 
+
+        // ── Recuperación de contraseña (OTP) ─────────────────────────────────
+        $this->statements['crearResetToken'] = $this->connection->prepare("
+            SELECT fun_c_reset_token(:mail_user, :minutos)
+        ");
+        $this->statements['validarResetToken'] = $this->connection->prepare("
+            SELECT fun_v_reset_token(:mail_user, :token_reset)
+        ");
+        $this->statements['actualizarPassword'] = $this->connection->prepare("
+            SELECT fun_u_password(:id_user, :pass_user)
+        ");
         
         // Obtener todos los productos para catálogo
         $this->statements['obtenerProductosCatalogo'] = $this->connection->prepare("
@@ -174,7 +220,7 @@ class Database {
         $this->statements['obtenerDetalleProducto'] = $this->connection->prepare("
             SELECT id_producto, nom_producto, precio_producto, descripcion_producto, stock_productor, 
                    is_active, id_categoria, nom_categoria, id_color, nom_color, id_oficio, nom_oficio, 
-                   id_materia, nom_materia, id_productor, nom_productor, nom_stand, img_stand, 
+                   id_materia, nom_materia, id_productor, nom_productor, id_stand, nom_stand, img_stand, 
                    slogan_stand, descripcion_stand, portada_stand, ubicacion, imagenes 
             FROM fun_obtener_detalle_producto(:id_producto)
         ");
@@ -185,6 +231,13 @@ class Database {
             FROM tab_stand
             WHERE is_deleted = FALSE
             ORDER BY nom_stand ASC
+        ");
+        $this->statements['obtenerStandsDestacados'] = $this->connection->prepare("
+            SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand
+            FROM tab_stand
+            WHERE is_deleted = FALSE
+            ORDER BY RANDOM()
+            LIMIT :limit
         ");
 
         // Buscar stands activos por nombre o descripción
@@ -316,7 +369,8 @@ class Database {
                 COUNT(r.id_producto) as total_resenas
             FROM tab_resenas r
             INNER JOIN tab_productos p ON r.id_producto = p.id_producto
-            WHERE p.id_productor = :id_productor AND r.is_deleted = FALSE
+            INNER JOIN tab_stand s ON p.id_productor = s.id_productor
+            WHERE s.id_stand = :id_stand AND r.is_deleted = FALSE
         ");
 
         // ── Clientes y Facturación ────────────────────────────────────────────
@@ -455,6 +509,12 @@ class Database {
         
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // --- Obtener Parámetros Globales (Landing y generales) ---
+    public function obtenerConfiguracion() {
+        $stmt = $this->ejecutar('obtenerConfiguracionGlobal');
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     private function __clone() {}

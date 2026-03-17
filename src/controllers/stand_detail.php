@@ -4,7 +4,7 @@
 
 
 
-require_once __DIR__ . '/../functions/Database.php';
+require_once __DIR__ . '/../functions/database.php';
 
 try {
 
@@ -12,17 +12,17 @@ try {
     $db = Database::getInstance();
 
     // Obtener el ID del stand desde el parámetro de la URL
-    // Formato de URL: /stand?id=id_productor
+    // Formato de URL: /stand?id=id_stand
     if (!isset($_GET['id']) || empty($_GET['id'])) {
         // Redirigir a la página de prueba o mostrar error
         header('Location: ' . BASE_URL . 'test-stands');
         exit;
     }
 
-    $id_productor = (int)$_GET['id'];
+    $id_stand = (int)$_GET['id'];
     
     // Obtener información del stand
-    $stmt = $db->ejecutar('obtenerStand', [':id_p' => $id_productor]);
+    $stmt = $db->ejecutar('obtenerStand', [':id_s' => $id_stand]);
     $stand = $stmt->fetch(PDO::FETCH_ASSOC);
     
     // Si el stand no existe, redirigir
@@ -41,12 +41,12 @@ try {
         $productosRaw = $productosRaw->fetchAll(PDO::FETCH_ASSOC);
         
         // Filtrar productos del catalogo que sean de este stand (productor)
-        $productos_stand = array_filter($productosRaw, function($p) use ($id_productor) {
-            return $p['id_productor'] == $id_productor;
+        $productos_stand = array_filter($productosRaw, function($p) use ($stand) {
+            return $p['id_productor'] == $stand['id_productor'];
         });
 
         // Obtener promedio del stand
-        $stmtPromedioStand = $db->ejecutar('obtenerPromedioEstrellasStand', [':id_productor' => $id_productor]);
+        $stmtPromedioStand = $db->ejecutar('obtenerPromedioEstrellasStand', [':id_stand' => $id_stand]);
         $promedioStandRow = $stmtPromedioStand->fetch(PDO::FETCH_ASSOC);
         
         if ($promedioStandRow) {

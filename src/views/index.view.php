@@ -23,10 +23,15 @@ require_once __DIR__ . '/partials/base_head.php';
         <div class="container mx-auto px-4 text-center text-white relative z-10">
             <div class="max-w-4xl mx-auto fade-in">
                 <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                    Conecta con nuestro <span class="text-yellow-300">mercado real</span>
+                    <?php 
+                        $rawTitle = $pmtros['landing_hero_titulo'] ?? 'Conecta con nuestro {mercado real}';
+                        $safeTitle = htmlspecialchars($rawTitle);
+                        $formattedTitle = str_replace(['{', '}'], ['<span class="text-yellow-300">', '</span>'], $safeTitle);
+                        echo $formattedTitle;
+                    ?>
                 </h1>
                 <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
-                    Conoce los productos de naturaleza autoctona y artesanal de Colombia.
+                    <?= htmlspecialchars($pmtros['landing_hero_subtitulo'] ?? 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.') ?>
                 </p>
                 <button onclick="scrollToSection('categorias')" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">
                     <span>Explorar ahora</span>
@@ -43,22 +48,22 @@ require_once __DIR__ . '/partials/base_head.php';
                     <div class="trust-icon">
                         <i class="fas fa-shipping-fast"></i>
                     </div>
-                    <h3 class="font-semibold text-tierra-oscuro mb-2">Envíos seguros</h3>
-                    <p class="text-gray-600 text-sm">Entrega protegida en todo el mundo</p>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_1_tit'] ?? 'Envíos seguros') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_1_sub'] ?? 'Entrega protegida en todo el mundo') ?></p>
                 </div>
                 <div class="text-center trust-card">
                     <div class="trust-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3 class="font-semibold text-tierra-oscuro mb-2">Pago protegido</h3>
-                    <p class="text-gray-600 text-sm">Transacciones 100% seguras</p>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_2_tit'] ?? 'Pago protegido') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_2_sub'] ?? 'Transacciones 100% seguras') ?></p>
                 </div>
                 <div class="text-center trust-card">
                     <div class="trust-icon">
                         <i class="fas fa-hands-helping"></i>
                     </div>
-                    <h3 class="font-semibold text-tierra-oscuro mb-2">Apoyo directo</h3>
-                    <p class="text-gray-600 text-sm">Beneficia directamente a las comunidades</p>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_3_tit'] ?? 'Apoyo directo') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_3_sub'] ?? 'Beneficia directamente a las comunidades') ?></p>
                 </div>
             </div>
         </div>
@@ -81,7 +86,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <?php 
                         // Habilitar enlace a la página de detalle
                         $show_link = true;
-                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_productor'];
+                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_stand'];
                         require __DIR__ . '/../views/partials/card_stand.php'; 
                         ?>
                     <?php endforeach; ?>
@@ -182,15 +187,13 @@ require_once __DIR__ . '/partials/base_head.php';
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div class="fade-in">
                     <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-6">
-                        Nuestra historia
+                        <?= htmlspecialchars($pmtros['landing_filosofia_tit'] ?? 'Nuestra historia') ?>
                     </h2>
                     <p class="text-gray-700 text-lg mb-6 leading-relaxed">
-                        VIVA nació del sueño de preservar y compartir la riqueza cultural de las comunidades indígenas colombianas. 
-                        Creemos que cada artesanía cuenta una historia milenaria y conecta generaciones.
+                        <?= htmlspecialchars($pmtros['landing_filosofia_p1'] ?? 'VIVA nació del sueño de preservar y compartir la riqueza cultural de las comunidades indígenas colombianas. Creemos que cada artesanía cuenta una historia milenaria y conecta generaciones.') ?>
                     </p>
                     <p class="text-gray-700 text-lg mb-8 leading-relaxed">
-                        A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, 
-                        mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.
+                        <?= htmlspecialchars($pmtros['landing_filosofia_p2'] ?? 'A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.') ?>
                     </p>
                     <div class="grid grid-cols-2 gap-6">
                         <div class="text-center p-4 bg-beige-suave rounded-lg">

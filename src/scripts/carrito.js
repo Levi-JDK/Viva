@@ -49,12 +49,24 @@ window.toggleCarrito = toggleCarrito;
 async function peticionCarrito(accion, id_producto = null, cantidad = null) {
     const respuesta = await fetch(BASE_URL + 'api/carrito', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
         body: JSON.stringify({ accion, id_producto, cantidad })
     });
+
+    // Si la sesión expiró
+    if (respuesta.status === 401 || respuesta.status === 403) {
+        if (typeof showToast === 'function') showToast('Sesión caducada. Inicia sesión de nuevo.', 'warning');
+        if (window.LOGIN_URL) window.location.href = window.LOGIN_URL;
+        return { exito: false, mensaje: 'No autorizado' };
+    }
+
     if (!respuesta.ok) throw new Error('Error de red: ' + respuesta.status);
     return respuesta.json();
 }
+
 
 // ─────────────────────────────────────────────────
 // ANIMACIÓN FLY-TO-CART
@@ -150,6 +162,12 @@ async function cargarCarrito() {
  * @param {HTMLElement} boton        - El botón que disparó la acción (para la animación)
  */
 async function agregarAlCarrito(id_producto, cantidad = 1, boton = null) {
+    // Si el usuario no está logueado, redirigir al login con la URL de regreso
+    if (!window.USER_IS_LOGGED_IN) {
+        window.location.href = window.LOGIN_URL + '?redirect=' + encodeURIComponent(window.location.href);
+        return;
+    }
+
     // Animación inmediata (optimistic UI)
     if (boton) {
         const iconoOriginal = boton.innerHTML;
@@ -220,7 +238,7 @@ window.eliminarDelCarrito = eliminarDelCarrito;
 // ─────────────────────────────────────────────────
 
 async function actualizarCantidad(id_producto, nueva_cantidad) {
-    if (nueva_cantidad < 1) return eliminarDelCarrito(id_producto);
+    if (nueva_cantidad < 1) return; // No bajar de 1, usar el botón de eliminar para quitar
 
     try {
         const data = await peticionCarrito('actualizar', id_producto, nueva_cantidad);
@@ -241,8 +259,26 @@ window.actualizarCantidad = actualizarCantidad;
 // LIMPIAR CARRITO
 // ─────────────────────────────────────────────────
 
-async function limpiarCarrito() {
-    if (!confirm('¿Vaciar todo el carrito?')) return;
+function limpiarCarrito() {
+    document.getElementById('btn-limpiar-carrito').classList.add('hidden');
+    document.getElementById('confirmacion-limpiar').classList.remove('hidden');
+    document.getElementById('confirmacion-limpiar').classList.add('flex');
+}
+window.limpiarCarrito = limpiarCarrito;
+
+function cancelarLimpiar() {
+    const confirmContainer = document.getElementById('confirmacion-limpiar');
+    if (confirmContainer) {
+        confirmContainer.classList.add('hidden');
+        confirmContainer.classList.remove('flex');
+    }
+    const btnLimpiar = document.getElementById('btn-limpiar-carrito');
+    if (btnLimpiar) btnLimpiar.classList.remove('hidden');
+}
+window.cancelarLimpiar = cancelarLimpiar;
+
+async function ejecutarLimpiar() {
+    cancelarLimpiar();
     try {
         const data = await peticionCarrito('limpiar');
         if (data.exito) {
@@ -255,7 +291,7 @@ async function limpiarCarrito() {
         console.error('[Carrito] Error al limpiar:', error);
     }
 }
-window.limpiarCarrito = limpiarCarrito;
+window.ejecutarLimpiar = ejecutarLimpiar;
 
 // ─────────────────────────────────────────────────
 // RENDERIZAR MINI-CARDS EN EL DRAWER
@@ -395,14 +431,16 @@ function escaparHtml(texto) {
 // ─────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-    peticionCarrito('obtener')
-        .then(data => {
-            if (data.exito) {
-                estadoCarrito = { items: data.carrito, resumen: data.resumen };
-                actualizarBadge(data.resumen.total_items);
-            }
-        })
-        .catch(() => {
-            // Usuario no logueado o sin conexión — sin acción
-        });
+    if (window.USER_IS_LOGGED_IN === true) {
+        peticionCarrito('obtener')
+            .then(data => {
+                if (data.exito) {
+                    estadoCarrito = { items: data.carrito, resumen: data.resumen };
+                    actualizarBadge(data.resumen.total_items);
+                }
+            })
+            .catch(() => {
+                // Usuario no logueado o sin conexión — sin acción
+            });
+    }
 });

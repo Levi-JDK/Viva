@@ -176,9 +176,7 @@ async function handleFormSubmit(event) {
                 window.location.href = (typeof BASE_URL !== 'undefined' ? BASE_URL : '') + 'mis_productos';
             }
         } else {
-            // Error: Mostrar mensaje y datos debug
-            console.error('Debug Params:', data.debug_params);
-
+            // Error: Mostrar mensaje
             if (window.showToast) {
                 showToast('Error: ' + data.message, 'error');
             } else {

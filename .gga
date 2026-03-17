@@ -1,0 +1,26 @@
+# Guardian Angel Configuration for VIVA Marketplace
+
+PROVIDER=opencode
+RULES_FILE=AGENTS.md
+
+# Revision settings
+MAX_LINES=300
+TIMEOUT=60
+
+# What to check
+CHECK_SECURITY=true
+CHECK_ARCHITECTURE=true
+CHECK_STYLE=true
+
+# File extensions to review
+EXTENSIONS=php,js
+
+# Exclude paths - only code, no images/docs
+EXCLUDE=vendor/,node_modules/,.git/,openspec/,images/,docs/
+
+# Enable pre-commit blocking
+BLOCK_ON_FAILURE=true
+
+# Cache settings
+CACHE_ENABLED=true
+CACHE_DAYS=7

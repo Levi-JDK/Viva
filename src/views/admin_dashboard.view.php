@@ -247,8 +247,9 @@ $accesos = [
 
             </section>
 
-            <!-- ══════ PANELES SECUNDARIOS ══════ -->
+            <!-- ══════ PANELES SECUNDARIOS EN DESARROLLO ══════ -->
             <?php foreach ($panel_config as $pid => $pcfg):
+                if ($pid === 'parametros') continue; // Aislar parametros para su propio panel
                 $nom = '';
                 foreach ($menus as $m) { if ($m['panel_id'] === $pid) { $nom = $m['nom_menu']; break; } }
             ?>
@@ -276,11 +277,146 @@ $accesos = [
             </section>
             <?php endforeach; ?>
 
+            <!-- ══════ PANEL: PARÁMETROS DB Y LANDING ══════ -->
+            <section id="panel-parametros" class="admin-panel">
+                <div class="mb-5 flex justify-between items-end">
+                    <div>
+                        <h2 class="admin-section-heading">Parámetros DB y Configuración</h2>
+                        <p class="admin-section-sub">Gestiona las variables globales y textos visibles de la plataforma</p>
+                    </div>
+                    <button type="submit" form="form-parametros" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-lg shadow-lg shadow-amber-500/20 transition duration-200">
+                        <i class="fas fa-save mr-2"></i> Guardar Cambios
+                    </button>
+                </div>
+
+                <form id="form-parametros" class="space-y-8">
+                    <!-- Global Settings -->
+                    <div class="admin-glass-card p-8">
+                        <div class="mb-6 border-b border-white/[0.05] pb-4">
+                            <h3 class="text-sm font-semibold text-amber-500 mb-1"><i class="fas fa-globe mr-2"></i>Configuración Global</h3>
+                            <p class="text-[11px] text-white/40">Variables principales para facturación y contacto.</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Nombre Plataforma</label>
+                                <input type="text" name="nom_plataforma" value="<?= htmlspecialchars($pmtros['nom_plataforma'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Correo Electrónico</label>
+                                <input type="email" name="correo_contacto" value="<?= htmlspecialchars($pmtros['correo_contacto'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all">
+                            </div>
+                            <div class="col-span-full">
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Dirección Física</label>
+                                <input type="text" name="dir_contacto" value="<?= htmlspecialchars($pmtros['dir_contacto'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Inicio Factura</label>
+                                <input type="number" name="val_inifact" value="<?= htmlspecialchars($pmtros['val_inifact'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Factura Actual</label>
+                                <input type="number" name="val_actfact" value="<?= htmlspecialchars($pmtros['val_actfact'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Landing Settings - Hero -->
+                    <div class="admin-glass-card p-8">
+                        <div class="mb-6 border-b border-white/[0.05] pb-4">
+                            <h3 class="text-sm font-semibold text-amber-500 mb-1"><i class="fas fa-desktop mr-2"></i>Landing Page - Hero Section</h3>
+                            <p class="text-[11px] text-white/40">Textos principales de la primera vista. Usa {llaves} para el texto amarillo.</p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Título Principal</label>
+                                <input type="text" name="landing_hero_titulo" value="<?= htmlspecialchars($pmtros['landing_hero_titulo'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Subtítulo Descripción</label>
+                                <input type="text" name="landing_hero_subtitulo" value="<?= htmlspecialchars($pmtros['landing_hero_subtitulo'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Texto del Botón Acción</label>
+                                <input type="text" name="landing_hero_btn" value="<?= htmlspecialchars($pmtros['landing_hero_btn'] ?? '') ?>" class="w-full md:w-1/3 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Landing Settings - Filosofía y Confianza -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <div class="admin-glass-card p-8">
+                            <div class="mb-6 border-b border-white/[0.05] pb-4">
+                                <h3 class="text-sm font-semibold text-amber-500 mb-1"><i class="fas fa-leaf mr-2"></i>Filosofía "Quiénes Somos"</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Título Filosofía</label>
+                                    <input type="text" name="landing_filosofia_tit" value="<?= htmlspecialchars($pmtros['landing_filosofia_tit'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Párrafo 1 (Misión)</label>
+                                    <textarea name="landing_filosofia_p1" rows="5" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-3 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all resize-none"><?= htmlspecialchars($pmtros['landing_filosofia_p1'] ?? '') ?></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1.5">Párrafo 2 (Impacto)</label>
+                                    <textarea name="landing_filosofia_p2" rows="5" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-3 text-sm text-black font-medium focus:border-amber-500 focus:outline-none focus:ring-1 transition-all resize-none"><?= htmlspecialchars($pmtros['landing_filosofia_p2'] ?? '') ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-glass-card p-8 space-y-8">
+                            <div class="mb-2 border-b border-white/[0.05] pb-4">
+                                <h3 class="text-sm font-semibold text-amber-500 mb-1"><i class="fas fa-shield-alt mr-2"></i>Puntos de Confianza (Iconos)</h3>
+                            </div>
+                            
+                            <!-- Conf 1 -->
+                            <div class="bg-black/10 rounded-lg p-5 border border-white/5 space-y-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-amber-500/70 mb-1">Ítem 1 - Título</label>
+                                    <input type="text" name="landing_conf_1_tit" value="<?= htmlspecialchars($pmtros['landing_conf_1_tit'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-white/40 mb-1">Ítem 1 - Detalles</label>
+                                    <input type="text" name="landing_conf_1_sub" value="<?= htmlspecialchars($pmtros['landing_conf_1_sub'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Conf 2 -->
+                            <div class="bg-black/10 rounded-lg p-5 border border-white/5 space-y-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-amber-500/70 mb-1">Ítem 2 - Título</label>
+                                    <input type="text" name="landing_conf_2_tit" value="<?= htmlspecialchars($pmtros['landing_conf_2_tit'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-white/40 mb-1">Ítem 2 - Detalles</label>
+                                    <input type="text" name="landing_conf_2_sub" value="<?= htmlspecialchars($pmtros['landing_conf_2_sub'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <!-- Conf 3 -->
+                            <div class="bg-black/10 rounded-lg p-5 border border-white/5 space-y-4">
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-amber-500/70 mb-1">Ítem 3 - Título</label>
+                                    <input type="text" name="landing_conf_3_tit" value="<?= htmlspecialchars($pmtros['landing_conf_3_tit'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase tracking-wider text-white/40 mb-1">Ítem 3 - Detalles</label>
+                                    <input type="text" name="landing_conf_3_sub" value="<?= htmlspecialchars($pmtros['landing_conf_3_sub'] ?? '') ?>" class="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-black font-medium focus:border-amber-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </section>
+
         </main>
     </div><!-- /.admin-main-wrapper -->
 
 
 <!-- JS externo del admin dashboard -->
+<script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
 <script src="<?= BASE_URL ?>src/scripts/admin_dashboard.js"></script>
 
 </body>

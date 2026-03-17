@@ -16,9 +16,19 @@ if ($ref_payco) {
     try {
         // 2. Consultar la API de validación de ePayco
         $url = 'https://secure.epayco.co/validation/v1/reference/' . $ref_payco;
-        $response = file_get_contents($url);
         
-        if ($response) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Evitar problemas de certificados en localhost/ubuntu
+        // Hardcodear IPs de AWS de ePayco para evitar el error "could not resolve host" en algunos Ubuntu locales
+        curl_setopt($ch, CURLOPT_RESOLVE, ['secure.epayco.co:443:52.2.146.12', 'secure.epayco.co:443:3.212.153.108', 'secure.epayco.co:443:52.5.23.17', 'secure.epayco.co:443:52.6.162.67', 'secure.epayco.co:443:44.215.220.254']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $response = curl_exec($ch);
+        $curl_error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($response !== false) {
             $data = json_decode($response, true);
             if ($data['success']) {
                 $transaccion = $data['data'];
@@ -37,7 +47,7 @@ if ($ref_payco) {
 
                 // 3. Si la transacción fue Aceptada, procesar el pedido
                 if ($transaccion['x_cod_response'] == 1) {
-                    require_once __DIR__ . '/../functions/Database.php';
+                    require_once __DIR__ . '/../functions/database.php';
                     $db = Database::getInstance();
 
                     $userData = AuthHelper::verifyToken();
@@ -141,7 +151,8 @@ if ($ref_payco) {
                 $error = "No se pudo validar la referencia con ePayco.";
             }
         } else {
-            $error = "Fallo de conexión con el servidor de pagos.";
+            $error = "Fallo de conexión con el servidor de pagos. Detalle: " . ($curl_error ?? 'Desconocido');
+            error_log('[CheckoutResponse] Error cURL: ' . $curl_error);
         }
     } catch (Exception $e) {
         $error = "Ocurrió un error al procesar la respuesta: " . $e->getMessage();

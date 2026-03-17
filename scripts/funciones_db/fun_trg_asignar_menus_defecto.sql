@@ -4,14 +4,14 @@ RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO tab_menu_user (id_user, id_menu)
     VALUES 
-        (NEW.id_user, 2), -- Vender en VIVA
-        (NEW.id_user, 5), -- Inicio
-        (NEW.id_user, 6), -- Categorías
-        (NEW.id_user, 7), -- Catálogo
-        (NEW.id_user, 8), -- Perfil
-        (NEW.id_user, 9), -- Pedidos
-        (NEW.id_user, 10), -- Favoritos
-        (NEW.id_user, 11)  -- Configuración
+        (NEW.id_user, 1),  -- Inicio
+        (NEW.id_user, 2),  -- Categorías
+        (NEW.id_user, 3),  -- Catálogo
+        (NEW.id_user, 4),  -- Mi Perfil
+        (NEW.id_user, 5),  -- Mis Pedidos
+        (NEW.id_user, 6),  -- Favoritos
+        (NEW.id_user, 7),  -- Configuración
+        (NEW.id_user, 9)   -- Vender en VIVA
     ON CONFLICT DO NOTHING;
     RETURN NEW;
 END;

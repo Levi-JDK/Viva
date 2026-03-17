@@ -5,9 +5,10 @@
                                 <h2 class="text-2xl font-bold text-tierra-oscuro">Mi Stand Virtual</h2>
                                 <p class="text-gray-500 text-sm">Personaliza cómo los clientes ven tu marca.</p>
                             </div>
-                            <button class="text-naranja-artesanal hover:text-tierra-oscuro font-medium text-sm flex items-center border border-naranja-artesanal rounded-full px-4 py-1.5 hover:bg-orange-50 transition-colors">
+                            <?php $stand_url = !empty($stand['id_stand']) ? BASE_URL . 'stand?id=' . $stand['id_stand'] : '#'; ?>
+                            <a href="<?= $stand_url ?>" <?= $stand_url === '#' ? 'onclick="return false;" title=\'Guarda tu stand primero\'' : 'target="_blank"' ?> class="text-naranja-artesanal hover:text-tierra-oscuro font-medium text-sm flex items-center border border-naranja-artesanal rounded-full px-4 py-1.5 hover:bg-orange-50 transition-colors">
                                 <i class="fas fa-external-link-alt mr-2"></i>Ver página pública
-                            </button>
+                            </a>
                         </div>
                         <!-- Banner Placeholder -->
                         <div id="banner-placeholder" onclick="document.getElementById('portada-upload').click()" class="h-56 bg-gradient-to-r from-tierra-claro to-beige-suave rounded-xl mb-12 relative group cursor-pointer overflow-hidden border-2 border-dashed border-transparent hover:border-naranja-artesanal transition-all" style="<?= !empty($stand['portada_stand']) ? "background-image: url('" . BASE_URL . $stand['portada_stand'] . "'); background-size: cover; background-position: center;" : '' ?>">

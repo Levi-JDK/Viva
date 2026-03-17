@@ -105,31 +105,37 @@ require_once __DIR__ . '/partials/base_head.php';
                                 <span class="text-xs text-blue-600 underline ml-2">(<?= $total_resenas ?> reseñas)</span>
                             </div>
 
-                            <!-- Stand Card -->
+                            <!-- Stand o Perfil de Vendedor -->
+                            <?php 
+                                $has_stand = !empty($producto['nom_stand']);
+                                $vendedor_nombre = $has_stand ? $producto['nom_stand'] : $producto['nom_productor'];
+                                $vendedor_imagen = $has_stand && !empty($producto['img_stand']) ? $producto['img_stand'] : ($producto['foto_user'] ?? 'images/default_user.jpg');
+                                $vendedor_slogan = $has_stand ? $producto['slogan_stand'] : 'Artesano Colombiano';
+                            ?>
                             <div class="mt-4 mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex items-start gap-4">
-                                <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="flex-shrink-0 group">
+                                <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="flex-shrink-0 group">
                                     <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-all">
-                                        <img src="<?= !empty($producto['img_stand']) ? BASE_URL . $producto['img_stand'] : BASE_URL . 'images/default_store.png' ?>" 
-                                             alt="<?= htmlspecialchars($producto['nom_stand'] ?? 'Stand') ?>" 
+                                        <img src="<?= BASE_URL . $vendedor_imagen ?>" 
+                                             alt="<?= htmlspecialchars($vendedor_nombre) ?>" 
                                              class="w-full h-full object-cover">
                                     </div>
                                 </a>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-bold text-naranja-artesanal uppercase tracking-wider mb-1">Vendido por</p>
-                                    <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="block group">
+                                    <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="block group">
                                         <h3 class="text-lg font-bold text-tierra-oscuro truncate group-hover:text-naranja-artesanal transition-colors">
-                                            <?= htmlspecialchars($producto['nom_stand'] ?? $producto['nom_productor']) ?>
+                                            <?= htmlspecialchars($vendedor_nombre) ?>
                                         </h3>
                                     </a>
-                                    <?php if (!empty($producto['slogan_stand'])): ?>
-                                        <p class="text-xs text-gray-500 italic truncate">"<?= htmlspecialchars($producto['slogan_stand']) ?>"</p>
+                                    <?php if (!empty($vendedor_slogan)): ?>
+                                        <p class="text-xs text-gray-500 italic truncate">"<?= htmlspecialchars($vendedor_slogan) ?>"</p>
                                     <?php endif; ?>
                                     <div class="flex items-center mt-2 text-xs text-gray-500">
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         <span class="truncate"><?= htmlspecialchars($producto['ubicacion'] ?? 'Colombia') ?></span>
                                         <span class="mx-2 text-gray-300">|</span>
-                                        <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_productor'] ?>" class="text-blue-600 hover:underline font-medium">
-                                            Ver perfil
+                                        <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="text-blue-600 hover:underline font-medium">
+                                            Ver <?= $has_stand ? 'Stand' : 'Perfil' ?>
                                         </a>
                                     </div>
                                 </div>

@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ==========================================
 
 // Obtener datos del stand ($id_productor viene de mis_productos.php)
-$stmtStand = $db->ejecutar('obtenerStand', [':id_p' => $id_productor]);
+$stmtStand = $db->ejecutar('obtenerStandPrivado', [':id_p' => $id_productor]);
 $stand = $stmtStand->fetch(PDO::FETCH_ASSOC);
 
 require_once ROOT_PATH . "src/views/mis_productos/stand.view.php";

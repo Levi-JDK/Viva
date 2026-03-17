@@ -201,7 +201,9 @@ var data = {
     country:      "co",
     lang:         "es",
     external:     "false",
-    response:     "<?= BASE_URL ?>checkout/respuesta",
+    // ePayco rechaza "localhost" en su validador de URL, usamos 127.0.0.1 como fallback
+    response:     "<?= str_replace('localhost', '127.0.0.1', BASE_URL) ?>checkout/respuesta",
+    confirmation: "<?= str_replace('localhost', '127.0.0.1', BASE_URL) ?>api/epayco_webhook",
     name_billing: "<?= $_SESSION['nom_user'] ?? 'Cliente VIVA' ?>",
     email_billing:"<?= $_SESSION['mail_user'] ?? '' ?>"
 };

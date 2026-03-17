@@ -6,7 +6,7 @@ $id_user = $userData->id_user;
 
 // Este controlador SOLO se encarga de cargar los datos necesarios para la vista (GET)
 // NO procesa el formulario de registro. Eso lo hace src/api/post_registro_vendedor.php
-require_once(__DIR__ . '/../functions/Database.php');
+require_once(__DIR__ . '/../functions/database.php');
 
 
 try {

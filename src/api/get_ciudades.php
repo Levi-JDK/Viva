@@ -12,12 +12,13 @@ try {
 
 
 
-    require_once dirname(__DIR__, 2) . '/src/functions/Database.php';
+    require_once dirname(__DIR__, 2) . '/src/functions/database.php';
+    require_once dirname(__DIR__, 2) . '/src/functions/error_handler.php';
     // 3. Obtener instancia de BD
     $db = Database::getInstance();
 
     // 4. Ejecutar consulta preparada
-    // Se asume que 'obtenerCiudades' ya está definida en Database.php
+    // Se asume que 'obtenerCiudades' ya está definida en database.php
     // y espera el parámetro :id_depto
     $stmt = $db->ejecutar('obtenerCiudades', [':id_depto' => $id_departamento]);
     $ciudades = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -30,8 +31,5 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(ErrorHandler::jsonResponse($e, 'get_ciudades'));
 }

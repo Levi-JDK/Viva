@@ -72,7 +72,11 @@ $routes = [
     '/stands'             => 'src/controllers/stands.php',
     '/checkout'           => 'src/controllers/checkout.php',
     '/checkout/respuesta' => 'src/controllers/checkout_response.php',
-    '/pedido'             => 'src/controllers/pedido.php'
+    '/pedido'             => 'src/controllers/pedido.php',
+    '/terminos_condiciones'=> 'src/controllers/terminos_condiciones.php',
+    '/politica_privacidad' => 'src/controllers/politica_privacidad.php',
+    '/recuperar'           => 'src/controllers/recuperar.php',
+    '/api/recuperar'       => 'src/api/recuperar.php',
 ];
 
 if (array_key_exists($relative_uri, $routes)) {

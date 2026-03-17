@@ -17,12 +17,14 @@ RETURNS TABLE (
     nom_materia VARCHAR,
     id_productor DECIMAL,
     nom_productor VARCHAR, -- Name of the person/user
+    id_stand DECIMAL,
     nom_stand VARCHAR,
     img_stand VARCHAR,
     slogan_stand VARCHAR,
     descripcion_stand TEXT,
     portada_stand VARCHAR,
     ubicacion VARCHAR,
+    foto_user VARCHAR,
     imagenes JSON
 ) AS $$
 BEGIN
@@ -44,12 +46,14 @@ BEGIN
         m.nom_materia,
         pr.id_productor,
         (u.nom_user || ' ' || u.ape_user)::VARCHAR as nom_productor,
+        s.id_stand,
         s.nom_stand,
         s.img_stand,
         s.slogan_stand,
         s.descripcion_stand,
         s.portada_stand,
         (ci.nom_ciudad || ', ' || d.nom_departamento)::VARCHAR as ubicacion,
+        u.foto_user::VARCHAR as foto_user,
         COALESCE(
             (
                 SELECT json_agg(json_build_object('id_imagen', i.id_imagen, 'url', i.url_imagen))

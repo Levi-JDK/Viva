@@ -13,6 +13,7 @@
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -49,7 +50,7 @@ if (empty($texto)) {
 }
 
 try {
-    require_once __DIR__ . '/../functions/Database.php';
+    require_once __DIR__ . '/../functions/database.php';
     $db = Database::getInstance();
 
     // Validar si el usuario es el mismo productor (no puede auto-reseñarse)
@@ -72,6 +73,6 @@ try {
     }
 
 } catch (Exception $e) {
-    error_log("[Reseñas API] Error: " . $e->getMessage());
-    echo json_encode(['exito' => false, 'mensaje' => 'Error interno en el servidor']);
+    $response = ErrorHandler::jsonResponse($e, 'resenas');
+    echo json_encode(['exito' => false, 'mensaje' => $response['message']]);
 }

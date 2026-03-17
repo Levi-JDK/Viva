@@ -22,9 +22,10 @@ $userData = AuthHelper::protectRoute();
 
 try {
     // Nota: El vendor/autoload.php y el Dotenv::createImmutable ya se cargaron globalmente en index.php
-    // Solo requerimos Database.php ya que las URIs de API a veces no incluyen Database explícitamente en index.php,
+    // Solo requerimos database.php ya que las URIs de API a veces no incluyen Database explícitamente en index.php,
     // pero si index.php lo tiene, no nos preocupamos. Usaremos require_once por si acaso la clase no está cargada.
-    require_once __DIR__ . '/../functions/Database.php';
+    require_once __DIR__ . '/../functions/database.php';
+    require_once __DIR__ . '/../functions/error_handler.php';
 
     $db = Database::getInstance();
     $id_user = (int)$userData->id_user;
@@ -92,6 +93,6 @@ try {
     echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']);
 
 } catch (Exception $e) {
-    error_log("[Favoritos API] Error general: " . $e->getMessage());
-    echo json_encode(['exito' => false, 'mensaje' => 'Error interno en el servidor']);
+    $response = ErrorHandler::jsonResponse($e, 'favoritos');
+    echo json_encode(['exito' => false, 'mensaje' => $response['message']]);
 }

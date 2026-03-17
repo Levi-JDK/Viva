@@ -8,13 +8,12 @@ require_once __DIR__ . '/partials/base_head.php';
     <?php require_once __DIR__ . '/partials/navbar.php'; ?>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col pt-16">
+    <main class="flex-grow flex flex-col">
         
         <!-- Hero Section -->
-        <section class="relative bg-black text-white py-20 px-4 mt-4">
+        <section class="relative bg-black text-white py-20 px-4">
             <!-- Background Image overlay -->
             <div class="absolute inset-0 opacity-20 bg-cover bg-center" style="background-image: url('<?= BASE_URL ?>images/default_stands.jpg');"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
             
             <div class="relative container mx-auto text-center z-10 max-w-3xl">
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
@@ -71,7 +70,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <?php 
                         // Habilitar enlace a la página de detalle
                         $show_link = true;
-                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_productor'];
+                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_stand'];
                         require __DIR__ . '/partials/card_stand.php'; 
                         ?>
                     <?php endforeach; ?>

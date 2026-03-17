@@ -32,8 +32,8 @@
                 <div>
                     <h4 class="font-semibold text-lg mb-4">Enlaces rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Políticas de privacidad</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Términos y condiciones</a></li>
+                        <li><a href="<?= BASE_URL ?>politica_privacidad" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Políticas de privacidad</a></li>
+                        <li><a href="<?= BASE_URL ?>terminos_condiciones" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Términos y condiciones</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Contacto</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Preguntas frecuentes</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Blog</a></li>

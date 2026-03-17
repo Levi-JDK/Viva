@@ -10,10 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 require_once dirname(__DIR__, 2) . '/src/functions/auth_helper.php';
+require_once dirname(__DIR__, 2) . '/src/functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
 
 // Cargar Database
-require_once dirname(__DIR__, 2) . '/src/functions/Database.php';
+require_once dirname(__DIR__, 2) . '/src/functions/database.php';
 
 $params = [];
 
@@ -64,40 +65,32 @@ try {
         $result = $stmt->fetchColumn(); 
 
         if ($result) {
-            // Asignar los módulos de productor
-            $db->ejecutar('asignarMenuUsuario', [':id_user' => (int)$id_user, ':id_menu' => 3]);
+            // Asignar los módulos de productor (Mis Productos)
+            $db->ejecutar('asignarMenuUsuario', [':id_user' => (int)$id_user, ':id_menu' => 10]);
             
             // Revocar el módulo de "Vender en VIVA"
-            $db->ejecutar('revocarMenuUsuario', [':id_user' => (int)$id_user, ':id_menu' => 2]);
+            $db->ejecutar('revocarMenuUsuario', [':id_user' => (int)$id_user, ':id_menu' => 9]);
         }
     } catch (PDOException $ex) {
-        // Loguear error real si falla SQL
-        error_log("Error SQL Registro Vendedor: " . $ex->getMessage());
-        // DEBUG: Lanzar excepción real para que el usuario la vea
-        throw new Exception("Error SQL: " . $ex->getMessage());
+        // Loguear y devolver mensaje seguro
+        echo json_encode(ErrorHandler::jsonResponse($ex, 'post_registro_vendedor'));
+        exit;
     }
 
     if ($result) {
         echo json_encode([
             'success' => true, 
-            'message' => '¡Registro exitoso! Bienvenido a VIVA.',
-            // Mantenemos debug_params por si acaso el usuario quiere validar
-            'debug_params' => $params 
+            'message' => '¡Registro exitoso! Bienvenido a VIVA.'
         ]);
     } else {
         // La función retornó FALSE (validación fallida)
         echo json_encode([
             'success' => false, 
-            'message' => 'No se pudo completar el registro. Verifique sus datos (ej. documento o usuario ya registrado).',
-            'debug_params' => $params 
+            'message' => 'No se pudo completar el registro. Verifique sus datos (ej. documento o usuario ya registrado).'
         ]);
     }
 
 } catch (Exception $e) {
     http_response_code(200);
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Error: ' . $e->getMessage(),
-        'debug_params' => isset($params) ? $params : null
-    ]);
+    echo json_encode(ErrorHandler::jsonResponse($e, 'post_registro_vendedor'));
 }

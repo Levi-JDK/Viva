@@ -8,6 +8,7 @@ DROP VIEW IF EXISTS colores_view;
 DROP VIEW IF EXISTS oficios_view;
 DROP VIEW IF EXISTS materias_view;
 -- DROP DE TABLAS
+DROP TABLE IF EXISTS tab_reset_tokens;
 DROP TABLE IF EXISTS tab_kardex;
 DROP TABLE IF EXISTS tab_clientes;
 DROP TABLE IF EXISTS tab_envios;
@@ -47,12 +48,23 @@ CREATE TABLE IF NOT EXISTS tab_pmtros
     nom_plataforma VARCHAR       NOT NULL,                              -- Nombre de la plataforma
     dir_contacto   VARCHAR       NOT NULL,                              -- Dirección de contacto
     correo_contacto VARCHAR      NOT NULL,                              -- Correo de contacto
-    val_poriva     DECIMAL(4,2)  NOT NULL DEFAULT 19.00,                -- Porcentaje de IVA por defecto
     val_inifact    DECIMAL(12,0) NOT NULL,                              -- Numeración inicial de facturas
     val_finfact    DECIMAL(12,0) NOT NULL CHECK(val_finfact >= val_inifact), -- Numeración final de facturas
     val_actfact    DECIMAL(12,0) NOT NULL CHECK (val_actfact >= val_inifact AND val_actfact <= val_finfact), -- Número actual
     val_observa    TEXT,                                                -- Observación impresa en factura
     visitas        INTEGER       NOT NULL DEFAULT 0,                    -- Visitas a la plataforma
+    landing_hero_titulo VARCHAR       NOT NULL DEFAULT 'Conecta con nuestro {mercado real}',
+    landing_hero_subtitulo VARCHAR    NOT NULL DEFAULT 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.',
+    landing_hero_btn    VARCHAR       NOT NULL DEFAULT 'Explorar ahora',
+    landing_conf_1_tit  VARCHAR       NOT NULL DEFAULT 'Envíos seguros',
+    landing_conf_1_sub  VARCHAR       NOT NULL DEFAULT 'Entrega protegida en todo el mundo',
+    landing_conf_2_tit  VARCHAR       NOT NULL DEFAULT 'Pago protegido',
+    landing_conf_2_sub  VARCHAR       NOT NULL DEFAULT 'Transacciones 100% seguras',
+    landing_conf_3_tit  VARCHAR       NOT NULL DEFAULT 'Apoyo directo',
+    landing_conf_3_sub  VARCHAR       NOT NULL DEFAULT 'Beneficia directamente a las comunidades',
+    landing_filosofia_tit VARCHAR     NOT NULL DEFAULT 'Nuestra historia',
+    landing_filosofia_p1 VARCHAR      NOT NULL DEFAULT 'VIVA nació del sueño de preservar y compartir la riqueza cultural de las comunidades indígenas colombianas. Creemos que cada artesanía cuenta una historia milenaria y conecta generaciones.',
+    landing_filosofia_p2 VARCHAR      NOT NULL DEFAULT 'A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.',
     created_by     VARCHAR       NOT NULL DEFAULT current_user,         -- Usuario que creó
     created_at     TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación
     updated_by     VARCHAR NOT NULL DEFAULT 'N/A',                               -- Usuario que modificó
@@ -63,16 +75,31 @@ CREATE TABLE IF NOT EXISTS tab_pmtros
 
 INSERT INTO tab_pmtros (
   nom_plataforma, dir_contacto, correo_contacto,
-  val_poriva, val_inifact, val_finfact, val_actfact, val_observa
+   val_inifact, val_finfact, val_actfact, val_observa,
+  landing_hero_titulo, landing_hero_subtitulo, landing_hero_btn,
+  landing_conf_1_tit, landing_conf_1_sub, landing_conf_2_tit, landing_conf_2_sub,
+  landing_conf_3_tit, landing_conf_3_sub, landing_filosofia_tit,
+  landing_filosofia_p1, landing_filosofia_p2
 ) VALUES (
-  'Artesanías Viva',
+  'Viva',
   'Calle 100 # 15-20, Bogotá',
   'contacto@artesaniasviva.com',
-  19.00,
   1000,
   9000,
   1000,
-  'Parámetros iniciales de facturación'
+  'Parámetros iniciales de facturación',
+  'Conecta con nuestro {mercado real}',
+  'Conoce los productos de naturaleza autoctona y artesanal de Colombia.',
+  'Explorar ahora',
+  'Envíos seguros',
+  'Entrega protegida en todo el mundo',
+  'Pago protegido',
+  'Transacciones 100% seguras',
+  'Apoyo directo',
+  'Beneficia directamente a las comunidades',
+  'Nuestra historia',
+  'VIVA nació del sueño de preservar y compartir la riqueza cultural de las comunidades indígenas colombianas. Creemos que cada artesanía cuenta una historia milenaria y conecta generaciones.',
+  'A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.'
 );
 
 -- Tabla de usuarios
@@ -99,7 +126,6 @@ CREATE TABLE IF NOT EXISTS tab_menu
     nom_menu         VARCHAR            NOT NULL,                                       -- Nombre del menú
     url_menu         VARCHAR            DEFAULT '#',                                    -- URL o ruta de acceso
     icono_menu       VARCHAR            DEFAULT 'fas fa-circle',                        -- Clase CSS del icono (FontAwesome)
-    orden_menu       INTEGER            DEFAULT 0,                                      -- Posición de renderizado
     created_by       VARCHAR            NOT NULL DEFAULT current_user,                  -- Usuario que creó
     created_at       TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,    -- Fecha de creación
     updated_by       VARCHAR NOT NULL DEFAULT 'N/A',                                  -- Usuario que modificó
@@ -600,6 +626,19 @@ CREATE TABLE IF NOT EXISTS tab_kardex
     FOREIGN KEY(ref_factura)  REFERENCES tab_enc_fact   (id_factura)
 );
 
+-- Tabla de tokens de recuperación de contraseña (OTP)
+CREATE TABLE IF NOT EXISTS tab_reset_tokens
+(
+    id_token     INTEGER       NOT NULL,                                         -- PK (asigna por Max+1)
+    id_user      INTEGER       NOT NULL,                                         -- Usuario que solicitó el reset
+    token_reset  VARCHAR(6)    NOT NULL,                                         -- Código OTP de 6 dígitos
+    expira_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL,                           -- Fecha/hora de expiración
+    is_used      BOOLEAN       NOT NULL DEFAULT FALSE,                           -- Si ya fue utilizado
+    created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación
+    PRIMARY KEY(id_token),
+    FOREIGN KEY(id_user) REFERENCES tab_users(id_user)
+);
+
 -- INDICES
 CREATE INDEX idx_producto_categoria ON tab_productos(id_categoria);
 CREATE INDEX idx_producto_color ON tab_productos(id_color);
@@ -627,18 +666,18 @@ INSERT INTO tab_tipos_doc (id_tipo_doc, nom_tipo_doc) VALUES
 (1,'Cédula'),(2,'NIT'),(3,'Cédula de Extranjería'),(4,'Pasaporte');
 
 -- Insertando los menús del sistema
-INSERT INTO tab_menu (id_menu, nom_menu, url_menu, icono_menu, orden_menu) VALUES
-(1, 'Admin Dashboard', 'admin_dashboard', 'fas fa-shield-alt', 10),
-(2, 'Vender en VIVA', 'vender', 'fas fa-store', 20),
-(3, 'Mis Productos', 'mis_productos', 'fas fa-box', 30),
-(4, 'Mi Stand', 'mi_stand', 'fas fa-store-alt', 40),
-(5, 'Inicio', '', 'fas fa-home', 1),
-(6, 'Categorías', '#categorias', 'fas fa-th-large', 2),
-(7, 'Catálogo', 'catalogo', 'fas fa-shopping-bag', 3),
-(8, 'Mi Perfil', 'perfil#profile', 'fas fa-user', 4),
-(9, 'Mis Pedidos', 'perfil#orders', 'fas fa-shopping-bag', 5),
-(10, 'Favoritos', 'perfil#favorites', 'fas fa-heart', 6),
-(11, 'Configuración', 'perfil#settings', 'fas fa-cog', 7);
+INSERT INTO tab_menu (id_menu, nom_menu, url_menu, icono_menu) VALUES
+(1, 'Inicio', '', 'fas fa-home'),
+(2, 'Categorías', '#categorias', 'fas fa-th-large'),
+(3, 'Catálogo', 'catalogo', 'fas fa-shopping-bag'),
+(4, 'Mi Perfil', 'perfil#profile', 'fas fa-user'),
+(5, 'Mis Pedidos', 'perfil#orders', 'fas fa-shopping-bag'),
+(6, 'Favoritos', 'perfil#favorites', 'fas fa-heart'),
+(7, 'Configuración', 'perfil#settings', 'fas fa-cog'),
+(8, 'Admin Dashboard', 'admin_dashboard', 'fas fa-shield-alt'),
+(9, 'Vender en VIVA', 'vender', 'fas fa-store'),
+(10, 'Mis Productos', 'mis_productos', 'fas fa-box'),
+(11, 'Mi Stand', 'mi_stand', 'fas fa-store-alt');
 
 -- Insertando los gremios/grupos de identidad para el marketplace VIVA
 INSERT INTO tab_grupos (id_grupo, nom_grupo) VALUES 

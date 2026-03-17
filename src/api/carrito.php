@@ -18,6 +18,7 @@
 
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
 $id_user = $userData->id_user;
 
@@ -47,7 +48,7 @@ if (!$accion || !in_array($accion, $acciones_validas)) {
 
 // ── Llamar a la función de la BD ─────────────────────────────────────────────
 try {
-    require_once __DIR__ . '/../functions/Database.php';
+    require_once __DIR__ . '/../functions/database.php';
     $db = Database::getInstance();
 
     $params = [
@@ -66,9 +67,9 @@ try {
     echo json_encode($resultado);
 
 } catch (Exception $e) {
-    error_log('[Carrito API] Error: ' . $e->getMessage());
+    $response = ErrorHandler::jsonResponse($e, 'carrito');
     echo json_encode([
         'exito'   => false,
-        'mensaje' => 'Error interno del servidor'
+        'mensaje' => $response['message']
     ]);
 }

@@ -20,7 +20,8 @@ header('X-Content-Type-Options: nosniff');
 
 
 
-require_once(__DIR__ . '/../functions/Database.php');
+require_once(__DIR__ . '/../functions/database.php');
+require_once(__DIR__ . '/../functions/error_handler.php');
 
 $db = Database::getInstance();
 
@@ -68,9 +69,8 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error al obtener los productos: ' . $e->getMessage(),
-        'data'    => [],
-    ], JSON_UNESCAPED_UNICODE);
+    echo json_encode(
+        ErrorHandler::jsonResponse($e, 'productos') + ['data' => []],
+        JSON_UNESCAPED_UNICODE
+    );
 }

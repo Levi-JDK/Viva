@@ -6,7 +6,7 @@ $usuarioData = AuthHelper::protectRoute();
 $id_usuario = $usuarioData->id_user;
 
 // Cargar las dependencias necesarias
-require_once ROOT_PATH . 'src/functions/Database.php';
+require_once ROOT_PATH . 'src/functions/database.php';
 
 // Conectar a la base de datos usando Singleton
 try {

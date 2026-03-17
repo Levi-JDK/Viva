@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
         if ($id_usuario) {
             try {
                 // Incluir configuración de base de datos
-                require_once 'Database.php';
+                require_once 'database.php';
                 
                 // Usar Singleton pattern
                 $db = Database::getInstance();

@@ -25,6 +25,14 @@ BEGIN
         updated_at = CURRENT_TIMESTAMP
     WHERE id_productor = p_id_productor AND id_stand = p_id_stand;
 
+    -- 3. Asignar el menú Mi Stand (ID 11) al usuario si aún no lo tiene 
+    -- (redundancia segura por si se llenó por update)
+    INSERT INTO tab_menu_user (id_user, id_menu)
+    SELECT id_user, 11
+    FROM tab_productores
+    WHERE id_productor = p_id_productor
+    ON CONFLICT DO NOTHING;
+
     RETURN TRUE;
 
 EXCEPTION

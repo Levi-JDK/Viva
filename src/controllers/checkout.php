@@ -9,13 +9,10 @@ require_once __DIR__ . '/../functions/auth_helper.php';
 $userData = AuthHelper::protectRoute();
 $id_user = $userData->id_user;
 
-require_once __DIR__ . '/../functions/Database.php';
+require_once __DIR__ . '/../functions/database.php';
 
 try {
     $db = Database::getInstance();
-
-
-
 
     // 2. Obtener el carrito actual del usuario usando la función PL/pgSQL
     $params = [

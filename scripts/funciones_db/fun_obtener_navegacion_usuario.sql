@@ -3,8 +3,7 @@ RETURNS TABLE (
     id_menu INT,
     nom_menu VARCHAR,
     url_menu VARCHAR,
-    icono_menu VARCHAR,
-    orden_menu INT
+    icono_menu VARCHAR
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -12,8 +11,7 @@ BEGIN
         m.id_menu,
         m.nom_menu,
         m.url_menu,
-        m.icono_menu,
-        m.orden_menu
+        m.icono_menu
     FROM 
         tab_menu_user mu
     INNER JOIN 
@@ -23,6 +21,6 @@ BEGIN
         AND mu.is_deleted = FALSE 
         AND m.is_deleted = FALSE
     ORDER BY 
-        m.orden_menu ASC;
+        m.id_menu ASC;
 END;
 $$ LANGUAGE plpgsql;

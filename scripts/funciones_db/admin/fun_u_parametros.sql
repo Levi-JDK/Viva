@@ -2,31 +2,57 @@ CREATE OR REPLACE FUNCTION fun_u_parametros(
     p_id_parametro                tab_pmtros.id_parametro%TYPE,
     p_nom_plataforma              tab_pmtros.nom_plataforma%TYPE,
     p_dir_contacto                tab_pmtros.dir_contacto%TYPE,
-    p_tel_contacto                tab_pmtros.tel_contacto%TYPE,
     p_correo_contacto             tab_pmtros.correo_contacto%TYPE,
-    p_val_poriva                  tab_pmtros.val_poriva%TYPE,
     p_val_inifact                 tab_pmtros.val_inifact%TYPE,
     p_val_finfact                 tab_pmtros.val_finfact%TYPE,
     p_val_actfact                 tab_pmtros.val_actfact%TYPE,
-    p_val_observa                 tab_pmtros.val_observa%TYPE
+    p_val_observa                 tab_pmtros.val_observa%TYPE,
+    p_landing_hero_titulo         tab_pmtros.landing_hero_titulo%TYPE,
+    p_landing_hero_subtitulo      tab_pmtros.landing_hero_subtitulo%TYPE,
+    p_landing_hero_btn            tab_pmtros.landing_hero_btn%TYPE,
+    p_landing_conf_1_tit          tab_pmtros.landing_conf_1_tit%TYPE,
+    p_landing_conf_1_sub         tab_pmtros.landing_conf_1_sub%TYPE,
+    p_landing_conf_2_tit          tab_pmtros.landing_conf_2_tit%TYPE,
+    p_landing_conf_2_sub         tab_pmtros.landing_conf_2_sub%TYPE,
+    p_landing_conf_3_tit          tab_pmtros.landing_conf_3_tit%TYPE,
+    p_landing_conf_3_sub         tab_pmtros.landing_conf_3_sub%TYPE,
+    p_landing_filosofia_tit       tab_pmtros.landing_filosofia_tit%TYPE,
+    p_landing_filosofia_p1        tab_pmtros.landing_filosofia_p1%TYPE,
+    p_landing_filosofia_p2        tab_pmtros.landing_filosofia_p2%TYPE
 )
 RETURNS BOOLEAN AS $$
 DECLARE
     v_nom_plataforma   tab_pmtros.nom_plataforma%TYPE;
     v_dir_contacto     tab_pmtros.dir_contacto%TYPE;
-    v_tel_contacto     tab_pmtros.tel_contacto%TYPE;
     v_correo_contacto  tab_pmtros.correo_contacto%TYPE;
-    v_val_poriva       tab_pmtros.val_poriva%TYPE;
     v_val_inifact      tab_pmtros.val_inifact%TYPE;
     v_val_finfact      tab_pmtros.val_finfact%TYPE;
     v_val_actfact      tab_pmtros.val_actfact%TYPE;
     v_val_observa      tab_pmtros.val_observa%TYPE;
+    v_landing_hero_titulo         tab_pmtros.landing_hero_titulo%TYPE;
+    v_landing_hero_subtitulo      tab_pmtros.landing_hero_subtitulo%TYPE;
+    v_landing_hero_btn            tab_pmtros.landing_hero_btn%TYPE;
+    v_landing_conf_1_tit          tab_pmtros.landing_conf_1_tit%TYPE;
+    v_landing_conf_1_sub         tab_pmtros.landing_conf_1_sub%TYPE;
+    v_landing_conf_2_tit          tab_pmtros.landing_conf_2_tit%TYPE;
+    v_landing_conf_2_sub         tab_pmtros.landing_conf_2_sub%TYPE;
+    v_landing_conf_3_tit          tab_pmtros.landing_conf_3_tit%TYPE;
+    v_landing_conf_3_sub         tab_pmtros.landing_conf_3_sub%TYPE;
+    v_landing_filosofia_tit       tab_pmtros.landing_filosofia_tit%TYPE;
+    v_landing_filosofia_p1        tab_pmtros.landing_filosofia_p1%TYPE;
+    v_landing_filosofia_p2        tab_pmtros.landing_filosofia_p2%TYPE;
 BEGIN
     -- 1. Verificar existencia y obtener valores actuales
-    SELECT nom_plataforma, dir_contacto, tel_contacto, correo_contacto,
-           val_poriva, val_inifact, val_finfact, val_actfact, val_observa
-      INTO v_nom_plataforma, v_dir_contacto, v_tel_contacto, v_correo_contacto,
-           v_val_poriva, v_val_inifact, v_val_finfact, v_val_actfact, v_val_observa
+    SELECT nom_plataforma, dir_contacto, correo_contacto,
+           val_inifact, val_finfact, val_actfact, val_observa,
+           landing_hero_titulo, landing_hero_subtitulo, landing_hero_btn,
+           landing_conf_1_tit, landing_conf_1_sub, landing_conf_2_tit, landing_conf_2_sub,
+           landing_conf_3_tit, landing_conf_3_sub, landing_filosofia_tit, landing_filosofia_p1, landing_filosofia_p2
+      INTO v_nom_plataforma, v_dir_contacto, v_correo_contacto,
+           v_val_inifact, v_val_finfact, v_val_actfact, v_val_observa,
+           v_landing_hero_titulo, v_landing_hero_subtitulo, v_landing_hero_btn,
+           v_landing_conf_1_tit, v_landing_conf_1_sub, v_landing_conf_2_tit, v_landing_conf_2_sub,
+           v_landing_conf_3_tit, v_landing_conf_3_sub, v_landing_filosofia_tit, v_landing_filosofia_p1, v_landing_filosofia_p2
       FROM tab_pmtros
      WHERE id_parametro = p_id_parametro;
 
@@ -43,16 +69,8 @@ BEGIN
         v_dir_contacto := p_dir_contacto;
     END IF;
 
-    IF p_tel_contacto IS NOT NULL AND TRIM(p_tel_contacto) <> '' THEN
-        v_tel_contacto := p_tel_contacto;
-    END IF;
-
     IF p_correo_contacto IS NOT NULL AND TRIM(p_correo_contacto) <> '' THEN
         v_correo_contacto := p_correo_contacto;
-    END IF;
-
-    IF p_val_poriva IS NOT NULL THEN
-        v_val_poriva := p_val_poriva;
     END IF;
 
     IF p_val_inifact IS NOT NULL THEN
@@ -71,6 +89,44 @@ BEGIN
         v_val_observa := p_val_observa; -- Puede ser texto vacío si se desea limpiar
     END IF;
 
+    -- Textos Landing
+    IF p_landing_hero_titulo IS NOT NULL AND TRIM(p_landing_hero_titulo) <> '' THEN
+        v_landing_hero_titulo := p_landing_hero_titulo;
+    END IF;
+    IF p_landing_hero_subtitulo IS NOT NULL AND TRIM(p_landing_hero_subtitulo) <> '' THEN
+        v_landing_hero_subtitulo := p_landing_hero_subtitulo;
+    END IF;
+    IF p_landing_hero_btn IS NOT NULL AND TRIM(p_landing_hero_btn) <> '' THEN
+        v_landing_hero_btn := p_landing_hero_btn;
+    END IF;
+    IF p_landing_conf_1_tit IS NOT NULL AND TRIM(p_landing_conf_1_tit) <> '' THEN
+        v_landing_conf_1_tit := p_landing_conf_1_tit;
+    END IF;
+    IF p_landing_conf_1_sub IS NOT NULL AND TRIM(p_landing_conf_1_sub) <> '' THEN
+        v_landing_conf_1_sub := p_landing_conf_1_sub;
+    END IF;
+    IF p_landing_conf_2_tit IS NOT NULL AND TRIM(p_landing_conf_2_tit) <> '' THEN
+        v_landing_conf_2_tit := p_landing_conf_2_tit;
+    END IF;
+    IF p_landing_conf_2_sub IS NOT NULL AND TRIM(p_landing_conf_2_sub) <> '' THEN
+        v_landing_conf_2_sub := p_landing_conf_2_sub;
+    END IF;
+    IF p_landing_conf_3_tit IS NOT NULL AND TRIM(p_landing_conf_3_tit) <> '' THEN
+        v_landing_conf_3_tit := p_landing_conf_3_tit;
+    END IF;
+    IF p_landing_conf_3_sub IS NOT NULL AND TRIM(p_landing_conf_3_sub) <> '' THEN
+        v_landing_conf_3_sub := p_landing_conf_3_sub;
+    END IF;
+    IF p_landing_filosofia_tit IS NOT NULL AND TRIM(p_landing_filosofia_tit) <> '' THEN
+        v_landing_filosofia_tit := p_landing_filosofia_tit;
+    END IF;
+    IF p_landing_filosofia_p1 IS NOT NULL AND TRIM(p_landing_filosofia_p1) <> '' THEN
+        v_landing_filosofia_p1 := p_landing_filosofia_p1;
+    END IF;
+    IF p_landing_filosofia_p2 IS NOT NULL AND TRIM(p_landing_filosofia_p2) <> '' THEN
+        v_landing_filosofia_p2 := p_landing_filosofia_p2;
+    END IF;
+
 
     -- 3. Validaciones sobre los valores FINALIZADOS
 
@@ -86,21 +142,9 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Validar teléfono (solo números)
-    IF v_tel_contacto !~ '^[0-9]+$' THEN
-        -- El teléfono solo debe contener números
-        RETURN FALSE;
-    END IF;
-
     -- Validar correo electrónico (debe contener @)
     IF v_correo_contacto NOT LIKE '%@%' THEN
         -- El correo electrónico no es válido (debe contener @)
-        RETURN FALSE;
-    END IF;
-
-    -- Validar porcentaje de IVA (no negativo)
-    IF v_val_poriva < 0 THEN
-        -- El valor del IVA no puede ser negativo
         RETURN FALSE;
     END IF;
 
@@ -125,13 +169,23 @@ BEGIN
     UPDATE tab_pmtros
        SET nom_plataforma = v_nom_plataforma,
            dir_contacto   = v_dir_contacto,
-           tel_contacto   = v_tel_contacto,
            correo_contacto= v_correo_contacto,
-           val_poriva     = v_val_poriva,
            val_inifact    = v_val_inifact,
            val_finfact    = v_val_finfact,
            val_actfact    = v_val_actfact,
            val_observa    = v_val_observa,
+           landing_hero_titulo = v_landing_hero_titulo,
+           landing_hero_subtitulo = v_landing_hero_subtitulo,
+           landing_hero_btn = v_landing_hero_btn,
+           landing_conf_1_tit = v_landing_conf_1_tit,
+           landing_conf_1_sub = v_landing_conf_1_sub,
+           landing_conf_2_tit = v_landing_conf_2_tit,
+           landing_conf_2_sub = v_landing_conf_2_sub,
+           landing_conf_3_tit = v_landing_conf_3_tit,
+           landing_conf_3_sub = v_landing_conf_3_sub,
+           landing_filosofia_tit = v_landing_filosofia_tit,
+           landing_filosofia_p1 = v_landing_filosofia_p1,
+           landing_filosofia_p2 = v_landing_filosofia_p2,
            updated_at     = CURRENT_TIMESTAMP
      WHERE id_parametro   = p_id_parametro;
 

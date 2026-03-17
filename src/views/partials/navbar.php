@@ -2,6 +2,13 @@
 require_once __DIR__ . '/../../functions/navbar_usuario.php';
 cargar_datos_navbar();
 
+$is_logged_in   = $GLOBALS['is_logged_in'] ?? false;
+$nombre_usuario = $GLOBALS['nombre_usuario'] ?? '';
+$email_usuario  = $GLOBALS['email_usuario'] ?? '';
+$foto_usuario   = $GLOBALS['foto_usuario'] ?? 'images/default.jpg';
+$navbar_menus   = $GLOBALS['navbar_menus'] ?? [];
+$dropdown_menus = $GLOBALS['dropdown_menus'] ?? [];
+
 // Mostrar errores globales de redirección
 $error_msg = '';
 if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
@@ -25,20 +32,20 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
     <!-- Header -->
     <header class="bg-white shadow-lg sticky top-0 z-50 font-sans">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-4 lg:gap-8">
                 <!-- Logo -->
-                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 group">
+                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 group min-w-max">
                     <div class="aspect-square w-8 sm:w-9 md:w-10 lg:w-11 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center group-hover:shadow-md transition-all">
                         <img src="<?= BASE_URL ?>images/Logo.png" alt="VIVA" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-tierra-oscuro group-hover:text-tierra-medio transition-colors">VIVA</h1>
-                        <p class="text-xs text-tierra-medio">Artesanías Colombianas</p>
+                        <p class="text-xs text-tierra-medio hidden sm:block">Artesanías Colombianas</p>
                     </div>
                 </a>
                 
                 <!-- Search Bar - Hidden on mobile, shown on md+ -->
-                <form action="<?= BASE_URL ?>catalogo" method="GET" class="hidden md:flex flex-1 max-w-2xl mx-8">
+                <form action="<?= BASE_URL ?>catalogo" method="GET" class="hidden md:flex flex-1 max-w-2xl">
                     <div class="relative w-full">
                         <input 
                             type="text" 
@@ -55,7 +62,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 </form>
 
                 <!-- Navigation - Hidden on mobile -->
-                <nav class="hidden lg:flex items-center space-x-8 pr-10">
+                <nav class="hidden lg:flex items-center space-x-8">
                     <?php if (!empty($navbar_menus)): ?>
                         <?php foreach ($navbar_menus as $nmenu): ?>
                             <a href="<?= BASE_URL . htmlspecialchars($nmenu['url_menu']) ?>" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">
@@ -66,7 +73,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 </nav>
 
                 <!-- User Actions -->
-                <div class="flex items-center space-x-4 pr-10">
+                <div class="flex items-center space-x-4">
                     <div id="user-section">
                         <?php if (isset($is_logged_in) && $is_logged_in): ?>
                             <!-- User Dropdown -->
@@ -90,7 +97,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                     <ul class="py-2">
                                         <?php if (!empty($dropdown_menus)): ?>
                                             <?php foreach ($dropdown_menus as $menu): ?>
-                                                <?php if (in_array($menu['id_menu'], [8, 9, 10, 11])): ?>
+                                                <?php if (in_array($menu['id_menu'], [4, 5, 6, 7])): ?>
                                                     <li>
                                                         <a href="<?= BASE_URL . htmlspecialchars($menu['url_menu']) ?>" class="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-naranja-artesanal transition-colors">
                                                             <i class="<?= htmlspecialchars($menu['icono_menu']) ?> w-6 text-center"></i>
@@ -99,7 +106,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                                     </li>
                                                 <?php else: ?>
                                                     <li class="px-2 space-y-1 mt-1 mb-1">
-                                                        <?php $menu_color = ($menu['id_menu'] == 2) ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-naranja-artesanal hover:bg-orange-100'; ?>
+                                                        <?php $menu_color = ($menu['id_menu'] == 9) ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-naranja-artesanal hover:bg-orange-100'; ?>
                                                         <a href="<?= BASE_URL . htmlspecialchars($menu['url_menu']) ?>" class="flex items-center justify-between px-4 py-2 text-sm <?= $menu_color ?> font-semibold transition-colors rounded-lg group-menu-item">
                                                             <div class="flex items-center">
                                                                 <i class="<?= htmlspecialchars($menu['icono_menu']) ?> w-6 text-center"></i>
@@ -124,8 +131,17 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                 </div>
                             </div>
                         <?php else: ?>
+                            <?php
+                                $login_url = BASE_URL . 'login';
+                                $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
+                                    . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+                                // Solo añadir redirect si no estamos ya en la página de login
+                                if (strpos($_SERVER['REQUEST_URI'], '/login') === false) {
+                                    $login_url .= '?redirect=' . urlencode($current_url);
+                                }
+                            ?>
                             <!-- Login Button -->
-                            <a href="<?= BASE_URL ?>login" class="btn-primary header-login text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
+                            <a href="<?= $login_url ?>" class="btn-primary header-login text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transform hover:-translate-y-0.5 transition-all">
                                 Iniciar Sesión
                             </a>
                         <?php endif; ?>

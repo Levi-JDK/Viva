@@ -4,7 +4,7 @@
  */
 
 require_once __DIR__ . '/image_uploader.php';
-require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/database.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";

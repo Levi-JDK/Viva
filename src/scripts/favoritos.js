@@ -4,15 +4,28 @@ let favoritosActivos = new Set();
 
 // Cargar favoritos al inicio
 document.addEventListener('DOMContentLoaded', () => {
-    // Si no estamos en login, intentar cargar
-    if (!window.location.pathname.includes('login')) {
+    // Solo intentar si el usuario está logueado (variable inyectada por PHP en carrito.php)
+    if (window.USER_IS_LOGGED_IN === true) {
         cargarFavoritos();
     }
 });
 
 async function cargarFavoritos() {
+    const res = await fetch(BASE_URL + 'api/favoritos', {
+        headers: { 'Accept': 'application/json' }
+    });
+
     try {
-        const res = await fetch(BASE_URL + 'api/favoritos');
+        const res = await fetch(BASE_URL + 'api/favoritos', {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        // Si PHP devuelve 401 por AJAX, capturarlo sin romper
+        if (res.status === 401 || res.status === 403) {
+            console.warn('[Favoritos] Sesión caducada o no válida. Se ignoran favoritos.');
+            return;
+        }
+
         const data = await res.json();
 
         if (data.exito && data.favoritos) {
@@ -57,6 +70,12 @@ async function toggleFavorito(id_producto, btnElement, eventObj) {
         eventObj.stopPropagation();
     }
 
+    // Si el usuario no está logueado, redirigir al login con la URL de regreso
+    if (!window.USER_IS_LOGGED_IN) {
+        window.location.href = window.LOGIN_URL + '?redirect=' + encodeURIComponent(window.location.href);
+        return;
+    }
+
     const esFavoritoActualmente = favoritosActivos.has(id_producto);
     const nuevaAccion = esFavoritoActualmente ? 'eliminar' : 'agregar';
 
@@ -78,7 +97,10 @@ async function toggleFavorito(id_producto, btnElement, eventObj) {
     try {
         const res = await fetch(BASE_URL + 'api/favoritos', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify({ accion: nuevaAccion, id_producto: id_producto })
         });
 
@@ -134,7 +156,12 @@ async function cargarFavoritosDashboard() {
     if (!grid || !emptyState) return;
 
     try {
-        const res = await fetch(BASE_URL + 'api/favoritos');
+        const res = await fetch(BASE_URL + 'api/favoritos', {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (res.status === 401 || res.status === 403) return;
+
         const data = await res.json();
 
         if (data.exito && data.favoritos) {

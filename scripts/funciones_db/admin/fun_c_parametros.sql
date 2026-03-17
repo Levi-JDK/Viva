@@ -1,9 +1,7 @@
 CREATE OR REPLACE FUNCTION fun_c_parametros(
     p_nom_plataforma              tab_pmtros.nom_plataforma%TYPE,
     p_dir_contacto                tab_pmtros.dir_contacto%TYPE,
-    p_tel_contacto                tab_pmtros.tel_contacto%TYPE,
     p_correo_contacto             tab_pmtros.correo_contacto%TYPE,
-    p_val_poriva                  tab_pmtros.val_poriva%TYPE,
     p_val_inifact                 tab_pmtros.val_inifact%TYPE,
     p_val_finfact                 tab_pmtros.val_finfact%TYPE,
     p_val_actfact                 tab_pmtros.val_actfact%TYPE,
@@ -21,18 +19,8 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Validar teléfono (solo números)
-    IF p_tel_contacto !~ '^[0-9]+$' THEN
-        RETURN FALSE;
-    END IF;
-
     -- Validar correo electrónico (debe contener @)
     IF p_correo_contacto NOT LIKE '%@%' THEN
-        RETURN FALSE;
-    END IF;
-
-    -- Validar porcentaje de IVA (no negativo)
-    IF p_val_poriva < 0 THEN
         RETURN FALSE;
     END IF;
 

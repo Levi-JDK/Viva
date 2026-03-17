@@ -23,10 +23,9 @@ BEGIN
         RETURN FALSE;
     END IF;
     
-    -- 3. Generar ID Stand (consecutivo por productor)
+    -- 3. Generar ID Stand (consecutivo a nivel global)
     SELECT COALESCE(MAX(id_stand), 0) + 1 INTO v_stand_id 
-    FROM tab_stand 
-    WHERE id_productor = p_id_productor;
+    FROM tab_stand;
 
     -- 4. Insertar
     INSERT INTO tab_stand (
@@ -47,8 +46,15 @@ BEGIN
         p_portada_stand
     );
 
+    -- 5. Asignar el menú Mi Stand (ID 11) al usuario si aún no lo tiene
+    INSERT INTO tab_menu_user (id_user, id_menu)
+    SELECT id_user, 11
+    FROM tab_productores
+    WHERE id_productor = p_id_productor
+    ON CONFLICT DO NOTHING;
+
     RETURN TRUE;
-    
+
 EXCEPTION
     WHEN OTHERS THEN
         RAISE NOTICE 'Error en fun_c_stand: %', SQLERRM;
