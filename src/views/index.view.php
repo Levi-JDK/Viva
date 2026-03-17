@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php 
 $page_title = "VIVA | Artesanías Colombianas - Conecta con nuestras raíces";
 $body_class = "font-sans bg-white scroll-smooth";
@@ -247,4 +248,255 @@ require_once __DIR__ . '/partials/base_head.php';
     <script src="<?= BASE_URL ?>src/scripts/script_landing.js?v=4"></script>
     <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
 </body>
+=======
+<?php 
+$page_title = "VIVA | Artesanías Colombianas - Conecta con nuestras raíces";
+$body_class = "font-sans bg-white scroll-smooth";
+$extra_css = '<link rel="stylesheet" href="' . BASE_URL . 'src/styles/responsive.css">';
+require_once __DIR__ . '/partials/base_head.php'; 
+?>
+    <!-- Header -->
+    <!-- Header -->
+    <?php require_once __DIR__ . '/partials/navbar.php'; ?>
+    <!-- Hero Section -->
+    <section id="inicio" class="relative min-h-screen flex items-center overflow-hidden">
+        <!-- Hero Background -->
+        <div class="absolute inset-0 z-0">
+            <picture>
+                <source media="(max-width: 640px)" srcset="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg">
+                <img src="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg" 
+                     alt="Artesanías Colombianas" 
+                     class="w-full h-full object-cover">
+            </picture>
+            <div class="absolute inset-0 bg-black/50"></div>
+        </div>
+
+        <div class="container mx-auto px-4 text-center text-white relative z-10">
+            <div class="max-w-4xl mx-auto fade-in">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                    <?php 
+                        $rawTitle = $pmtros['landing_hero_titulo'] ?? 'Conecta con nuestro {mercado real}';
+                        $safeTitle = htmlspecialchars($rawTitle);
+                        $formattedTitle = str_replace(['{', '}'], ['<span class="text-yellow-300">', '</span>'], $safeTitle);
+                        echo $formattedTitle;
+                    ?>
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
+                    <?= htmlspecialchars($pmtros['landing_hero_subtitulo'] ?? 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.') ?>
+                </p>
+                <button onclick="scrollToSection('categorias')" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">
+                    <span>Explorar ahora</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- Trust Section -->
+    <section class="bg-beige-suave py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center trust-card">
+                    <div class="trust-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_1_tit'] ?? 'Envíos seguros') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_1_sub'] ?? 'Entrega protegida en todo el mundo') ?></p>
+                </div>
+                <div class="text-center trust-card">
+                    <div class="trust-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_2_tit'] ?? 'Pago protegido') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_2_sub'] ?? 'Transacciones 100% seguras') ?></p>
+                </div>
+                <div class="text-center trust-card">
+                    <div class="trust-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3 class="font-semibold text-tierra-oscuro mb-2"><?= htmlspecialchars($pmtros['landing_conf_3_tit'] ?? 'Apoyo directo') ?></h3>
+                    <p class="text-gray-600 text-sm"><?= htmlspecialchars($pmtros['landing_conf_3_sub'] ?? 'Beneficia directamente a las comunidades') ?></p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Affiliates Section -->
+    <section id="categorias" class="py-16 bg-gradient-to-b from-tierra-claro to-beige-suave/30">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#4F270B] mb-4">
+                    Nuestros afiliados
+                </h2>
+                <p class="text-[#4F270B] text-lg max-w-2xl mx-auto">
+                    Conoce a los emprendedores que hacen parte de nuestra comunidad artesanal
+                </p>
+            </div>
+
+            <?php if (!empty($featured_stands)): ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <?php foreach ($featured_stands as $stand): ?>
+                        <?php 
+                        // Habilitar enlace a la página de detalle
+                        $show_link = true;
+                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_stand'];
+                        require __DIR__ . '/../views/partials/card_stand.php'; 
+                        ?>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="text-center mt-10">
+                    <a href="<?= BASE_URL ?>stands" 
+                            class="btn-primary text-white px-8 py-3 rounded-full font-medium text-lg hover:shadow-xl inline-flex items-center transition-all">
+                        Ver todos los emprendimientos
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-store text-5xl mb-4 text-gray-300"></i>
+                    <p class="text-lg">Próximamente nuevos emprendimientos</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+    <!-- Categories Section -->
+    <section id="categorias" class="py-16 bg-gradient-to-b from-blanco-/30 to-tierra-claro">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
+                    Categorías destacadas
+                </h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                    Descubre la rica diversidad de nuestras artesanías tradicionales
+                </p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Category Cards (Dynamic) -->
+                <?php 
+                if (!empty($categorias_destacadas)) {
+                    // Tomamos un máximo de 8 para no romper el grid ideal
+                    $categorias_mostrar = array_slice($categorias_destacadas, 0, 8);
+                    foreach ($categorias_mostrar as $cat): 
+                        // Usar la imagen de la BD, o la default si está vacía
+                        $img_src = !empty($cat['img_cat']) 
+                            ? BASE_URL . $cat['img_cat'] 
+                            : BASE_URL . 'images/default_category.webp'; 
+                ?>
+                    <a href="<?= BASE_URL ?>catalogo?cat=<?= $cat['id_categoria'] ?>" class="category-card card-hover rounded-2xl p-6 text-center cursor-pointer h-full flex flex-col items-center justify-center transition-all">
+                        <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center p-2">
+                            <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($cat['nom_categoria']) ?>" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <h3 class="font-semibold text-tierra-oscuro"><?= htmlspecialchars($cat['nom_categoria']) ?></h3>
+                        <p class="text-xs text-gray-600 mt-1"><?= $cat['total'] ?> productos</p>
+                    </a>
+                <?php 
+                    endforeach; 
+                } else {
+                    echo '<p class="col-span-full text-center text-gray-500 py-8">No se encontraron categorías activas.</p>';
+                }
+                ?>
+            </div>
+        </div>
+    </section>
+    <!-- Featured Products Section -->
+    <section id="ofertas" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
+                    Productos destacados
+                </h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                    Las mejores creaciones de nuestros artesanos, seleccionadas especialmente para ti
+                </p>
+            </div>
+
+            <?php if (!empty($featured_products)): ?>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <?php 
+                    $show_price = false; // Ocultar precio en el landing
+                    foreach ($featured_products as $product): 
+                        require __DIR__ . '/partials/card_producto.php';
+                    endforeach; 
+                    ?>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>
+                    <p class="text-lg">Próximamente nuevos productos</p>
+                </div>
+            <?php endif; ?>
+
+            <div class="text-center mt-8">
+                <button class="btn-primary text-white px-8 py-3 rounded-full font-medium hover:shadow-xl">
+                    <a href="<?= BASE_URL ?>catalogo">Ver todos los productos</a>
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- Our Story Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="fade-in">
+                    <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-6">
+                        <?= htmlspecialchars($pmtros['landing_filosofia_tit'] ?? 'Nuestra historia') ?>
+                    </h2>
+                    <p class="text-gray-700 text-lg mb-6 leading-relaxed">
+                        <?= htmlspecialchars($pmtros['landing_filosofia_p1'] ?? 'VIVA nació del sueño de preservar y compartir la riqueza cultural de las comunidades indígenas colombianas. Creemos que cada artesanía cuenta una historia milenaria y conecta generaciones.') ?>
+                    </p>
+                    <p class="text-gray-700 text-lg mb-8 leading-relaxed">
+                        <?= htmlspecialchars($pmtros['landing_filosofia_p2'] ?? 'A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.') ?>
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="text-center p-4 bg-beige-suave rounded-lg">
+                            <div class="text-2xl font-bold text-tierra-oscuro">500+</div>
+                            <div class="text-sm text-gray-600">Artesanos activos</div>
+                        </div>
+                        <div class="text-center p-4 bg-beige-suave rounded-lg">
+                            <div class="text-2xl font-bold text-tierra-oscuro">15</div>
+                            <div class="text-sm text-gray-600">Comunidades aliadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fade-in">
+                    <div class="relative">
+                        <div class="w-full h-96 bg-gradient-to-br from-tierra-claro via-beige-suave to-verde-artesanal rounded-2xl overflow-hidden relative">
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <img src="<?= BASE_URL ?>images/foot.jpeg" alt="">
+                                    <p class="text-tierra-oscuro font-medium">Artesanos trabajando</p>
+                                    <p class="text-sm text-gray-600">Preservando tradiciones ancestrales</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-br from-naranja-artesanal to-tierra-medio rounded-full flex items-center justify-center">
+                            <i class="fas fa-heart text-white text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Newsletter Section -->
+    <section class="py-16 bg-gradient-to-r from-tierra-oscuro to-verde-artesanal">
+        <div class="container mx-auto px-4 text-center text-white">
+            <div class="max-w-2xl mx-auto fade-in">
+                <h2 class="text-3xl font-bold mb-4">
+                    Mantente conectado con nuestras raíces
+                </h2>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <?php require_once __DIR__ . '/partials/footer.php'; ?>
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 invisible">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <!-- Drawer del Carrito -->
+    <?php require_once __DIR__ . '/partials/carrito.php'; ?>
+    <script src="<?= BASE_URL ?>src/scripts/script1.js?v=4"></script>
+    <script src="<?= BASE_URL ?>src/scripts/script_landing.js?v=4"></script>
+    <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
+</body>
+>>>>>>> 885c1ade0c1a4a699a76f6bb4e4c545b4617c99d
 </html>
