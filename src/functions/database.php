@@ -12,6 +12,10 @@ class Database {
             $dotenv->safeLoad();
         }
 
+        if (empty($_ENV['DB_HOST']) || empty($_ENV['DB_NAME']) || empty($_ENV['DB_USERNAME']) || empty($_ENV['DB_PASSWORD'])) {
+            throw new Exception("Error de configuración: Faltan credenciales de base de datos en el entorno (.env). Fail fast.");
+        }
+
         $config = [
             'host' => $_ENV['DB_HOST'],
             'port' => $_ENV['DB_PORT'],

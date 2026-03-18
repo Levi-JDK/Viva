@@ -51,6 +51,8 @@ ORCHESTRATOR (solo coordina):
 ## 📋 Reglas del Proyecto
 
 ### Seguridad (Obligatorio)
+- **NUNCA** dejar fallbacks (ej. en bloques catch) que puedan generar fallos de seguridad (como blind-inserts). Si un servicio asíncrono o caché falla, el fallback debe replicar TODAS las validaciones de negocio y seguridad originales, o denegar el servicio. SIEMPRE preguntar al usuario antes de implementar un fallback de este tipo.
+- **NUNCA** usar operadores null coalescing (`??`) con credenciales hardcodeadas (ej. `$_ENV['DB_HOST'] ?? 'localhost'`). Confiar estrictamente en el `.env`. Si faltan credenciales, la aplicación DEBE fallar inmediatamente (Fail Fast) para no enmascarar errores de configuración en producción.
 - **Nunca** commitear credenciales, claves API, o tokens en el código
 - Usar variables de entorno (.env) para datos sensibles
 - .env debe estar en .gitignore

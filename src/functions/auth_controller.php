@@ -3,6 +3,7 @@ require_once __DIR__ . '/auth_helper.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/mail_service.php';
 require_once dirname(__DIR__) . '/workers/Config/RedisConfig.php';
+require_once dirname(__DIR__) . '/workers/Services/ValidationService.php';
 
 header('Content-Type: application/json');
 
@@ -47,42 +48,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $contrasena = $_POST['contrasena'] ?? '';
 
-        if (empty($nombre) || empty($apellido) || empty($email) || empty($contrasena)) {
-            echo json_encode(["mensaje" => "Todos los campos son obligatorios.", "clase" => "mensaje-error"]);
-            exit;
-        }
+        $datosRegistro = [
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+            'email' => $email,
+            'password' => $contrasena
+        ];
 
-        if (preg_match('/[#*\-\'"]/', $nombre)) {
-            echo json_encode(["mensaje" => "El nombre no puede contener los caracteres: # * - ' \"", "clase" => "mensaje-error"]);
-            exit;
-        }
+        $validacion = ValidationService::validarRegistro($datosRegistro);
 
-        if (preg_match('/[\'\"]/', $apellido)) {
-            echo json_encode(["mensaje" => "El apellido no puede contener comillas (' \")", "clase" => "mensaje-error"]);
-            exit;
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(["mensaje" => "El correo electrónico no es válido.", "clase" => "mensaje-error"]);
+        if (!$validacion['valido']) {
+            echo json_encode([
+                "mensaje" => implode("\n", $validacion['errores']),
+                "clase" => "mensaje-error"
+            ]);
             exit;
         }
 
         $hash = password_hash($contrasena, PASSWORD_ARGON2ID);
 
         try {
-            // Validar que el email no exista en DB (validación rápida síncrona)
-            $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
-            $isAvailable = $stmtCheck->fetchColumn();
-
-            if (!$isAvailable) {
-                echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
-                exit;
-            }
-
             // ======= INTEGRACIÓN REDIS ASÍNCRONA =======
             try {
                 $redis = RedisConfig::getConnection();
                 $prefix = RedisConfig::getPrefix();
+
+                // Validar ultra-rápido en Redis
+                $isRegistered = $redis->sismember($prefix . 'emails:registrados', $email);
+                if ($isRegistered) {
+                    echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
+                    exit;
+                }
 
                 // Asegurarse de que no haya otro intento en la cola con este email
                 $lockKey = $prefix . 'lock:email:' . $email;
@@ -92,10 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
+                // SADD optimista para reservar el email inmediatamente
+                $redis->sadd($prefix . 'emails:registrados', $email);
+
                 // Bloquear el email temporalmente mientras se procesa (expira en 1 hora por seguridad)
                 $redis->set($lockKey, '1', 'EX', 3600);
 
-                // Generar ID único usando el contador global
+                // Generar ID único usando el contador global (inicializando rango inaccesible si no existe)
+                $redis->setnx($prefix . 'contador:usuarios', 900000000);
                 $idWorker = $redis->incr($prefix . 'contador:usuarios');
 
                 // Guardar los datos en el Hash listos para el RegisterUserJob que espera [email, password, nombre, apellido]
@@ -107,6 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'password', $hash,
                     'created_at', date('Y-m-d H:i:s')
                 );
+
+                // Mantener índice HSET para login híbrido
+                $redis->hset($prefix . 'email_to_id', $email, $idWorker);
 
                 // Encolar ID para procesamiento
                 $redis->lpush($prefix . 'cola:registros', $idWorker);
@@ -120,6 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             catch (\Exception $redisEx) {
                 error_log('[Auth] Redis no disponible para registro asíncrono. Fallback... Error: ' . $redisEx->getMessage());
+
+                // Validar que el email no exista en DB (validación rápida síncrona) fallback
+                $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
+                $existeEmail = $stmtCheck->fetchColumn();
+
+                if ($existeEmail) {
+                    echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
+                    exit;
+                }
 
                 // Fallback de emergencia a la base de datos síncrona si Redis falla
                 $db->ejecutar('crearUsuario', [
@@ -163,11 +175,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $db->ejecutar('obtenerHashLogin', [':email' => $email]);
             $hash = $stmt->fetchColumn();
+            
+            $loginSuccess = false;
+            $usuario = null;
 
             if ($hash && password_verify($contrasena, $hash)) {
                 $stmtUsuario = $db->ejecutar('obtenerUsuarioPorEmail', [':email' => $email]);
                 $usuario = $stmtUsuario->fetch(PDO::FETCH_ASSOC);
+                $usuario['id_user'] = $usuario['id_user'];
+                $usuario['nom_user'] = $usuario['nom_user'];
+                $loginSuccess = true;
+            } else {
+                // Login Híbrido: Si no existe en BD o el hash no coincide, buscamos en Redis
+                try {
+                    $redis = RedisConfig::getConnection();
+                    $prefix = RedisConfig::getPrefix();
+                    
+                    // Buscar en Redis usando el índice
+                    $idTemporal = $redis->hget($prefix . 'email_to_id', $email);
+                    if ($idTemporal) {
+                        $userHash = $redis->hgetall($prefix . 'user:' . $idTemporal);
+                        if (!empty($userHash) && isset($userHash['password']) && password_verify($contrasena, $userHash['password'])) {
+                            $usuario = [
+                                'id_user' => $idTemporal,
+                                'nom_user' => $userHash['nombre'],
+                                'email' => $email
+                            ];
+                            $loginSuccess = true;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log('[Auth] Error comprobando Redis para login híbrido: ' . $e->getMessage());
+                }
+            }
 
+            if ($loginSuccess && $usuario) {
                 $token = AuthHelper::generateToken([
                     'id_user' => $usuario['id_user'],
                     'nombre' => $usuario['nom_user'],

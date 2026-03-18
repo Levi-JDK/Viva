@@ -107,10 +107,29 @@ class AuthHelper {
         try {
             // Decodifica y valida simultáneamente
             $decoded = JWT::decode($jwt, new Key(self::$secret_key, self::$encrypt));
-            return match (true) {
-                isset($decoded->data) => $decoded->data,
-                default => false
-            };
+            
+            if (isset($decoded->data)) {
+                // Verificar si el token (ID) ha sido revocado en Redis (Patovica)
+                try {
+                    $redisConfigPath = dirname(__DIR__) . '/workers/Config/RedisConfig.php';
+                    if (file_exists($redisConfigPath)) {
+                        require_once $redisConfigPath;
+                        $redis = \RedisConfig::getConnection();
+                        $prefix = \RedisConfig::getPrefix();
+                        
+                        $isRevoked = $redis->exists($prefix . 'jwt_revoked:' . $decoded->data->id_user);
+                        if ($isRevoked) {
+                            self::clearAuthCookie();
+                            return false;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log('[AuthHelper] Fallo Redis al verificar revocacion: ' . $e->getMessage());
+                }
+                
+                return $decoded->data;
+            }
+            return false;
             
         } catch (ExpiredException $e) {
             // Si el token expiró oficialmente según su fecha 'exp'

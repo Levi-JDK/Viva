@@ -45,10 +45,14 @@ class Worker {
             }
         }
         
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $dbname = $_ENV['DB_NAME'] ?? 'db_viva';
-        $user = $_ENV['DB_USERNAME'] ?? 'postgres';
-        $pass = $_ENV['DB_PASSWORD'] ?? 'Gerson03#';
+        if (empty($_ENV['DB_HOST']) || empty($_ENV['DB_NAME']) || empty($_ENV['DB_USERNAME']) || empty($_ENV['DB_PASSWORD'])) {
+            throw new Exception("Error de configuración: Faltan credenciales de base de datos en el entorno (.env). Fail fast.");
+        }
+
+        $host = $_ENV['DB_HOST'];
+        $dbname = $_ENV['DB_NAME'];
+        $user = $_ENV['DB_USERNAME'];
+        $pass = $_ENV['DB_PASSWORD'];
         
         try {
             // Eliminar apóstrofes de la variable de entorno de BD si las tiene ('db_viva' -> db_viva)
@@ -239,6 +243,24 @@ class Worker {
         
         $this->redis->lpush(self::QUEUE_DLQ, $payload);
         $this->log("[X] Movido a DLQ: $tipo:$id");
+
+        // Compensación de Fallos para registros fallidos (Patovica)
+        if ($tipo === 'registro') {
+            try {
+                $prefix = RedisConfig::getPrefix();
+                // Bloquear temporalmente el login de este ID
+                $this->redis->setex($prefix . 'jwt_revoked:' . $id, 86400, 1);
+                
+                // Liberar el email para que el usuario pueda intentar registrarse nuevamente
+                if (isset($data['mail'])) {
+                    $this->redis->srem($prefix . 'emails:registrados', $data['mail']);
+                    $this->redis->hdel($prefix . 'email_to_id', $data['mail']);
+                    $this->log("[*] Compensación: Liberado email " . $data['mail'] . " y JWT revocado.");
+                }
+            } catch (\Exception $e) {
+                $this->log("[ERROR] Fallo en compensación de errores: " . $e->getMessage());
+            }
+        }
     }
     
     /**
