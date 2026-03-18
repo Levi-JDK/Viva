@@ -2,15 +2,17 @@
 require_once __DIR__ . '/auth_helper.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/mail_service.php';
+require_once dirname(__DIR__) . '/workers/Config/RedisConfig.php';
 
 header('Content-Type: application/json');
 
 try {
     $db = Database::getInstance();
-} catch (Exception $e) {
+}
+catch (Exception $e) {
     echo json_encode([
         "mensaje" => "Error al inicializar la base de datos: " . $e->getMessage(),
-        "clase"   => "mensaje-error"
+        "clase" => "mensaje-error"
     ]);
     exit;
 }
@@ -23,10 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($userData) {
         echo json_encode([
             'loggedIn' => true,
-            'nombre'   => $userData->nombre ?? '',
-            'email'    => $userData->email  ?? ''
+            'nombre' => $userData->nombre ?? '',
+            'email' => $userData->email ?? ''
         ]);
-    } else {
+    }
+    else {
         echo json_encode(['loggedIn' => false]);
     }
     exit;
@@ -39,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Registro ─────────────────────────────────────────────────────────────
     if ($accion === 'registro') {
-        $nombre    = trim($_POST['nombre']    ?? '');
-        $apellido  = trim($_POST['apellido']  ?? '');
-        $email     = trim($_POST['email']     ?? '');
-        $contrasena = $_POST['contrasena']    ?? '';
+        $nombre = trim($_POST['nombre'] ?? '');
+        $apellido = trim($_POST['apellido'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $contrasena = $_POST['contrasena'] ?? '';
 
         if (empty($nombre) || empty($apellido) || empty($email) || empty($contrasena)) {
             echo json_encode(["mensaje" => "Todos los campos son obligatorios.", "clase" => "mensaje-error"]);
@@ -67,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hash = password_hash($contrasena, PASSWORD_ARGON2ID);
 
         try {
-            // Validar que el email no exista
+            // Validar que el email no exista en DB (validación rápida síncrona)
             $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
             $isAvailable = $stmtCheck->fetchColumn();
 
@@ -76,32 +79,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
-            // Crear usuario
-            $db->ejecutar('crearUsuario', [
-                ':email'      => $email,
-                ':contrasena' => $hash,
-                ':nombre'     => $nombre,
-                ':apellido'   => $apellido
-            ]);
-
-            // Enviar correo de bienvenida (en background, sin bloquear la respuesta)
+            // ======= INTEGRACIÓN REDIS ASÍNCRONA =======
             try {
-                $mail = MailService::getInstance();
-                $mail->sendWelcomeEmail($email, $nombre . ' ' . $apellido);
-            } catch (Exception $e) {
-                error_log('[Auth] Error enviando correo de bienvenida: ' . $e->getMessage());
+                $redis = RedisConfig::getConnection();
+                $prefix = RedisConfig::getPrefix();
+
+                // Asegurarse de que no haya otro intento en la cola con este email
+                $lockKey = $prefix . 'lock:email:' . $email;
+                $existsLock = $redis->exists($lockKey);
+                if ($existsLock) {
+                    echo json_encode(["mensaje" => "Ya hay un registro en proceso para este correo.", "clase" => "mensaje-error"]);
+                    exit;
+                }
+
+                // Bloquear el email temporalmente mientras se procesa (expira en 1 hora por seguridad)
+                $redis->set($lockKey, '1', 'EX', 3600);
+
+                // Generar ID único usando el contador global
+                $idWorker = $redis->incr($prefix . 'contador:usuarios');
+
+                // Guardar los datos en el Hash listos para el RegisterUserJob que espera [email, password, nombre, apellido]
+                $redis->hset(
+                    $prefix . 'user:' . $idWorker,
+                    'nombre', $nombre,
+                    'apellido', $apellido,
+                    'mail', $email,
+                    'password', $hash,
+                    'created_at', date('Y-m-d H:i:s')
+                );
+
+                // Encolar ID para procesamiento
+                $redis->lpush($prefix . 'cola:registros', $idWorker);
+
+                // Respuesta exitosa inmediata al usuario
+                echo json_encode([
+                    "mensaje" => "Registro aceptado. Estamos procesando su solicitud...",
+                    "clase" => "mensaje-exito"
+                ]);
+
+            }
+            catch (\Exception $redisEx) {
+                error_log('[Auth] Redis no disponible para registro asíncrono. Fallback... Error: ' . $redisEx->getMessage());
+
+                // Fallback de emergencia a la base de datos síncrona si Redis falla
+                $db->ejecutar('crearUsuario', [
+                    ':email' => $email,
+                    ':contrasena' => $hash,
+                    ':nombre' => $nombre,
+                    ':apellido' => $apellido
+                ]);
+
+                try {
+                    $mail = MailService::getInstance();
+                    $mail->sendWelcomeEmail($email, $nombre . ' ' . $apellido);
+                }
+                catch (Exception $e) {
+                }
+
+                echo json_encode(["mensaje" => "Usuario registrado correctamente.", "clase" => "mensaje-exito"]);
             }
 
-            echo json_encode(["mensaje" => "Usuario registrado correctamente.", "clase" => "mensaje-exito"]);
-
-        } catch (PDOException $e) {
-            echo json_encode(["mensaje" => "Error en el registro: " . $e->getMessage(), "clase" => "mensaje-error"]);
+        }
+        catch (PDOException $e) {
+            echo json_encode(["mensaje" => "Error validando datos: " . $e->getMessage(), "clase" => "mensaje-error"]);
         }
 
     // ── Login ─────────────────────────────────────────────────────────────────
-    } elseif ($accion === 'login') {
-        $email      = trim($_POST['email']     ?? '');
-        $contrasena = $_POST['contrasena']     ?? '';
+    }
+    elseif ($accion === 'login') {
+        $email = trim($_POST['email'] ?? '');
+        $contrasena = $_POST['contrasena'] ?? '';
 
         if (empty($email) || empty($contrasena)) {
             echo json_encode(["mensaje" => "Todos los campos son obligatorios.", "clase" => "mensaje-error"]);
@@ -123,27 +170,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $token = AuthHelper::generateToken([
                     'id_user' => $usuario['id_user'],
-                    'nombre'  => $usuario['nom_user'],
-                    'email'   => $email
+                    'nombre' => $usuario['nom_user'],
+                    'email' => $email
                 ]);
                 AuthHelper::setAuthCookie($token);
 
                 $redirectTo = !empty($_POST['redirect']) ? $_POST['redirect'] : BASE_URL;
                 echo json_encode(["mensaje" => "Inicio de sesión exitoso", "clase" => "mensaje-exito", "redirect" => $redirectTo]);
-            } else {
+            }
+            else {
                 echo json_encode(["mensaje" => "❌ Correo o contraseña incorrectos", "clase" => "mensaje-error"]);
             }
 
-        } catch (PDOException $e) {
+        }
+        catch (PDOException $e) {
             echo json_encode(["mensaje" => "Error en la base de datos: " . $e->getMessage(), "clase" => "mensaje-error"]);
         }
 
     // ── Logout ────────────────────────────────────────────────────────────────
-    } elseif ($accion === 'logout') {
+    }
+    elseif ($accion === 'logout') {
         AuthHelper::clearAuthCookie();
         echo json_encode(["mensaje" => "Sesión cerrada.", "clase" => "mensaje-exito"]);
 
-    } else {
+    }
+    else {
         echo json_encode(["mensaje" => "Acción no válida.", "clase" => "mensaje-error"]);
     }
 }

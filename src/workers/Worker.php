@@ -34,19 +34,28 @@ class Worker {
     }
     
     private function connectPostgres(): PDO {
-        // Cargar variables de entorno si no están cargadas
+        // Cargar variables de entorno estáticamente si no están en $_ENV
         if (!isset($_ENV['DB_HOST'])) {
-            require_once __DIR__ . '/../../vendor/autoload.php';
-            $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2));
-            $dotenv->safeLoad();
+            $envPath = dirname(__DIR__, 2) . '/.env';
+            if (file_exists($envPath)) {
+                $envVars = parse_ini_file($envPath);
+                foreach ($envVars as $k => $v) {
+                    $_ENV[$k] = $v;
+                }
+            }
         }
         
-        $host = $_ENV['DB_HOST'];
-        $dbname = $_ENV['DB_NAME'];
-        $user = $_ENV['DB_USERNAME'];
-        $pass = $_ENV['DB_PASSWORD'];
+        $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $dbname = $_ENV['DB_NAME'] ?? 'db_viva';
+        $user = $_ENV['DB_USERNAME'] ?? 'postgres';
+        $pass = $_ENV['DB_PASSWORD'] ?? 'Gerson03#';
         
         try {
+            // Eliminar apóstrofes de la variable de entorno de BD si las tiene ('db_viva' -> db_viva)
+            $dbname = trim($dbname, "'\"");
+            $user = trim($user, "'\"");
+            $pass = trim($pass, "'\"");
+            
             return new PDO(
                 "pgsql:host=$host;dbname=$dbname",
                 $user,
@@ -134,6 +143,7 @@ class Worker {
                 
             } catch (PDOException $e) {
                 $this->log("[!] Intento $intento/{$this->maxRetries} falló: " . $e->getMessage());
+                echo $e->getMessage() . "\n";
                 
                 if ($intento < $this->maxRetries) {
                     $espera = $this->backoff[$intento - 1] ?? 60;
@@ -191,7 +201,7 @@ class Worker {
     private function ejecutarInsertUsuario(array $userData): void {
         $stmt = $this->pdo->prepare("SELECT fun_c_user(?, ?, ?, ?)");
         $stmt->execute([
-            $userData['email'],
+            $userData['mail'],
             $userData['password'],
             $userData['nombre'],
             $userData['apellido']

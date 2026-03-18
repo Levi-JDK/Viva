@@ -42,7 +42,7 @@ class RedisConfig {
                 'host' => $host,
                 'port' => (int)$port,
                 'database' => (int)$database,
-                'read_write_timeout' => 0, // Sin timeout para brpop
+                'read_write_timeout' => -1, // Sin timeout para brpop
                 'persistent' => false,      // Conexión nueva en cada request
             ]);
             

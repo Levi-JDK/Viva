@@ -65,15 +65,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.clase === 'mensaje-exito') {
                 formRegistro.reset();
-                // Cambiar a login automáticamente
-                setTimeout(() => {
-                    if (window.innerWidth > 768) {
-                        if (container) container.classList.remove("right-panel-active");
-                    } else {
-                        const signInMobileBtn = document.getElementById('signIn-mobile');
-                        if (signInMobileBtn) signInMobileBtn.click();
-                    }
-                }, 1500);
+                // Ahora es asíncrono. No cambiamos automáticamente de vista
+                // para que el usuario pueda leer que debe revisar su correo.
+                if (window.showToast) {
+                    setTimeout(() => {
+                        window.showToast("Acabamos de enviarte un correo. Revísalo para continuar.", "info");
+                    }, 2000);
+                }
             }
         } catch (error) {
             console.error('Error:', error);
