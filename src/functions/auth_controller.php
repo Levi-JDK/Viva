@@ -73,33 +73,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $redis = RedisConfig::getConnection();
                 $prefix = RedisConfig::getPrefix();
 
-                // Validar ultra-rápido en Redis
+                // PASO 1 - Pre-validación (1 RTT)
+                // Ejecutamos SISMEMBER ANTES de intentar escribir nada
                 $isRegistered = $redis->sismember($prefix . 'emails:registrados', $email);
+                
                 if ($isRegistered) {
-                    echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
+                    echo json_encode([
+                        "mensaje" => "El correo ya está registrado.",
+                        "clase" => "mensaje-error"
+                    ]);
                     exit;
                 }
 
-                // Asegurarse de que no haya otro intento en la cola con este email
-                $lockKey = $prefix . 'lock:email:' . $email;
-                $existsLock = $redis->exists($lockKey);
-                if ($existsLock) {
-                    echo json_encode(["mensaje" => "Ya hay un registro en proceso para este correo.", "clase" => "mensaje-error"]);
-                    exit;
-                }
-
-                // SADD optimista para reservar el email inmediatamente
-                $redis->sadd($prefix . 'emails:registrados', $email);
-
-                // Bloquear el email temporalmente mientras se procesa (expira en 1 hora por seguridad)
-                $redis->set($lockKey, '1', 'EX', 3600);
-
-                // Generar ID único usando el contador global (inicializando rango inaccesible si no existe)
+                // PASO 2 - Generar ID (1 RTT)
+                // Inicializamos contador si no existe, luego obtenemos el ID
                 $redis->setnx($prefix . 'contador:usuarios', 900000000);
                 $idWorker = $redis->incr($prefix . 'contador:usuarios');
 
-                // Guardar los datos en el Hash listos para el RegisterUserJob que espera [email, password, nombre, apellido]
-                $redis->hset(
+                // PASO 3 - Pipeline veloz (1 RTT)
+                // Ejecutamos el resto de las operaciones juntas en un solo round-trip
+                $lockKey = $prefix . 'lock:email:' . $email;
+                $pipe = $redis->pipeline();
+                
+                // 1. SET lock:email con TTL
+                $pipe->setex($lockKey, 3600, '1');
+                
+                // 2. HSET user:{id} con datos
+                $pipe->hset(
                     $prefix . 'user:' . $idWorker,
                     'nombre', $nombre,
                     'apellido', $apellido,
@@ -107,14 +107,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'password', $hash,
                     'created_at', date('Y-m-d H:i:s')
                 );
+                
+                // 3. LPUSH a la cola de registros
+                $pipe->lpush($prefix . 'cola:registros', $idWorker);
+                
+                // 4. HSET email_to_id (índice invertido)
+                $pipe->hset($prefix . 'email_to_id', $email, $idWorker);
+                
+                // 5. SADD emails:registrados
+                $pipe->sadd($prefix . 'emails:registrados', $email);
+                
+                // 6. SISMEMBER re-check (por si acaso)
+                $pipe->sismember($prefix . 'emails:registrados', $email);
+                
+                // Ejecutamos todo el pipeline
+                $pipe->execute();
 
-                // Mantener índice HSET para login híbrido
-                $redis->hset($prefix . 'email_to_id', $email, $idWorker);
-
-                // Encolar ID para procesamiento
-                $redis->lpush($prefix . 'cola:registros', $idWorker);
-
-                // Respuesta exitosa inmediata al usuario
+                // PASO 4 - Responder al frontend
+                // Si todo ok -> JSON de éxito
                 echo json_encode([
                     "mensaje" => "Registro aceptado. Estamos procesando su solicitud...",
                     "clase" => "mensaje-exito"

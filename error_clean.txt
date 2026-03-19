@@ -1,0 +1,4 @@
+Failed opening required 'C:\www\Apache24\htdocs\viva\src/workers/Services/ValidationService.php' (include_path='.;C:\php\pear')
+#0 C:\www\Apache24\htdocs\viva\test_auth.php(9): require()
+#1 {main}
+C:\www\Apache24\htdocs\viva\src\functions\auth_controller.php:6

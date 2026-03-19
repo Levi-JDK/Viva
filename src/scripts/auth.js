@@ -50,8 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const formData = new FormData(formRegistro);
         formData.append('accion', 'registro');
 
-        if (window.showToast) window.showToast("Procesando registro...", "info");
-
         try {
             const response = await fetch(BASE_URL + 'src/functions/auth_controller.php', {
                 method: 'POST',
@@ -66,12 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.clase === 'mensaje-exito') {
                 formRegistro.reset();
                 // Ahora es asíncrono. No cambiamos automáticamente de vista
-                // para que el usuario pueda leer que debe revisar su correo.
-                if (window.showToast) {
-                    setTimeout(() => {
-                        window.showToast("Acabamos de enviarte un correo. Revísalo para continuar.", "info");
-                    }, 2000);
-                }
+                // para que el usuario pueda leer su mensaje de éxito (verde).
             }
         } catch (error) {
             console.error('Error:', error);
@@ -90,8 +83,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const hiddenRedirect = formLogin.querySelector('input[name="redirect"]')?.value || '';
         const urlRedirect = new URLSearchParams(window.location.search).get('redirect') || '';
         const redirectUrl = hiddenRedirect || urlRedirect;
-
-        if (window.showToast) window.showToast("Verificando credenciales...", "info");
 
         try {
             const response = await fetch(BASE_URL + 'src/functions/auth_controller.php', {

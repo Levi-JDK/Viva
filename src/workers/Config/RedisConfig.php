@@ -19,77 +19,81 @@ if (!isset($_ENV['REDIS_HOST'])) {
 
 use Predis\Client as RedisClient;
 
-class RedisConfig {
+class RedisConfig
+{
     private static ?RedisClient $instance = null;
-    
-    // Configuración con valores por defecto
-    private const DEFAULT_HOST = '127.0.0.1';
-    private const DEFAULT_PORT = 6379;
-    private const DEFAULT_DATABASE = 0;
-    
-    public static function getConnection(): RedisClient {
+
+    public static function getConnection(): RedisClient
+    {
         if (self::$instance === null) {
-            // Obtener configuración desde variables de entorno
-            $host = getenv('REDIS_HOST') ?: self::DEFAULT_HOST;
-            $port = getenv('REDIS_PORT') ?: self::DEFAULT_PORT;
-            $database = getenv('REDIS_DATABASE') ?: self::DEFAULT_DATABASE;
-            
-            // Detectar si es Windows o Linux por el host
-            $isLocalhost = in_array($host, ['127.0.0.1', 'localhost', '::1']);
-            
+            // Fail Fast previo: Asegurar que las variables principales existan (Reglas del proyecto, sin usar operadores ??)
+            if (empty($_ENV['REDIS_HOST']) || empty($_ENV['REDIS_PORT']) || !isset($_ENV['REDIS_DATABASE']) || $_ENV['REDIS_DATABASE'] === '') {
+                throw new \RuntimeException("FALTA CONFIGURACION: REDIS_HOST, REDIS_PORT o REDIS_DATABASE no están definidos o están vacíos en el archivo .env.");
+            }
+
+            // Obtener configuración estrictamente desde variables de entorno
+            $host = $_ENV['REDIS_HOST'];
+            $port = $_ENV['REDIS_PORT'];
+            $database = $_ENV['REDIS_DATABASE'];
+            $password = isset($_ENV['REDIS_PASSWORD']) ? $_ENV['REDIS_PASSWORD'] : '';
+
             self::$instance = new RedisClient([
                 'scheme' => 'tcp',
                 'host' => $host,
-                'port' => (int)$port,
-                'database' => (int)$database,
+                'port' => $port,
+                'database' => $database,
                 'read_write_timeout' => -1, // Sin timeout para brpop
-                'persistent' => false,      // Conexión nueva en cada request
+                'persistent' => true, // Conexión persistente reutilizada en el mismo proceso para evitar latencia TCP
+                'password' => $password,
             ]);
-            
-            // Verificar conexión
-            try {
-                self::$instance->ping();
-            } catch (\Exception $e) {
-                throw new \RuntimeException(
-                    "No se pudo conectar a Redis en $host:$port. " .
-                    "Verifica que Redis esté ejecutándose y que .env tenga los valores correctos."
-                );
-            }
+
+            // Ya no se usa self::$instance->ping(); para evitar que la app pague el costo de un ciclo de latencia RTT extra
+            // (La conexión caerá lazily en el primer comando que lance auth_controller.php y su catch manejará el error a BD)
         }
         return self::$instance;
     }
-    
-    // Prefijo consistente para el proyecto
+
+    // Prefijo consistente para el proyecto y sin harcodeo (.env) 
     public static function getPrefix(): string {
-        return getenv('REDIS_PREFIX') ?: 'viva:';
+        if (empty($_ENV['REDIS_PREFIX'])) {
+            throw new \RuntimeException("FALTA CONFIGURACION: REDIS_PREFIX no está definido en el archivo .env.");
+        }
+        $prefix = $_ENV['REDIS_PREFIX'];
+        return $prefix;
     }
-    
+
     // Convenience methods para claves
-    public static function cola(string $nombre): string {
+    public static function cola(string $nombre): string
+    {
         return self::getPrefix() . 'cola:' . $nombre;
     }
-    
-    public static function user(int $id): string {
+
+    public static function user(int $id): string
+    {
         return self::getPrefix() . 'user:' . $id;
     }
-    
-    public static function cache(string $entidad, int $id): string {
+
+    public static function cache(string $entidad, int $id): string
+    {
         return self::getPrefix() . 'cache:' . $entidad . ':' . $id;
     }
-    
-    public static function lock(string $recurso): string {
+
+    public static function lock(string $recurso): string
+    {
         return self::getPrefix() . 'lock:' . $recurso;
     }
-    
-    public static function contador(string $entidad): string {
+
+    public static function contador(string $entidad): string
+    {
         return self::getPrefix() . 'contador:' . $entidad;
     }
-    
+
     /**
      * Método de compatibilidad para códigos que usan la interfaz de phpredis
      * Predis tiene nombres de métodos similares, pero algunos difieren
      */
-    public static function getClient(): RedisClient {
+    public static function getClient(): RedisClient
+    {
         return self::getConnection();
     }
 }

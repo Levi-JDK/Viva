@@ -6,7 +6,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 // === CONFIGURACIÓN DE TEST ===
-$TOTAL_USERS = 1000;  // ⬅️ CAMBIA ESTO PARA PROBAR MÁS O MENOS USUARIOS
+$TOTAL_USERS = 100;  // ⬅️ CAMBIA ESTO PARA PROBAR MÁS O MENOS USUARIOS
 
 // Cargar variables de entorno
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
