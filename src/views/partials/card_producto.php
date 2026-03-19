@@ -87,7 +87,7 @@ $stand_logo = !empty($product['img_stand']) ? BASE_URL . $product['img_stand'] :
         </div>
         
         <!-- Botón de favorito superpuesto -->
-        <button onclick="toggleFavorito(<?= (int)($product['id_producto'] ?? 0) ?>, this, event)"
+        <button data-action="fav-toggle" data-id="<?= (int)($product['id_producto'] ?? 0) ?>"
                 data-id-producto="<?= (int)($product['id_producto'] ?? 0) ?>"
                 class="btn-favorito absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-10 hover:scale-110"
                 aria-label="Alternar favorito">
@@ -128,7 +128,7 @@ $stand_logo = !empty($product['img_stand']) ? BASE_URL . $product['img_stand'] :
                     </span>
                     <!-- Botón Agregar al Carrito -->
                     <button
-                        onclick="event.stopPropagation(); agregarAlCarrito(<?= (int)($product['id_producto'] ?? 0) ?>, 1, this)"
+                        data-action="cart-add" data-id="<?= (int)($product['id_producto'] ?? 0) ?>" data-qty="1"
                         class="btn-agregar-carrito bg-naranja-artesanal text-white px-4 py-2 rounded-lg text-sm font-medium
                                hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1.5">
                         <i class="fas fa-shopping-cart text-xs"></i>

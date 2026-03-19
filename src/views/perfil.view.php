@@ -19,15 +19,15 @@ require_once __DIR__ . '/partials/base_head.php';
             </div>
             
             <nav class="flex-1 overflow-y-auto py-6 space-y-1">
-                <button onclick="showSection('profile')" class="menu-item active-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="profile" class="menu-item active-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
                     <i class="fas fa-user w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Mi Perfil</span>
                 </button>
-                <button onclick="showSection('orders')" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="orders" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
                     <i class="fas fa-shopping-bag w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Mis Pedidos</span>
                 </button>
-                <button onclick="showSection('favorites')" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="favorites" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
                     <i class="fas fa-heart w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Favoritos</span>
                 </button>
@@ -39,7 +39,7 @@ require_once __DIR__ . '/partials/base_head.php';
                 </a>
                 <?php endif; ?>
 
-                <button onclick="showSection('settings')" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="settings" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
                     <i class="fas fa-cog w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Configuración</span>
                 </button>
@@ -51,7 +51,7 @@ require_once __DIR__ . '/partials/base_head.php';
                     <i class="fas fa-arrow-left w-5 text-center"></i>
                     <span class="font-medium text-sm">Volver al Inicio</span>
                 </a>
-                <button onclick="logout()" class="flex items-center space-x-3 text-red-500 hover:text-red-700 transition-colors w-full pl-2">
+                <button data-action="logout" class="flex items-center space-x-3 text-red-500 hover:text-red-700 transition-colors w-full pl-2">
                     <i class="fas fa-sign-out-alt w-5 text-center"></i>
                     <span class="font-medium text-sm">Cerrar Sesión</span>
                 </button>
@@ -83,14 +83,14 @@ require_once __DIR__ . '/partials/base_head.php';
                                     <p class="text-sm text-gray-500 mt-1">Gestiona tu información personal</p>
                                 </div>
                                 <div id="edit-buttons">
-                                    <button onclick="toggleEdit()" id="btn-editar" class="btn-primary text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
+                                    <button data-action="toggle-edit" id="btn-editar" class="btn-primary text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
                                         <i class="fas fa-edit mr-2"></i>Editar
                                     </button>
                                     <div id="save-cancel-buttons" class="hidden space-x-3">
-                                        <button onclick="saveProfile()" class="bg-verde-artesanal text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
+                                        <button data-action="save-profile" class="bg-verde-artesanal text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
                                             <i class="fas fa-save mr-2"></i>Guardar
                                         </button>
-                                        <button onclick="cancelEdit()" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-5 py-2.5 rounded-lg text-sm transition-all flex items-center">
+                                        <button data-action="cancel-edit" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-5 py-2.5 rounded-lg text-sm transition-all flex items-center">
                                             <i class="fas fa-times mr-2"></i>Cancelar
                                         </button>
                                     </div>
@@ -322,7 +322,5 @@ require_once __DIR__ . '/partials/base_head.php';
 
 
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
-    <script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
-    <script src="<?= BASE_URL ?>src/scripts/perfil.js"></script>
-</body>
+    </body>
 </html>

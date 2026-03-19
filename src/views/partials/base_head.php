@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($page_title ?? 'VIVA | Artesanías Colombianas') ?></title>
+    <link rel="icon" href="<?= defined('BASE_URL') ? BASE_URL : '/' ?>images/Logo.png" type="image/png">
     
     <script>
         const BASE_URL = '<?= defined('BASE_URL') ? BASE_URL : '/' ?>';
+        window.BASE_URL = BASE_URL; // Exponer explícitamente al DOM para ES6 modules
         <?php
         $is_logged_in_global = false;
         if (class_exists('AuthHelper')) {
@@ -24,8 +26,6 @@
     
     <!-- CSS Extra dinámico (solo para páginas que lo necesiten) -->
     <?= $extra_css ?? '' ?>
-    <!-- Toast notifications global -->
-    <script src="<?= defined('BASE_URL') ? BASE_URL : '/' ?>src/scripts/toast.js"></script>
-    <script src="<?= defined('BASE_URL') ? BASE_URL : '/' ?>src/scripts/favoritos.js"></script>
+    <script type="module" src="<?= defined('BASE_URL') ? BASE_URL : '/' ?>src/scripts/main.js"></script>
 </head>
 <body class="<?= htmlspecialchars($body_class ?? 'bg-fondo-claro font-sans text-oscuro flex flex-col min-h-screen') ?>">

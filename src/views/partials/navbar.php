@@ -89,7 +89,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                 </button>
                                 
                                 <!-- Dropdown Menu -->
-                                <div id="userDropdown" class="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transform origin-top-right transition-all duration-200 z-50">
+                                <div id="userDropdown" class="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible scale-95 transform origin-top-right transition-all duration-200 z-50">
                                     <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
                                         <p class="text-sm font-bold text-tierra-oscuro truncate"><?= htmlspecialchars($nombre_usuario ?? '') ?></p>
                                         <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($email_usuario ?? '') ?></p>
@@ -148,7 +148,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                     </div>
 
                     <!-- Botón Carrito -->
-                    <button onclick="toggleCarrito()"
+                    <button data-action="cart-toggle"
                             class="relative text-gray-700 hover:text-naranja-artesanal transition-colors p-2"
                             aria-label="Abrir carrito">
                         <i class="fas fa-shopping-cart text-xl"></i>

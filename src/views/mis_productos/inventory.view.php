@@ -46,10 +46,10 @@
                                             
                                             <!-- Quick Actions Overlay -->
                                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                                                <button onclick="editarProducto('<?= $producto['id_producto'] ?>')" class="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 hover:scale-110 transition-all shadow-lg" title="Editar">
+                                                <button data-action="edit-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 hover:scale-110 transition-all shadow-lg" title="Editar">
                                                     <i class="fas fa-pencil-alt"></i>
                                                 </button>
-                                                <button onclick="eliminarProducto('<?= $producto['id_producto'] ?>')" class="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 hover:scale-110 transition-all shadow-lg" title="Eliminar">
+                                                <button data-action="delete-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 hover:scale-110 transition-all shadow-lg" title="Eliminar">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>

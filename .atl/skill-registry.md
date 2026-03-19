@@ -57,6 +57,7 @@ Generated: 2026-03-17
 | "crear helper" | create-helper | Genera función helper reutilizable |
 | "Crear pipeline Redis-PostgreSQL" | redis-async-worker | Workers asíncronos con Redis (Predis) |
 | "Crear worker asíncrono" | redis-async-worker | Sistema de colas con retry y DLQ |
+| "crear funcion sql" | create-sql-function | Genera y refactoriza funciones PSQL con tipado estricto |
 
 ## Project Conventions
 

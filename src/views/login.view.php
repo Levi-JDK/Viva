@@ -24,7 +24,7 @@ require_once __DIR__ . "/partials/header.php";
 					<input type="email" name="email" placeholder="Email" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors" />
 					<div class="relative w-full">
 						<input type="password" name="contrasena" id="reg-pass" placeholder="Contraseña" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors pr-10" />
-						<button type="button" onclick="togglePassword('reg-pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro focus:outline-none" tabindex="-1" aria-label="Mostrar contraseña">
+						<button type="button" data-action="toggle-password" data-target="reg-pass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro focus:outline-none" tabindex="-1" aria-label="Mostrar contraseña">
 							<i class="fa fa-eye"></i>
 						</button>
 					</div>
@@ -49,7 +49,7 @@ require_once __DIR__ . "/partials/header.php";
 					<input type="email" name="email" placeholder="Email" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors" />
 					<div class="relative w-full">
 						<input type="password" name="contrasena" id="login-pass" placeholder="Contraseña" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors pr-10" />
-						<button type="button" onclick="togglePassword('login-pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro focus:outline-none" tabindex="-1" aria-label="Mostrar contraseña">
+						<button type="button" data-action="toggle-password" data-target="login-pass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro focus:outline-none" tabindex="-1" aria-label="Mostrar contraseña">
 							<i class="fa fa-eye"></i>
 						</button>
 					</div>
@@ -82,21 +82,7 @@ require_once __DIR__ . "/partials/header.php";
 		</div>
 	</div>
 	<!-- <?php require_once 'partials/footer_login.php'; ?> -->
-	<script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
-	<script src="<?= BASE_URL ?>src/scripts/login-ui.js"></script>
-	<script src="<?= BASE_URL ?>src/scripts/auth.js"></script>
-	<script>
-		function togglePassword(inputId, btn) {
-			const input = document.getElementById(inputId);
-			const icon  = btn.querySelector('i');
-			if (input.type === 'password') {
-				input.type = 'text';
-				icon.classList.replace('fa-eye', 'fa-eye-slash');
-			} else {
-				input.type = 'password';
-				icon.classList.replace('fa-eye-slash', 'fa-eye');
-			}
-		}
-	</script>
+
+	<script type="module" src="<?= BASE_URL ?>src/scripts/controllers/AuthController.js"></script>
 </body>
 </html>

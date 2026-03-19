@@ -382,6 +382,11 @@ class Database {
             WHERE s.id_stand = :id_stand AND r.is_deleted = FALSE
         ");
 
+        // ── Productores/Vendedores ────────────────────────────────────────────
+        $this->statements['crearProductor'] = $this->connection->prepare(
+            "SELECT fun_c_productor(:tipo_doc, :id_prod, :id_user, :dir, :pais, :dpto, :ciudad, :grupo, :banco, :cuenta, :tipo_cuenta)"
+        );
+
         // ── Clientes y Facturación ────────────────────────────────────────────
 
         // UPSERT de dirección de envío del cliente (desde form de checkout)
@@ -524,6 +529,88 @@ class Database {
     public function obtenerConfiguracion() {
         $stmt = $this->ejecutar('obtenerConfiguracionGlobal');
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public const ADMIN_ENTITIES = [
+        'banco'          => ['tabla' => 'tab_bancos',           'pk' => 'id_banco',         'fun_c' => 'fun_c_banco',          'fun_u' => 'fun_u_banco',          'fun_d' => 'fun_softdel_tab_bancos'],
+        'categoria'      => ['tabla' => 'tab_categorias',       'pk' => 'id_categoria',     'fun_c' => 'fun_c_categoria',      'fun_u' => 'fun_u_categoria',      'fun_d' => 'fun_softdel_tab_categorias'],
+        'ciudad'         => ['tabla' => 'tab_ciudades',         'pk' => 'id_ciudad',        'fun_c' => 'fun_c_ciudad',         'fun_u' => 'fun_u_ciudad',         'fun_d' => 'fun_softdel_tab_ciudades'],
+        'color'          => ['tabla' => 'tab_color',            'pk' => 'id_color',         'fun_c' => 'fun_c_color',          'fun_u' => 'fun_u_color',          'fun_d' => 'fun_softdel_tab_color'],
+        'departamento'   => ['tabla' => 'tab_departamentos',    'pk' => 'id_departamento',  'fun_c' => 'fun_c_departamento',   'fun_u' => 'fun_u_departamento',   'fun_d' => 'fun_softdel_tab_departamentos'],
+        'forma_pago'     => ['tabla' => 'tab_formas_pago',      'pk' => 'id_pago',          'fun_c' => 'fun_c_forma_pago',     'fun_u' => 'fun_u_forma_pago',     'fun_d' => 'fun_softdel_tab_formas_pago'],
+        'grupo'          => ['tabla' => 'tab_grupos',           'pk' => 'id_grupo',         'fun_c' => 'fun_c_grupo',          'fun_u' => 'fun_u_grupo',          'fun_d' => 'fun_softdel_tab_grupos'],
+        'idioma'         => ['tabla' => 'tab_idiomas',          'pk' => 'id_idioma',        'fun_c' => 'fun_c_idioma',         'fun_u' => 'fun_u_idioma',         'fun_d' => 'fun_softdel_tab_idiomas'],
+        'materia'        => ['tabla' => 'tab_materia_prima',    'pk' => 'id_materia',       'fun_c' => 'fun_c_materia',        'fun_u' => 'fun_u_materia',        'fun_d' => 'fun_softdel_tab_materia_prima'],
+        'moneda'         => ['tabla' => 'tab_monedas',          'pk' => 'id_moneda',        'fun_c' => 'fun_c_moneda',         'fun_u' => 'fun_u_moneda',         'fun_d' => 'fun_softdel_tab_monedas'],
+        'oficio'         => ['tabla' => 'tab_oficios',          'pk' => 'id_oficio',        'fun_c' => 'fun_c_oficio',         'fun_u' => 'fun_u_oficio',         'fun_d' => 'fun_softdel_tab_oficios'],
+        'pais'           => ['tabla' => 'tab_paises',           'pk' => 'id_pais',          'fun_c' => 'fun_c_pais',           'fun_u' => 'fun_u_pais',           'fun_d' => 'fun_softdel_tab_paises'],
+        'parametros'     => ['tabla' => 'tab_pmtros',           'pk' => 'id_parametro',     'fun_c' => 'fun_c_parametros',     'fun_u' => 'fun_u_parametros',     'fun_d' => 'fun_softdel_tab_pmtros'],
+        'tipo_doc'       => ['tabla' => 'tab_tipos_doc',        'pk' => 'id_tipo_doc',      'fun_c' => 'fun_c_tipo_doc',       'fun_u' => 'fun_u_tipo_doc',       'fun_d' => 'fun_softdel_tab_tipos_doc'],
+        'transito'       => ['tabla' => 'tab_transito',         'pk' => 'id_entrada',       'fun_c' => 'fun_c_transito',       'fun_u' => 'fun_u_transito',       'fun_d' => 'fun_softdel_tab_transito'],
+        'transportadora' => ['tabla' => 'tab_transportadoras',  'pk' => 'id_transportador', 'fun_c' => 'fun_c_transportadora', 'fun_u' => 'fun_u_transportadora', 'fun_d' => 'fun_softdel_tab_transportadoras']
+    ];
+
+    public function gestionarCRUDAdmin(string $accion, string $entidad, array $datos = []) {
+        if (!isset(self::ADMIN_ENTITIES[$entidad])) {
+            throw new Exception("Entidad no válida.");
+        }
+        $conf = self::ADMIN_ENTITIES[$entidad];
+        $tabla = $conf['tabla'];
+        $pk = $conf['pk']; // PK primario visual (puede ser compósita localmente pero lo sacamos del scheme)
+
+        if ($accion === 'read') {
+            $stmtCols = $this->connection->prepare("SELECT column_name FROM information_schema.columns WHERE table_name = :tabla AND column_name NOT IN ('created_by', 'created_at', 'updated_by', 'updated_at', 'is_deleted') ORDER BY ordinal_position");
+            $stmtCols->execute([':tabla' => $tabla]);
+            $cols = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+            
+            $sql = "SELECT " . implode(', ', $cols) . " FROM $tabla WHERE is_deleted = FALSE ORDER BY 1 ASC";
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute();
+            return ['columnas' => $cols, 'filas' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+        }
+
+        if ($accion === 'create' || $accion === 'update' || $accion === 'delete') {
+            $fun_name = '';
+            if ($accion === 'create') $fun_name = $conf['fun_c'];
+            if ($accion === 'update') $fun_name = $conf['fun_u'];
+            if ($accion === 'delete') $fun_name = $conf['fun_d'];
+            
+            $stmtArgs = $this->connection->prepare("
+                SELECT p.pronargs, pg_get_function_identity_arguments(p.oid) as ident 
+                FROM pg_proc p WHERE p.proname = :fun LIMIT 1
+            ");
+            $stmtArgs->execute([':fun' => $fun_name]);
+            $funcInfo = $stmtArgs->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$funcInfo) throw new Exception("Función de base de datos no encontrada: $fun_name.");
+            
+            $argNamesStr = $funcInfo['ident'];
+            $paramsArray = $argNamesStr ? explode(',', $argNamesStr) : [];
+            $bindParams = [];
+            
+            foreach ($paramsArray as $paramDef) {
+                $pName = trim(explode(' ', trim($paramDef))[0]);
+                if ($pName === 'p_deleted') {
+                    $bindParams[] = 'TRUE';
+                } else {
+                    $colName = preg_replace('/^p_/', '', $pName); 
+                    if (isset($datos[$colName]) && $datos[$colName] !== '') {
+                        $bindParams[] = $datos[$colName];
+                    } elseif (isset($datos[$pName]) && $datos[$pName] !== '') {
+                        $bindParams[] = $datos[$pName];
+                    } else {
+                        $bindParams[] = null;
+                    }
+                }
+            }
+            
+            $placeholders = implode(',', array_fill(0, count($bindParams), '?'));
+            $stmt = $this->connection->prepare("SELECT $fun_name($placeholders)");
+            $stmt->execute($bindParams);
+            return $stmt->fetchColumn();
+        }
+        
+        throw new Exception("Acción CRUD no soportada.");
     }
 
     private function __clone() {}

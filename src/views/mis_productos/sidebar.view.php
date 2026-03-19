@@ -65,4 +65,4 @@
         </aside>
 
         <!-- Overlay for mobile sidebar -->
-        <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden" onclick="toggleSidebar()"></div>
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden" data-action="toggle-sidebar"></div>

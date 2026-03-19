@@ -65,7 +65,7 @@ require_once __DIR__ . "/partials/header.php";
                         <input type="password" name="pass_nueva" id="rec-pass" required
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal text-sm pr-10"
                                placeholder="Mínimo 8 caracteres">
-                        <button type="button" onclick="togglePassword('rec-pass', this)"
+                        <button type="button" data-action="toggle-password" data-target="rec-pass"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro" tabindex="-1">
                             <i class="fa fa-eye"></i>
                         </button>
@@ -78,7 +78,7 @@ require_once __DIR__ . "/partials/header.php";
                         <input type="password" name="pass_confirmacion" id="rec-pass-conf" required
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal text-sm pr-10"
                                placeholder="Repite la contraseña">
-                        <button type="button" onclick="togglePassword('rec-pass-conf', this)"
+                        <button type="button" data-action="toggle-password" data-target="rec-pass-conf"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-oscuro" tabindex="-1">
                             <i class="fa fa-eye"></i>
                         </button>
@@ -91,13 +91,13 @@ require_once __DIR__ . "/partials/header.php";
                 </button>
             </form>
 
-            <button onclick="volverAlPaso1()" class="mt-4 text-sm text-gray-500 hover:text-naranja-artesanal flex items-center gap-2 mx-auto">
+            <button data-action="volver-paso-1" class="mt-4 text-sm text-gray-500 hover:text-naranja-artesanal flex items-center gap-2 mx-auto">
                 <i class="fas fa-arrow-left text-xs"></i> Volver e ingresar otro correo
             </button>
         </div>
     </div>
 </div>
 
-<script src="<?= BASE_URL ?>src/scripts/recuperar.js"></script>
+
 </body>
 </html>

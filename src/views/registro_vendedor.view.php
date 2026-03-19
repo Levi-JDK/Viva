@@ -111,7 +111,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             <label class="block text-xs font-semibold text-gray-700 mb-1">
                                 Departamento <span class="text-red-500">*</span>
                             </label>
-                            <select name="departamento" id="departamento" required 
+                            <select name="departamento" id="departamento" required data-action="departamento-change"
                                     class="w-full px-3 py-2 text-sm bg-fondo-oscuro border-none rounded-lg transition-all">
                                 <option value="" disabled selected>Seleccione un departamento...</option>
                                 <?php 
@@ -169,7 +169,7 @@ require_once __DIR__ . '/partials/base_head.php';
 
                     <!-- Botones de Navegación -->
                     <div class="flex justify-end mt-5">
-                        <button type="button" onclick="nextStep()" 
+                        <button type="button" data-action="next-step" 
                                 class="btn-gradient text-white px-10 py-3 rounded-full font-bold text-sm uppercase tracking-wider">
                             Siguiente <i class="fas fa-arrow-right ml-2"></i>
                         </button>
@@ -228,11 +228,11 @@ require_once __DIR__ . '/partials/base_head.php';
 
                     <!-- Botones de Navegación -->
                     <div class="flex justify-end mt-5">
-                        <button type="button" onclick="prevStep()" 
+                        <button type="button" data-action="prev-step" 
                                 class="text-gray-600 hover:text-oscuro px-6 py-2 rounded-full font-bold text-sm uppercase tracking-wide transition-all mr-auto">
                             <i class="fas fa-arrow-left mr-2"></i> Anterior
                         </button>
-                        <button type="button" onclick="nextStep()" 
+                        <button type="button" data-action="next-step" 
                                 class="btn-gradient text-white px-10 py-3 rounded-full font-bold text-sm uppercase tracking-wider">
                             Siguiente <i class="fas fa-arrow-right ml-2"></i>
                         </button>
@@ -302,7 +302,7 @@ require_once __DIR__ . '/partials/base_head.php';
 
                     <!-- Botones de Acción -->
                     <div class="flex justify-between mt-8">
-                        <button type="button" onclick="prevStep()" 
+                        <button type="button" data-action="prev-step" 
                                 class="text-gray-600 hover:text-oscuro px-6 py-2 rounded-full font-bold text-sm uppercase tracking-wide transition-all">
                             <i class="fas fa-arrow-left mr-2"></i> Volver a editar
                         </button>
@@ -326,8 +326,5 @@ require_once __DIR__ . '/partials/base_head.php';
     </div>
 
     
-    <script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
-    <script src="<?= BASE_URL ?>src/scripts/consultar_ciudades.js"></script>
-    <script src="<?= BASE_URL ?>src/scripts/registro_vendedor.js"></script>
-</body>
+    </body>
 </html>

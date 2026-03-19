@@ -67,6 +67,7 @@ $routes = [
     '/api/resenas'        => 'src/api/resenas.php',
     '/api/get_ciudades'   => 'src/api/get_ciudades.php',
     '/api/guardar_cliente'=> 'src/api/guardar_cliente.php',
+    '/api/registro_vendedor'=> 'src/api/post_registro_vendedor.php',
     '/producto'           => 'src/controllers/producto.php',
     '/stand'              => 'src/controllers/stand_detail.php',
     '/stands'             => 'src/controllers/stands.php',

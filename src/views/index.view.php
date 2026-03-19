@@ -12,16 +12,16 @@ require_once __DIR__ . '/partials/base_head.php';
         <!-- Hero Background -->
         <div class="absolute inset-0 z-0">
             <picture>
-                <source media="(max-width: 640px)" srcset="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg">
-                <img src="https://artesaniasdecolombia.com.co/Documentos/Contenido/25859_risaralda-artesanias-colombia-2017-g.jpg" 
+                <source media="(max-width: 640px)" srcset="<?= !empty($pmtros["foto_hero"]) ? BASE_URL . $pmtros["foto_hero"] : '' ?>">
+                <img src="<?= !empty($pmtros["foto_hero"]) ? BASE_URL . $pmtros["foto_hero"] : '' ?>" 
                      alt="Artesanías Colombianas" 
                      class="w-full h-full object-cover">
             </picture>
             <div class="absolute inset-0 bg-black/50"></div>
         </div>
 
-        <div class="container mx-auto px-4 text-center text-white relative z-10">
-            <div class="max-w-4xl mx-auto fade-in">
+        <div class="container mx-auto px-4 sm:px-8 md:px-16 lg:px-32 xl:px-40 flex items-center justify-start text-center md:text-left text-white relative z-10">
+            <div class="w-full max-w-3xl fade-in">
                 <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                     <?php 
                         $rawTitle = $pmtros['landing_hero_titulo'] ?? 'Conecta con nuestro {mercado real}';
@@ -33,10 +33,31 @@ require_once __DIR__ . '/partials/base_head.php';
                 <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
                     <?= htmlspecialchars($pmtros['landing_hero_subtitulo'] ?? 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.') ?>
                 </p>
-                <button onclick="scrollToSection('categorias')" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">
+                <button data-action="scroll-to" data-target="categorias" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">
                     <span>Explorar ahora</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
+
+                <!-- Panel de Métricas (Glassmorphism) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl transform transition-all hover:scale-[1.02] duration-300">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-users text-3xl text-yellow-300 mb-3"></i>
+                        <span class="text-3xl font-bold">+500</span>
+                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Productores</span>
+                    </div>
+                    <div class="flex flex-col items-center relative">
+                        <div class="hidden md:block w-px h-16 bg-white/20 absolute -left-3 top-1/2 -translate-y-1/2"></div>
+                        <i class="fas fa-hand-holding-heart text-3xl text-yellow-300 mb-3"></i>
+                        <span class="text-3xl font-bold">15</span>
+                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Comunidades</span>
+                        <div class="hidden md:block w-px h-16 bg-white/20 absolute -right-3 top-1/2 -translate-y-1/2"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-box-open text-3xl text-yellow-300 mb-3"></i>
+                        <span class="text-3xl font-bold">+10k</span>
+                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Vendidos</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -195,16 +216,7 @@ require_once __DIR__ . '/partials/base_head.php';
                     <p class="text-gray-700 text-lg mb-8 leading-relaxed">
                         <?= htmlspecialchars($pmtros['landing_filosofia_p2'] ?? 'A través de nuestra plataforma, los artesanos pueden compartir su talento con el mundo, mientras preservamos tradiciones ancestrales y generamos un impacto económico directo en sus comunidades.') ?>
                     </p>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="text-center p-4 bg-beige-suave rounded-lg">
-                            <div class="text-2xl font-bold text-tierra-oscuro">500+</div>
-                            <div class="text-sm text-gray-600">Artesanos activos</div>
-                        </div>
-                        <div class="text-center p-4 bg-beige-suave rounded-lg">
-                            <div class="text-2xl font-bold text-tierra-oscuro">15</div>
-                            <div class="text-sm text-gray-600">Comunidades aliadas</div>
-                        </div>
-                    </div>
+
                 </div>
                 <div class="fade-in">
                     <div class="relative">
@@ -243,9 +255,6 @@ require_once __DIR__ . '/partials/base_head.php';
     </button>
     <!-- Drawer del Carrito -->
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
-    <script src="<?= BASE_URL ?>src/scripts/script1.js?v=4"></script>
-    <script src="<?= BASE_URL ?>src/scripts/script_landing.js?v=4"></script>
-    <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
     <!-- Test GGA -->
 </body>
 </html>

@@ -46,6 +46,10 @@ if ($ref_payco) {
                 if ($id_user_recuperado && !AuthHelper::verifyToken()) {
                     $token = AuthHelper::generateToken(['id_user' => $id_user_recuperado]);
                     AuthHelper::setAuthCookie($token);
+                    // setcookie() envía la cookie en la respuesta HTTP, pero $_COOKIE
+                    // no se actualiza hasta el siguiente request. Para que navbar.php
+                    // detecte al usuario en ESTE request, inyectamos manualmente:
+                    $_COOKIE['access_token'] = $token;
                 }
 
                 // 3. Si la transacción fue Aceptada, procesar el pedido

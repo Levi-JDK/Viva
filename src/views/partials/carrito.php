@@ -21,7 +21,7 @@
 ════════════════════════════════════════════════════════ -->
 <div id="carrito-overlay"
      class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300"
-     onclick="toggleCarrito()">
+     data-action="cart-toggle">
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -42,7 +42,7 @@
                 0
             </span>
         </div>
-        <button onclick="toggleCarrito()"
+        <button data-action="cart-toggle"
                 class="text-gray-400 hover:text-oscuro transition-colors p-1 rounded-full hover:bg-gray-100"
                 aria-label="Cerrar carrito">
             <i class="fas fa-times text-lg"></i>
@@ -80,13 +80,13 @@
         <div id="confirmacion-limpiar" class="hidden flex-col items-center justify-center p-3 rounded-lg bg-red-50 border border-red-100 my-2">
             <p class="text-xs font-semibold text-red-600 mb-2 text-center"><i class="fas fa-exclamation-triangle mr-1"></i> ¿Vaciar todo el carrito?</p>
             <div class="flex gap-2 w-full">
-                <button onclick="cancelarLimpiar()" class="flex-1 bg-white border border-red-200 hover:bg-gray-50 text-gray-600 text-xs py-1.5 rounded-md transition-colors font-semibold">Cancelar</button>
-                <button onclick="ejecutarLimpiar()" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs py-1.5 rounded-md transition-colors font-bold shadow-sm">Sí, vaciar</button>
+                <button data-action="cart-clear-cancel" class="flex-1 bg-white border border-red-200 hover:bg-gray-50 text-gray-600 text-xs py-1.5 rounded-md transition-colors font-semibold">Cancelar</button>
+                <button data-action="cart-clear-confirm" class="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs py-1.5 rounded-md transition-colors font-bold shadow-sm">Sí, vaciar</button>
             </div>
         </div>
 
         <!-- Botón limpiar principal -->
-        <button id="btn-limpiar-carrito" onclick="limpiarCarrito()"
+        <button id="btn-limpiar-carrito" data-action="cart-clear"
                 class="w-full text-sm text-gray-400 hover:text-red-500 transition-colors py-1 block">
             <i class="fas fa-trash-alt mr-1"></i> Vaciar carrito
         </button>

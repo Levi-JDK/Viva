@@ -1,25 +1,36 @@
+-- Generado automáticamente aplicando Skill: create-sql-function
 CREATE OR REPLACE FUNCTION fun_u_categoria(
-    p_id_categoria  tab_categorias.id_categoria%TYPE,
+    p_id_categoria tab_categorias.id_categoria%TYPE,
     p_nom_categoria tab_categorias.nom_categoria%TYPE
 ) RETURNS BOOLEAN AS $$
-DECLARE
-    v_nom_categoria tab_categorias.nom_categoria%TYPE;
 BEGIN
-    -- Validacion: ID categoría requerido
-    IF p_id_categoria IS NULL THEN RETURN FALSE; END IF;
 
-    SELECT nom_categoria INTO v_nom_categoria FROM tab_categorias WHERE id_categoria = p_id_categoria AND is_deleted = FALSE;
-    -- Validacion: Categoría no encontrada
-    IF NOT FOUND THEN RETURN FALSE; END IF;
+    -- Validaciones en caliente
+    IF p_id_categoria IS NULL THEN
+        RAISE NOTICE 'El parámetro p_id_categoria es inválido o nulo.';
+        RETURN FALSE;
+    END IF;
 
-    IF p_nom_categoria IS NOT NULL AND TRIM(p_nom_categoria) <> '' THEN v_nom_categoria := p_nom_categoria; END IF;
+    IF p_nom_categoria IS NULL THEN
+        RAISE NOTICE 'El parámetro p_nom_categoria es inválido o nulo.';
+        RETURN FALSE;
+    END IF;
+
+    -- Operación DML Pura
+    PERFORM 1 FROM tab_categorias WHERE id_categoria = p_id_categoria;
+    IF NOT FOUND THEN 
+        RAISE NOTICE 'El registro en tab_categorias no existe.';
+        RETURN FALSE; 
+    END IF;
 
     UPDATE tab_categorias
-       SET nom_categoria = v_nom_categoria,
-           updated_by    = current_user,
-           updated_at    = CURRENT_TIMESTAMP
-     WHERE id_categoria  = p_id_categoria;
+    SET nom_categoria = p_nom_categoria
+    WHERE id_categoria = p_id_categoria;
 
     RETURN TRUE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error transaccional en %: %', 'fun_u_categoria', SQLERRM;
+        RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql;

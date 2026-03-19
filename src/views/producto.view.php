@@ -64,7 +64,7 @@ require_once __DIR__ . '/partials/base_head.php';
                          <?php if (!empty($producto['imagenes']) && count($producto['imagenes']) > 1): ?>
                             <div class="flex space-x-2 overflow-x-auto pb-2 w-full justify-center">
                                 <?php foreach ($producto['imagenes'] as $img): ?>
-                                    <button onclick="document.getElementById('mainImage').src='<?= BASE_URL . $img['url'] ?>'" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
+                                    <button data-action="change-main-image" data-src="<?= BASE_URL . $img['url'] ?>" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
                                         <img src="<?= BASE_URL . $img['url'] ?>" class="w-full h-full object-cover">
                                     </button>
                                 <?php endforeach; ?>
@@ -172,19 +172,19 @@ require_once __DIR__ . '/partials/base_head.php';
                                 <div class="w-1/3">
                                     <label class="sr-only">Cantidad</label>
                                     <div class="flex items-center border border-gray-300 rounded-full overflow-hidden">
-                                        <button class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors" onclick="if(this.nextElementSibling.value > 1) this.nextElementSibling.value--">-</button>
-                                        <input type="number" value="1" min="1" max="<?= $producto['stock_productor'] ?>" class="w-full text-center border-none focus:ring-0 text-gray-700 font-semibold h-10" readonly>
-                                        <button class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors" onclick="if(this.previousElementSibling.value < <?= $producto['stock_productor'] ?>) this.previousElementSibling.value++">+</button>
+                                        <button data-action="decrease-stock" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">-</button>
+                                        <input type="number" id="qty-input" value="1" min="1" max="<?= $producto['stock_productor'] ?>" class="w-full text-center border-none focus:ring-0 text-gray-700 font-semibold h-10" readonly>
+                                        <button data-action="increase-stock" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <button onclick="agregarAlCarrito(<?= (int)$producto['id_producto'] ?>, parseInt(this.closest('div').querySelector('input').value))"
+                                <button data-action="cart-add" data-id="<?= (int)$producto['id_producto'] ?>"
                                         <?= !$producto['stock_productor'] ? 'disabled' : '' ?>
                                         class="flex-1 bg-tierra-oscuro text-white font-bold rounded-full hover:bg-opacity-90 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fas fa-shopping-cart"></i>
                                     <?= $producto['stock_productor'] ? 'Agregar al Carrito' : 'Sin stock' ?>
                                 </button>
                                 
-                                <button onclick="toggleFavorito(<?= (int)$producto['id_producto'] ?>, this, event)"
+                                <button data-action="fav-toggle" data-id="<?= (int)$producto['id_producto'] ?>"
                                         data-id-producto="<?= (int)$producto['id_producto'] ?>"
                                         class="btn-favorito w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all flex-shrink-0"
                                         aria-label="Alternar favorito">
@@ -253,7 +253,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <!-- Review Form (Hidden by default) -->
                         <div id="review-form-container" class="hidden mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Tu Reseña</h3>
-                            <form id="formResena" onsubmit="enviarResena(event, <?= (int)$producto['id_producto'] ?>)">
+                            <form id="formResena" data-producto-id="<?= (int)$producto['id_producto'] ?>">
                                 <div class="mb-4">
                                     <label class="block text-sm text-gray-600 mb-2">Calificación</label>
                                     <div class="flex gap-2 text-2xl cursor-pointer" id="star-rating">
@@ -271,7 +271,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 </div>
                                 <div class="flex justify-end">
                                     <button type="button" onclick="document.getElementById('review-form-container').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:text-gray-700 mr-2">Cancelar</button>
-                                    <button type="submit" class="px-6 py-2 bg-naranja-artesanal text-white rounded-lg font-bold hover:bg-orange-600">Enviar</button>
+                                    <button type="button" data-action="enviar-resena" class="px-6 py-2 bg-naranja-artesanal text-white rounded-lg font-bold hover:bg-orange-600">Enviar</button>
                                 </div>
                             </form>
                         </div>
@@ -328,9 +328,6 @@ require_once __DIR__ . '/partials/base_head.php';
         <?php endif; ?>
     </main>
 
-    <script src="<?= BASE_URL ?>src/scripts/producto_detalle.js"></script>
-    <!-- Drawer del Carrito -->
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
-    <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
-</body>
+    </body>
 </html>

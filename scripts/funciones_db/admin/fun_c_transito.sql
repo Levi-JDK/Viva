@@ -1,38 +1,35 @@
+-- Generado automáticamente aplicando Skill: create-sql-function
 CREATE OR REPLACE FUNCTION fun_c_transito(
-  p_id_producto tab_transito.id_producto%TYPE,
-  p_cantidad    tab_transito.val_entrada%TYPE
+    p_id_producto tab_transito.id_producto%TYPE,
+    p_cantidad tab_transito.val_entrada%TYPE
 ) RETURNS BOOLEAN AS $$
-DECLARE
-  w_id_prod tab_productos.id_producto%TYPE;
-  w_new_id  tab_transito.id_entrada%TYPE;
 BEGIN
-  -- Validacion: id_producto requerido
-  IF p_id_producto IS NULL THEN RETURN FALSE; END IF;
-  IF p_cantidad    IS NULL OR p_cantidad < 1 THEN
-    -- Validacion: cantidad inválida
-    RETURN FALSE;
-  END IF;
 
-  -- Producto válido
-  SELECT id_producto INTO w_id_prod
-  FROM tab_productos
-  WHERE id_producto = p_id_producto
-    AND is_deleted = FALSE;
-  IF NOT FOUND THEN
-    -- Validacion: Producto no existe o está eliminado
-    RETURN FALSE;
-  END IF;
+    -- Validaciones en caliente
+    IF p_id_producto IS NULL THEN
+        RAISE NOTICE 'El parámetro p_id_producto es inválido o nulo.';
+        RETURN FALSE;
+    END IF;
 
-  SELECT COALESCE(MAX(id_entrada),0)+1 INTO w_new_id FROM tab_transito;
+    IF p_cantidad IS NULL THEN
+        RAISE NOTICE 'El parámetro p_cantidad es inválido o nulo.';
+        RETURN FALSE;
+    END IF;
 
-  INSERT INTO tab_transito(id_entrada, id_producto, val_entrada)
-  VALUES (w_new_id, p_id_producto, p_cantidad);
+    -- Operación DML Pura
+    PERFORM 1 FROM tab_transito WHERE id_producto = p_id_producto;
+    IF FOUND THEN 
+        RAISE NOTICE 'El registro en tab_transito ya existe.';
+        RETURN FALSE; 
+    END IF;
 
-  IF NOT FOUND THEN
-    -- Error: Fallo insert en transito
-    RETURN FALSE;
-  END IF;
+    INSERT INTO tab_transito (id_producto, val_entrada)
+    VALUES (p_id_producto, p_cantidad);
 
-  RETURN TRUE;
+    RETURN TRUE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error transaccional en %: %', 'fun_c_transito', SQLERRM;
+        RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql;

@@ -1,164 +1,173 @@
 <?php 
 $page_title = "Catálogo de Productos | VIVA";
 $body_class = "bg-gray-100 font-sans min-h-screen flex flex-col";
-require_once __DIR__ . '/partials/base_head.php'; 
+require_once __DIR__ . '/partials/base_head.php';
+
+// Variables de filtro para la vista
+$search = $filtros['search'] ?? null;
+$categoria = $filtros['categoria'] ?? null;
+$oficio = $filtros['oficio'] ?? null;
+$materia = $filtros['materia'] ?? null;
+$min_precio = $filtros['min_price'] ?? null;
+$max_precio = $filtros['max_price'] ?? null;
 ?>
+    <style>
+        @media(min-width:768px){#catalog-sidebar{width:280px;flex-shrink:0;max-width:280px!important;}}
+    </style>
     
     <!-- Reuse Header -->
     <?php require_once __DIR__ . '/partials/navbar.php'; ?>
-
-    <!-- Estado principal para almacenar filtros actuales (se usará en JS) -->
-    <script>
-        window.VIVACatalogo = {
-            baseUrl: "<?= BASE_URL ?>",
-            filtros: {
-                search: "<?= !empty($filtros['search']) ? htmlspecialchars($filtros['search']) : '' ?>",
-                categoria: "<?= !empty($filtros['categoria']) ? htmlspecialchars($filtros['categoria']) : '' ?>",
-                oficio: "<?= !empty($filtros['oficio']) ? htmlspecialchars($filtros['oficio']) : '' ?>",
-                materia: "<?= !empty($filtros['materia']) ? htmlspecialchars($filtros['materia']) : '' ?>",
-                min_price: "<?= !empty($filtros['min_price']) ? htmlspecialchars($filtros['min_price']) : '' ?>",
-                max_price: "<?= !empty($filtros['max_price']) ? htmlspecialchars($filtros['max_price']) : '' ?>"
-            }
-        };
-    </script>
 
     <main class="container mx-auto px-6 py-10 flex-1">
 
         <!-- Encabezado del catálogo -->
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-                <h1 class="text-3xl font-extrabold text-gray-800 capitalize" id="texto-busqueda">
-                    <?= !empty($filtros['search']) ? htmlspecialchars($filtros['search']) : 'Todos los productos' ?>
+                <h1 class="text-3xl font-extrabold text-gray-800 capitalize">
+                    <?= $search ? htmlspecialchars($search) : 'Todos los productos' ?>
                 </h1>
+                <p class="text-sm text-gray-400 mt-1"><?= count($productos) ?> resultados encontrados</p>
             </div>
-            <button id="btn-limpiar-filtros" class="hidden inline-flex items-center gap-2 text-sm text-naranja-artesanal border border-naranja-artesanal px-4 py-2 rounded-full hover:bg-orange-50 transition-colors self-start sm:self-auto">
-                <i class="fas fa-times-circle"></i> Limpiar filtros
-            </button>
+            <?php if ($search || $categoria || $oficio || $materia || $min_precio || $max_precio): ?>
+                <a href="<?= BASE_URL ?>catalogo" class="inline-flex items-center gap-2 text-sm text-naranja-artesanal border border-naranja-artesanal px-4 py-2 rounded-full hover:bg-orange-50 transition-colors self-start sm:self-auto">
+                    <i class="fas fa-times-circle"></i> Limpiar filtros
+                </a>
+            <?php endif; ?>
         </div>
 
-        <!-- Layout Grid: Sidebar + Productos -->
-        <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
+        <!-- Layout: Sidebar + Productos -->
+        <div class="flex flex-col md:flex-row gap-8">
 
             <!-- ── SIDEBAR DE FILTROS ── -->
-            <aside class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8 lg:sticky lg:top-24 self-start">
-                
-                <!-- Buscador de texto (opcional en sidebar también) -->
-                <div>
-                     <div class="relative">
-                        <input type="text" id="filtro-buscar" placeholder="Buscar producto..." value="<?= !empty($filtros['search']) ? htmlspecialchars($filtros['search']) : '' ?>" class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-naranja-artesanal/30 transition-colors">
-                        <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 text-sm"></i>
-                    </div>
-                </div>
+            <aside class="w-full md:sticky md:top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8" style="flex:0 0 auto;max-width:100%;" id="catalog-sidebar">
 
                 <!-- Categorías -->
                 <div>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Categorías</h3>
-                    <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Categorías</h3>
+                    <ul class="space-y-1 text-sm">
+                        <li>
+                            <a href="<?= BASE_URL ?>catalogo<?= $search ? '?q='.urlencode($search) : '' ?>"
+                               class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors <?= !$categoria ? 'bg-orange-50 text-naranja-artesanal font-semibold' : 'text-gray-600 hover:bg-gray-50' ?>">
+                                <span>Todas</span>
+                            </a>
+                        </li>
                         <?php foreach ($categorias_list as $cat): ?>
-                            <label class="flex items-center justify-between cursor-pointer group">
-                                <div class="flex items-center gap-3">
-                                    <input type="radio" name="filtro_categoria" value="<?= $cat['id_categoria'] ?>" <?= (!empty($filtros['categoria']) && $filtros['categoria'] == $cat['id_categoria']) ? 'checked' : '' ?> class="w-4 h-4 text-naranja-artesanal border-gray-300 focus:ring-naranja-artesanal">
-                                    <span class="text-sm text-gray-600 group-hover:text-naranja-artesanal transition-colors"><?= htmlspecialchars($cat['nom_categoria']) ?></span>
-                                </div>
-                                <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full"><?= $cat['total'] ?></span>
-                            </label>
+                            <li>
+                                <a href="<?= BASE_URL ?>catalogo?cat=<?= $cat['id_categoria'] ?><?= $search ? '&q='.urlencode($search) : '' ?>"
+                                   class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors <?= $categoria == $cat['id_categoria'] ? 'bg-orange-50 text-naranja-artesanal font-semibold' : 'text-gray-600 hover:bg-gray-50' ?>">
+                                    <span><?= htmlspecialchars($cat['nom_categoria']) ?></span>
+                                    <span class="text-xs text-gray-300 bg-gray-100 rounded-full px-2 py-0.5"><?= $cat['total'] ?></span>
+                                </a>
+                            </li>
                         <?php endforeach; ?>
-                    </div>
+                    </ul>
                 </div>
 
                 <hr class="border-gray-100">
 
                 <!-- Oficios -->
+                <?php if (!empty($oficios_list)): ?>
                 <div>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Oficio Artesanal</h3>
-                    <div class="space-y-2">
-                        <?php foreach ($oficios_list as $oficio): ?>
-                            <label class="flex items-center justify-between cursor-pointer group">
-                                <div class="flex items-center gap-3">
-                                    <input type="radio" name="filtro_oficio" value="<?= $oficio['id_oficio'] ?>" <?= (isset($_GET['oficio']) && $_GET['oficio'] == $oficio['id_oficio']) ? 'checked' : '' ?> class="w-4 h-4 text-naranja-artesanal border-gray-300 focus:ring-naranja-artesanal">
-                                    <span class="text-sm text-gray-600 group-hover:text-naranja-artesanal transition-colors"><?= htmlspecialchars($oficio['nom_oficio']) ?></span>
-                                </div>
-                                <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full"><?= $oficio['total'] ?></span>
-                            </label>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Oficios</h3>
+                    <ul class="space-y-1 text-sm">
+                        <?php foreach ($oficios_list as $ofi): ?>
+                            <li>
+                                <a href="<?= BASE_URL ?>catalogo?oficio=<?= $ofi['id_oficio'] ?><?= $search ? '&q='.urlencode($search) : '' ?><?= $categoria ? '&cat='.$categoria : '' ?>"
+                                   class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors <?= $oficio == $ofi['id_oficio'] ? 'bg-orange-50 text-naranja-artesanal font-semibold' : 'text-gray-600 hover:bg-gray-50' ?>">
+                                    <span><?= htmlspecialchars($ofi['nom_oficio']) ?></span>
+                                    <span class="text-xs text-gray-300 bg-gray-100 rounded-full px-2 py-0.5"><?= $ofi['total'] ?></span>
+                                </a>
+                            </li>
                         <?php endforeach; ?>
-                    </div>
+                    </ul>
                 </div>
-
                 <hr class="border-gray-100">
+                <?php endif; ?>
 
                 <!-- Materias Primas -->
+                <?php if (!empty($materias_list)): ?>
                 <div>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Materia Prima</h3>
-                    <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Materia Prima</h3>
+                    <ul class="space-y-1 text-sm">
                         <?php foreach ($materias_list as $mat): ?>
-                            <label class="flex items-center justify-between cursor-pointer group">
-                                <div class="flex items-center gap-3">
-                                    <input type="radio" name="filtro_materia" value="<?= $mat['id_materia'] ?>" <?= (isset($_GET['materia']) && $_GET['materia'] == $mat['id_materia']) ? 'checked' : '' ?> class="w-4 h-4 text-naranja-artesanal border-gray-300 focus:ring-naranja-artesanal">
-                                    <span class="text-sm text-gray-600 group-hover:text-naranja-artesanal transition-colors"><?= htmlspecialchars($mat['nom_materia']) ?></span>
-                                </div>
-                                <span class="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full"><?= $mat['total'] ?></span>
-                            </label>
+                            <li>
+                                <a href="<?= BASE_URL ?>catalogo?materia=<?= $mat['id_materia'] ?><?= $search ? '&q='.urlencode($search) : '' ?><?= $categoria ? '&cat='.$categoria : '' ?>"
+                                   class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors <?= $materia == $mat['id_materia'] ? 'bg-orange-50 text-naranja-artesanal font-semibold' : 'text-gray-600 hover:bg-gray-50' ?>">
+                                    <span><?= htmlspecialchars($mat['nom_materia']) ?></span>
+                                    <span class="text-xs text-gray-300 bg-gray-100 rounded-full px-2 py-0.5"><?= $mat['total'] ?></span>
+                                </a>
+                            </li>
                         <?php endforeach; ?>
-                    </div>
+                    </ul>
                 </div>
-
                 <hr class="border-gray-100">
+                <?php endif; ?>
 
                 <!-- Filtro de Precio -->
                 <div>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Rango de Precio</h3>
-                    <div class="flex items-center gap-3">
-                        <div class="flex-1">
-                            <label class="text-xs text-gray-400 mb-1 block">Mínimo</label>
-                            <input type="number" id="filtro-min-price" placeholder="$ 0" value="<?= !empty($filtros['min_price']) ? htmlspecialchars($filtros['min_price']) : '' ?>" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-naranja-artesanal/30 focus:border-naranja-artesanal">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Precio</h3>
+                    <form action="<?= BASE_URL ?>catalogo" method="GET" class="space-y-3">
+                        <?php if ($search): ?><input type="hidden" name="q" value="<?= htmlspecialchars($search) ?>"><?php endif; ?>
+                        <?php if ($categoria): ?><input type="hidden" name="cat" value="<?= htmlspecialchars($categoria) ?>"><?php endif; ?>
+                        <?php if ($oficio): ?><input type="hidden" name="oficio" value="<?= htmlspecialchars($oficio) ?>"><?php endif; ?>
+                        <?php if ($materia): ?><input type="hidden" name="materia" value="<?= htmlspecialchars($materia) ?>"><?php endif; ?>
+
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1">
+                                <label class="text-xs text-gray-400 mb-1 block">Mínimo</label>
+                                <input type="number" name="min_price" placeholder="$ 0" value="<?= $min_precio ?>"
+                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-naranja-artesanal/30 focus:border-naranja-artesanal">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-xs text-gray-400 mb-1 block">Máximo</label>
+                                <input type="number" name="max_price" placeholder="$ ∞" value="<?= $max_precio ?>"
+                                       class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-naranja-artesanal/30 focus:border-naranja-artesanal">
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <label class="text-xs text-gray-400 mb-1 block">Máximo</label>
-                            <input type="number" id="filtro-max-price" placeholder="$ ∞" value="<?= !empty($filtros['max_price']) ? htmlspecialchars($filtros['max_price']) : '' ?>" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-naranja-artesanal/30 focus:border-naranja-artesanal">
-                        </div>
-                    </div>
+                        <button type="submit"
+                                class="w-full bg-naranja-artesanal hover:bg-tierra-oscuro text-white text-sm font-semibold py-2.5 rounded-lg transition-colors">
+                            Aplicar filtro
+                        </button>
+                    </form>
                 </div>
 
             </aside>
 
             <!-- ── ÁREA DE PRODUCTOS ── -->
-            <div class="flex flex-col gap-6 relative min-h-[400px]">
-                
-                <!-- Overlay de carga (oculto por defecto) -->
-                <div id="loader-productos" class="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 hidden flex-col items-center justify-center rounded-2xl">
-                    <div class="w-12 h-12 border-4 border-orange-100 border-t-naranja-artesanal rounded-full animate-spin"></div>
-                    <p class="mt-4 text-sm font-semibold text-gray-500">Buscando artesanias...</p>
-                </div>
+            <div class="flex-1 min-w-0 flex flex-col gap-6">
 
-                <div id="contenedor-productos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <?php if (empty($productos)): ?>
-                        <!-- Estado vacío inicial -->
-                        <div class="col-span-1 sm:col-span-2 xl:col-span-3 flex flex-col items-center justify-center bg-white rounded-2xl p-16 shadow-sm border border-gray-100 text-center">
-                            <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5">
-                                <i class="fas fa-search text-gray-300 text-3xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-700 mb-2">Sin resultados</h3>
-                            <p class="text-gray-400 text-sm max-w-xs">Intenta eliminar algunos filtros o usar otros términos de búsqueda.</p>
+                <?php if (empty($productos)): ?>
+                    <!-- Estado vacío -->
+                    <div class="flex flex-col items-center justify-center bg-white rounded-2xl p-16 shadow-sm border border-gray-100 text-center">
+                        <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-5">
+                            <i class="fas fa-search text-gray-300 text-3xl"></i>
                         </div>
-                    <?php else: ?>
+                        <h3 class="text-xl font-bold text-gray-700 mb-2">Sin resultados</h3>
+                        <p class="text-gray-400 text-sm max-w-xs">Revisa que la palabra esté bien escrita o intenta con menos filtros.</p>
+                        <a href="<?= BASE_URL ?>catalogo" class="mt-6 px-6 py-2 bg-naranja-artesanal text-white rounded-full text-sm font-semibold hover:bg-tierra-oscuro transition-colors">
+                            Ver todos los productos
+                        </a>
+                    </div>
+
+                <?php else: ?>
+                    <!-- Grilla de productos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <?php
                         $show_price = true;
                         foreach ($productos as $product):
                             require ROOT_PATH . 'src/views/partials/card_producto.php';
                         endforeach;
                         ?>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
 
             </div>
+            <!-- ── FIN ÁREA DE PRODUCTOS ── -->
+
         </div>
     </main>
     
     <?php require_once __DIR__ . '/partials/footer.php'; ?>
-    <!-- Lógica de Filtrado Asíncrono (Fetch API) -->
-    <script src="<?= BASE_URL ?>src/scripts/catalogo.js"></script>
-    <!-- Drawer del Carrito -->
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
-    <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
 </body>
 </html>

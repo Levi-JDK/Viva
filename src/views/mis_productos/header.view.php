@@ -12,7 +12,7 @@
                         ];
                         $current_title = $titles[$_GET['view'] ?? 'inventory'] ?? 'Panel de Control';
                     ?>
-                    <button class="lg:hidden text-gray-500 hover:text-gray-700 mr-4" onclick="toggleSidebar()">
+                    <button class="lg:hidden text-gray-500 hover:text-gray-700 mr-4" data-action="toggle-sidebar">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h2 id="pageTitle" class="text-xl font-bold text-gray-800"><?= $current_title ?></h2>

@@ -29,6 +29,5 @@ require_once __DIR__ . '/partials/base_head.php';
     <!-- SweetAlert2 for Delete Confirmation -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="<?= BASE_URL ?>src/scripts/toast.js"></script>
-    <script src="<?= BASE_URL ?>src/scripts/dash_productos.js?v=<?= time() ?>"></script>
 </body>
 </html>

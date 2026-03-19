@@ -91,6 +91,5 @@ require_once __DIR__ . '/partials/base_head.php';
     <?php require_once __DIR__ . '/partials/footer.php'; ?>
     <!-- Drawer del Carrito -->
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
-    <script src="<?= BASE_URL ?>src/scripts/carrito.js"></script>
-</body>
+    </body>
 </html>

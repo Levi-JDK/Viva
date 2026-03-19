@@ -199,13 +199,17 @@
 
     .container.right-panel-active .sign-in-container {
         transform: translateX(100%);
+        opacity: 0 !important;
+        z-index: 1 !important;
+        pointer-events: none;
     }
 
     .container.right-panel-active .sign-up-container {
         transform: translateX(100%);
-        opacity: 1;
-        z-index: 5;
+        opacity: 1 !important;
+        z-index: 5 !important;
         animation: show 0.6s;
+        pointer-events: all;
     }
 
     .overlay-container {
@@ -793,15 +797,25 @@
     }
 
     .mobile-show-login .sign-in-container {
-        opacity: 1;
-        z-index: 10;
+        opacity: 1 !important;
+        z-index: 20 !important;
         pointer-events: all;
+        display: flex !important;
     }
 
     .mobile-show-register .sign-up-container {
-        opacity: 1;
-        z-index: 10;
+        opacity: 1 !important;
+        z-index: 20 !important;
         pointer-events: all;
+        display: flex !important;
+    }
+
+    /* Ocultar el otro panel en móvil */
+    .mobile-show-login .sign-up-container,
+    .mobile-show-register .sign-in-container {
+        opacity: 0 !important;
+        z-index: 1 !important;
+        pointer-events: none;
     }
 
     .overlay-container {

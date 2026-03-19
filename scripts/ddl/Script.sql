@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS tab_pmtros
     val_actfact    DECIMAL(12,0) NOT NULL CHECK (val_actfact >= val_inifact AND val_actfact <= val_finfact), -- Número actual
     val_observa    TEXT,                                                -- Observación impresa en factura
     visitas        INTEGER       NOT NULL DEFAULT 0,                    -- Visitas a la plataforma
+    foto_hero           VARCHAR,
+
     landing_hero_titulo VARCHAR       NOT NULL DEFAULT 'Conecta con nuestro {mercado real}',
     landing_hero_subtitulo VARCHAR    NOT NULL DEFAULT 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.',
     landing_hero_btn    VARCHAR       NOT NULL DEFAULT 'Explorar ahora',
@@ -76,7 +78,7 @@ CREATE TABLE IF NOT EXISTS tab_pmtros
 INSERT INTO tab_pmtros (
   nom_plataforma, dir_contacto, correo_contacto,
    val_inifact, val_finfact, val_actfact, val_observa,
-  landing_hero_titulo, landing_hero_subtitulo, landing_hero_btn,
+  foto_hero, landing_hero_titulo, landing_hero_subtitulo, landing_hero_btn,
   landing_conf_1_tit, landing_conf_1_sub, landing_conf_2_tit, landing_conf_2_sub,
   landing_conf_3_tit, landing_conf_3_sub, landing_filosofia_tit,
   landing_filosofia_p1, landing_filosofia_p2
@@ -88,6 +90,7 @@ INSERT INTO tab_pmtros (
   9000,
   1000,
   'Parámetros iniciales de facturación',
+  'images/hero.jpeg',
   'Conecta con nuestro {mercado real}',
   'Conoce los productos de naturaleza autoctona y artesanal de Colombia.',
   'Explorar ahora',
@@ -764,3 +767,33 @@ CREATE OR REPLACE VIEW materias_view AS
 SELECT id_materia, nom_materia 
 FROM tab_materia_prima 
 ORDER BY nom_materia ASC;
+
+
+-- =========================================
+-- INYECCIÓN AUTOMÁTICA DEL TRIGGER DE MENÚS
+-- =========================================
+-- Trigger para auto-asignar menús de cliente por defecto al registrar un usuario
+CREATE OR REPLACE FUNCTION fn_trg_asignar_menus_defecto()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO tab_menu_user (id_user, id_menu)
+    VALUES 
+        (NEW.id_user, 1),  -- Inicio
+        (NEW.id_user, 2),  -- Categorías
+        (NEW.id_user, 3),  -- Catálogo
+        (NEW.id_user, 4),  -- Mi Perfil
+        (NEW.id_user, 5),  -- Mis Pedidos
+        (NEW.id_user, 6),  -- Favoritos
+        (NEW.id_user, 7),  -- Configuración
+        (NEW.id_user, 9)   -- Vender en VIVA
+    ON CONFLICT DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_asignar_menus_defecto ON tab_users;
+CREATE TRIGGER trg_asignar_menus_defecto
+AFTER INSERT ON tab_users
+FOR EACH ROW
+EXECUTE FUNCTION fn_trg_asignar_menus_defecto();
+

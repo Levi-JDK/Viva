@@ -68,7 +68,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             <label class="block text-sm font-medium text-gray-700 mb-1">
                                 Departamento <span class="text-red-500">*</span>
                             </label>
-                            <select id="departamento" name="id_departamento" required
+                            <select id="departamento" name="id_departamento" required data-action="departamento-change"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-naranja-artesanal focus:border-transparent text-sm">
                                 <option value="">-- Selecciona --</option>
                                 <?php foreach ($departamentos as $dpto): ?>
@@ -293,9 +293,6 @@ function habilitarPago() {
     tooltip.classList.add('hidden');
 }
 </script>
-
-<!-- Reutilizamos el script existente que maneja el cambio de departamento → ciudades -->
-<script src="<?= BASE_URL ?>src/scripts/consultar_ciudades.js"></script>
 
 </body>
 </html>

@@ -21,8 +21,8 @@
 
                         <form id="stand-form" class="space-y-8 relative -mt-20 px-4">
                             <!-- Hidden Inputs for Images (Moved Inside Form) -->
-                            <input type="file" id="portada-upload" name="portada_stand" class="hidden" accept="image/*" onchange="previewBackground(this, 'banner-placeholder'); this.form.requestSubmit()">
-                            <input type="file" id="logo-upload" name="img_stand" class="hidden" accept="image/*" onchange="previewImage(this, 'stand-logo-img'); this.form.requestSubmit()">
+                            <input type="file" id="portada-upload" name="portada_stand" class="hidden" accept="image/*" data-action="preview-background" data-target="banner-placeholder">
+                            <input type="file" id="logo-upload" name="img_stand" class="hidden" accept="image/*" data-action="preview-image" data-target="stand-logo-img">
 
                             <!-- Hidden Stand ID -->
                             <input type="hidden" name="id_stand" value="<?= $stand['id_stand'] ?? '' ?>">
