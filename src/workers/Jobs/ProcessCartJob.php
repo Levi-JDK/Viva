@@ -18,20 +18,22 @@ class ProcessCartJob {
     }
     
     public function handle(PDO $pdo): bool {
+        $db = Database::getInstance();
         // Por cada item, procesar el INSERT/UPDATE/DELETE
         foreach ($this->items as $item) {
-            $stmt = $pdo->prepare("SELECT fun_c_carrito_item(?, ?, ?, ?)");
-            $stmt->execute([
-                $this->cartData['usuario_id'],
-                $item['producto_id'],
-                $item['cantidad'],
-                $item['precio'] ?? 0
+            $db->ejecutar('registrarCarritoItem', [
+                ':usuario_id'  => (int)$this->cartData['usuario_id'],
+                ':producto_id' => (int)$item['producto_id'],
+                ':cantidad'    => (int)$item['cantidad'],
+                ':precio'      => (float)($item['precio'] ?? 0)
             ]);
         }
         
         // Actualizar estado del carrito
-        $stmt = $pdo->prepare("UPDATE carrito SET status = 'procesado' WHERE id = ?");
-        $stmt->execute([$this->cartId]);
+        $db->ejecutar('cambiarEstadoCarrito', [
+            ':status' => 'procesado',
+            ':id'     => $this->cartId
+        ]);
         
         return true;
     }

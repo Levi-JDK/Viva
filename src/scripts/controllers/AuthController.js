@@ -4,26 +4,8 @@ import { ApiService } from '../services/ApiService.js';
 import { loginUIController } from './LoginUIController.js';
 
 export class AuthController {
-    constructor() {
-        this.formRegistro = document.getElementById("form-registro");
-        this.formLogin = document.getElementById("form-login");
-        this.bindEvents();
-    }
-
-    bindEvents() {
-        if (this.formRegistro) {
-            this.formRegistro.addEventListener("submit", this.handleRegister.bind(this));
-        }
-
-        if (this.formLogin) {
-            this.formLogin.addEventListener("submit", this.handleLogin.bind(this));
-        }
-    }
-
-    async handleRegister(e) {
-        e.preventDefault();
-
-        const contrasena = this.formRegistro.querySelector('input[name="contrasena"]').value;
+    async handleRegister(form) {
+        const contrasena = form.querySelector('input[name="contrasena"]').value;
         const errorContrasena = AuthValidator.validatePassword(contrasena);
 
         if (errorContrasena) {
@@ -31,8 +13,8 @@ export class AuthController {
             return;
         }
 
-        const nombre = this.formRegistro.querySelector('input[name="nombre"]').value;
-        const apellido = this.formRegistro.querySelector('input[name="apellido"]').value;
+        const nombre = form.querySelector('input[name="nombre"]').value;
+        const apellido = form.querySelector('input[name="apellido"]').value;
 
         const errorNombre = AuthValidator.validateName(nombre);
         if (errorNombre) {
@@ -46,7 +28,7 @@ export class AuthController {
             return;
         }
 
-        const formData = new FormData(this.formRegistro);
+        const formData = new FormData(form);
         formData.append('accion', 'registro');
 
         try {
@@ -56,7 +38,7 @@ export class AuthController {
             Toast.show(data.mensaje, type);
 
             if (data.clase === 'mensaje-exito') {
-                this.formRegistro.reset();
+                form.reset();
                 
                 // Deslizamiento automático hacia el login después del registro usando el controlador centralizado
                 setTimeout(() => {
@@ -68,13 +50,11 @@ export class AuthController {
         }
     }
 
-    async handleLogin(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this.formLogin);
+    async handleLogin(form) {
+        const formData = new FormData(form);
         formData.append('accion', 'login');
 
-        const hiddenRedirect = this.formLogin.querySelector('input[name="redirect"]')?.value || '';
+        const hiddenRedirect = form.querySelector('input[name="redirect"]')?.value || '';
         const urlRedirect = new URLSearchParams(window.location.search).get('redirect') || '';
         const redirectUrl = hiddenRedirect || urlRedirect;
 
@@ -85,9 +65,9 @@ export class AuthController {
             Toast.show(data.mensaje, type);
 
             if (data.clase === 'mensaje-exito') {
-                this.formLogin.reset();
+                form.reset();
                 const destino = redirectUrl || BASE_URL;
-                console.log('[Auth] Login exitoso. Redirect destino:', destino);
+
                 setTimeout(() => {
                     window.location.href = destino;
                 }, 800);
@@ -97,3 +77,5 @@ export class AuthController {
         }
     }
 }
+
+export const authController = new AuthController();

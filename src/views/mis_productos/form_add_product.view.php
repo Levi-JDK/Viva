@@ -5,7 +5,7 @@
                                 $is_edit = isset($producto_editar);
                                 $prod = $is_edit ? $producto_editar : [];
                             ?>
-                            <form id="product-upload-form" class="space-y-8" data-mode="<?= $is_edit ? 'edit' : 'create' ?>">
+                            <form id="product-upload-form" data-action="submit-product" class="space-y-8" data-mode="<?= $is_edit ? 'edit' : 'create' ?>">
                                 <?php if ($is_edit): ?>
                                     <input type="hidden" name="id_producto" value="<?= $producto_editar['id_producto'] ?>">
                                     <script>
@@ -17,12 +17,12 @@
                                     <label class="block text-sm font-semibold text-gray-700 mb-3">Imágenes del Producto (Máx 4)</label>
                                     
                                     <!-- Hidden Input for File Selection -->
-                                    <input type="file" id="product-images-input" name="imagen_producto[]" accept="image/*" multiple class="hidden">
+                                    <input type="file" id="product-images-input" data-action="product-images-change" name="imagen_producto[]" accept="image/*" multiple class="hidden">
 
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="image-preview-grid">
                                         <!-- Content rendered via JS (dash_productos.js) -->
                                         <!-- Initial State: Button + 3 Placeholders -->
-                                        <div id="add-image-btn-placeholder" onclick="document.getElementById('product-images-input').click()" class="border-2 border-dashed border-naranja-artesanal/30 rounded-lg aspect-square flex flex-col items-center justify-center text-center hover:bg-orange-50 transition-colors cursor-pointer bg-orange-50/30 relative overflow-hidden group">
+                                        <div id="add-image-btn-placeholder" data-event="click:triggerImageUpload" class="border-2 border-dashed border-naranja-artesanal/30 rounded-lg aspect-square flex flex-col items-center justify-center text-center hover:bg-orange-50 transition-colors cursor-pointer bg-orange-50/30 relative overflow-hidden group">
                                             <i class="fas fa-plus text-2xl text-naranja-artesanal mb-2 group-hover:scale-110 transition-transform"></i>
                                             <span class="text-xs text-naranja-artesanal font-medium">Agregar</span>
                                         </div>
@@ -44,18 +44,18 @@
                                     <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre del Producto</label>
-                                            <input type="text" name="nom_producto" id="miInput" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="Ej: Mochila Arhuaca" value="<?= htmlspecialchars($producto_editar['nom_producto'] ?? '') ?>" required>
+                                            <input type="text" name="nom_producto" id="miInput" data-event="keypress:misc-keypress" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="Ej: Mochila Arhuaca" value="<?= htmlspecialchars($producto_editar['nom_producto'] ?? '') ?>" required>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Precio (COP)</label>
                                             <div class="relative">
                                                 <span class="absolute left-3 top-2 text-gray-500">$</span>
-                                                <input type="number" name="precio_producto" min="1" step="1" class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="0" value="<?= isset($producto_editar['precio_producto']) ? (int) $producto_editar['precio_producto'] : '' ?>" required>
+                                                <input type="number" data-event="keydown:numeric-keydown, input:numeric-input" name="precio_producto" min="1" step="1" class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="0" value="<?= isset($producto_editar['precio_producto']) ? (int) $producto_editar['precio_producto'] : '' ?>" required>
                                             </div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Stock Disponible</label>
-                                            <input type="number" name="stock_productor" min="0" step="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="1" value="<?= $producto_editar['stock_productor'] ?? '' ?>" required>
+                                            <input type="number" data-event="keydown:numeric-keydown, input:numeric-input" name="stock_productor" min="0" step="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal focus:ring-1 focus:ring-naranja-artesanal" placeholder="1" value="<?= $producto_editar['stock_productor'] ?? '' ?>" required>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Materia Prima</label>

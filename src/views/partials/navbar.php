@@ -5,7 +5,7 @@ cargar_datos_navbar();
 $is_logged_in   = $GLOBALS['is_logged_in'] ?? false;
 $nombre_usuario = $GLOBALS['nombre_usuario'] ?? '';
 $email_usuario  = $GLOBALS['email_usuario'] ?? '';
-$foto_usuario   = $GLOBALS['foto_usuario'] ?? 'images/default.jpg';
+$foto_usuario   = $GLOBALS['foto_usuario'] ?? 'images/profiles/default.webp';
 $navbar_menus   = $GLOBALS['navbar_menus'] ?? [];
 $dropdown_menus = $GLOBALS['dropdown_menus'] ?? [];
 
@@ -78,9 +78,9 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                         <?php if (isset($is_logged_in) && $is_logged_in): ?>
                             <!-- User Dropdown -->
                             <div class="relative user-menu group">
-                                <button id="userMenuBtn" class="flex items-center space-x-2 hover:opacity-80 transition-opacity focus:outline-none">
+                                <button id="userMenuBtn" data-action="toggle-user-menu" class="flex items-center space-x-2 hover:opacity-80 transition-opacity focus:outline-none">
                                     <div class="w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-transparent group-hover:border-naranja-artesanal transition-all">
-                                        <img src="<?= BASE_URL . ($foto_usuario ?? 'images/default.jpg') ?>?v=<?= time() ?>" 
+                                        <img src="<?= BASE_URL . ($foto_usuario ?? 'images/profiles/default.webp') ?>?v=<?= time() ?>" 
                                              alt="<?= htmlspecialchars($nombre_usuario ?? 'Usuario') ?>" 
                                              class="w-full h-full object-cover">
                                     </div>
@@ -158,7 +158,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                     </button>
 
                     <!-- Mobile menu button -->
-                    <button class="lg:hidden text-gray-700 hover:text-naranja-artesanal outline-none" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')">
+                    <button class="lg:hidden text-gray-700 hover:text-naranja-artesanal outline-none" data-event="click:toggleMobileMenu">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>

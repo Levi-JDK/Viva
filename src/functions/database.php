@@ -100,7 +100,7 @@ class Database {
         ");
 
         $this->statements['incrementarVistasProducto'] = $this->connection->prepare("
-            SELECT * FROM fun_u_vista_producto(:id_producto)
+            SELECT id_producto, vistas FROM fun_u_vista_producto(:id_producto)
         ");
 
         $this->statements['obtenerProductoPorId'] = $this->connection->prepare("
@@ -147,7 +147,15 @@ class Database {
 
         // Configuracion y Textos Landing
         $this->statements['obtenerConfiguracionGlobal'] = $this->connection->prepare("
-            SELECT * FROM tab_pmtros WHERE id_parametro = 1 AND is_deleted = FALSE LIMIT 1
+            SELECT 
+                nom_plataforma, dir_contacto, correo_contacto,
+                val_inifact, val_finfact, val_actfact, val_observa,
+                foto_hero, landing_hero_titulo, landing_hero_subtitulo, landing_hero_btn,
+                landing_conf_1_tit, landing_conf_1_sub, landing_conf_2_tit, landing_conf_2_sub,
+                landing_conf_3_tit, landing_conf_3_sub, landing_filosofia_tit, landing_filosofia_p1, landing_filosofia_p2
+            FROM tab_pmtros 
+            WHERE id_parametro = 1 AND is_deleted = FALSE 
+            LIMIT 1
         ");
 
         $this->statements['actualizarParametrosGlob'] = $this->connection->prepare("
@@ -416,6 +424,150 @@ class Database {
                 :cantidades::INTEGER[]
             )"
         );
+
+        // --- Nuevas consultas centralizadas ---
+        $this->statements['obtenerUltimoIdProducto'] = $this->connection->prepare("
+            SELECT MAX(id_producto) FROM tab_productos
+        ");
+
+        $this->statements['verificarPropiedadProducto'] = $this->connection->prepare("
+            SELECT id_producto FROM tab_productos 
+            WHERE id_producto = :id_p AND id_productor = :id_prod
+        ");
+
+        $this->statements['obtenerImagenesProducto'] = $this->connection->prepare("
+            SELECT id_imagen, url_imagen FROM tab_imagenes WHERE id_producto = :id
+        ");
+
+        $this->statements['actualizarDescripcionPrecio'] = $this->connection->prepare("
+            UPDATE tab_productos 
+            SET descripcion_producto = :desc, precio_producto = :precio 
+            WHERE id_producto = :id
+        ");
+
+        $this->statements['eliminarImagen'] = $this->connection->prepare("
+            DELETE FROM tab_imagenes WHERE id_imagen = :id
+        ");
+
+        $this->statements['obtenerNombreUsuarioPorEmail'] = $this->connection->prepare("
+            SELECT nom_user FROM tab_users 
+            WHERE mail_user = :email AND is_deleted = FALSE 
+            LIMIT 1
+        ");
+
+        $this->statements['actualizarProducto'] = $this->connection->prepare("
+            SELECT fun_u_producto(
+                :id_producto, :nom_producto, :stock, :id_categoria, :id_color, :id_oficio, :id_materia
+            )
+        ");
+
+        $this->statements['obtenerFacturaPorId'] = $this->connection->prepare("
+            SELECT 
+                f.id_factura, f.fec_factura, f.val_hora_fact, f.val_tot_fact, f.epayco_estado,
+                f.epayco_ref, f.epayco_txn_id, f.dir_envio, p.nom_pago,
+                dep.nom_departamento, ciu.nom_ciudad
+            FROM tab_enc_fact f
+            JOIN tab_clientes c ON f.id_client = c.id_client
+            JOIN tab_formas_pago p ON f.id_pago = p.id_pago
+            LEFT JOIN tab_departamentos dep ON f.id_pais = dep.id_pais AND f.id_departamento = dep.id_departamento
+            LEFT JOIN tab_ciudades ciu ON f.id_pais = ciu.id_pais AND f.id_departamento = ciu.id_departamento AND f.id_ciudad = ciu.id_ciudad
+            WHERE f.id_factura = :id_factura AND c.id_user = :id_user
+        ");
+
+        $this->statements['obtenerDetallesFactura'] = $this->connection->prepare("
+            SELECT 
+                d.val_cantidad, d.val_neto, prod.nom_producto, prod.id_producto,
+                (SELECT url_imagen FROM tab_imagenes i WHERE i.id_producto = prod.id_producto ORDER BY id_imagen ASC LIMIT 1) as imagen
+            FROM tab_det_fact d
+            JOIN tab_productos prod ON d.id_producto = prod.id_producto
+            WHERE d.id_factura = :id_factura
+        ");
+
+        // --- Consultas para Workers ---
+        $this->statements['registrarCarritoItem'] = $this->connection->prepare("
+            SELECT fun_c_carrito_item(:usuario_id, :producto_id, :cantidad, :precio)
+        ");
+
+        $this->statements['cambiarEstadoCarrito'] = $this->connection->prepare("
+            UPDATE carrito SET status = :status WHERE id = :id
+        ");
+
+        $this->statements['registrarCarrito'] = $this->connection->prepare("
+            SELECT fun_c_carrito(:id_user, :items, :total)
+        ");
+
+        // --- Admin Dashboard: Métricas ---
+        $this->statements['contarUsuarios'] = $this->connection->prepare("
+            SELECT COUNT(*) FROM tab_users WHERE is_deleted = FALSE
+        ");
+
+        $this->statements['contarProductos'] = $this->connection->prepare("
+            SELECT COUNT(*) FROM tab_productos WHERE is_deleted = FALSE
+        ");
+
+        $this->statements['contarPedidos'] = $this->connection->prepare("
+            SELECT COUNT(*) FROM tab_enc_fact
+        ");
+
+        $this->statements['contarArtesanos'] = $this->connection->prepare("
+            SELECT COUNT(*) FROM tab_productores WHERE is_deleted = FALSE
+        ");
+
+        $this->statements['sumarIngresosMes'] = $this->connection->prepare("
+            SELECT COALESCE(SUM(val_tot_fact), 0) FROM tab_enc_fact
+            WHERE EXTRACT(MONTH FROM fec_factura) = EXTRACT(MONTH FROM CURRENT_DATE)
+              AND EXTRACT(YEAR FROM fec_factura) = EXTRACT(YEAR FROM CURRENT_DATE)
+        ");
+
+        // --- Admin Dashboard: Listados ---
+        $this->statements['listarUsuariosAdmin'] = $this->connection->prepare("
+            SELECT 
+                u.id_user, u.nom_user, u.ape_user, u.mail_user, u.foto_user,
+                NOT u.is_deleted AS is_active, u.created_at,
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM tab_menu_user mu WHERE mu.id_user = u.id_user AND mu.id_menu = 8 AND mu.is_deleted = FALSE) THEN 'Admin'
+                    WHEN EXISTS (SELECT 1 FROM tab_productores p WHERE p.id_user = u.id_user AND p.is_deleted = FALSE) THEN 'Vendedor'
+                    ELSE 'Cliente'
+                END as nom_grupo
+            FROM tab_users u
+            ORDER BY u.id_user DESC
+        ");
+
+        $this->statements['listarProductosAdmin'] = $this->connection->prepare("
+            SELECT 
+                p.id_producto, p.nom_producto, p.precio_producto, p.stock_productor,
+                p.is_active, p.is_deleted, p.created_at,
+                c.nom_categoria,
+                s.nom_stand,
+                (SELECT url_imagen FROM tab_imagenes i WHERE i.id_producto = p.id_producto ORDER BY id_imagen ASC LIMIT 1) as primera_imagen
+            FROM tab_productos p
+            LEFT JOIN tab_categorias c ON p.id_categoria = c.id_categoria
+            LEFT JOIN tab_productores pr ON p.id_productor = pr.id_productor
+            LEFT JOIN tab_stand s ON pr.id_productor = s.id_productor
+            ORDER BY p.is_deleted ASC, p.id_producto DESC
+        ");
+
+        $this->statements['toggleUsuarioActivo'] = $this->connection->prepare("
+            SELECT fun_softdel_tab_users(:id_user, :is_deleted)
+        ");
+
+        $this->statements['toggleProductoActivo'] = $this->connection->prepare("
+            SELECT fun_softdel_tab_productos(:id_producto, :is_deleted)
+        ");
+
+        // Gestión de Menús de usuario (Panel Admin)
+        $this->statements['listarTodosMenus'] = $this->connection->prepare("
+            SELECT id_menu, nom_menu, icono_menu, url_menu FROM tab_menu WHERE is_deleted = FALSE ORDER BY id_menu ASC
+        ");
+
+        $this->statements['listarMenusUsuario'] = $this->connection->prepare("
+            SELECT m.id_menu, m.nom_menu, m.icono_menu,
+                   CASE WHEN mu.is_deleted = FALSE THEN TRUE ELSE FALSE END AS tiene_acceso
+            FROM tab_menu m
+            LEFT JOIN tab_menu_user mu ON m.id_menu = mu.id_menu AND mu.id_user = :id_user
+            WHERE m.is_deleted = FALSE
+            ORDER BY m.id_menu ASC
+        ");
     }
 
     public function ejecutar($nombre, $params = []) {
@@ -592,6 +744,8 @@ class Database {
                 $pName = trim(explode(' ', trim($paramDef))[0]);
                 if ($pName === 'p_deleted') {
                     $bindParams[] = 'TRUE';
+                } elseif ($pName === 'p_id') {
+                    $bindParams[] = isset($datos[$pk]) && $datos[$pk] !== '' ? $datos[$pk] : null;
                 } else {
                     $colName = preg_replace('/^p_/', '', $pName); 
                     if (isset($datos[$colName]) && $datos[$colName] !== '') {

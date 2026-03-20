@@ -1,15 +1,13 @@
 -- Generado automáticamente aplicando Skill: create-sql-function
 CREATE OR REPLACE FUNCTION fun_c_banco(
-    p_id_banco tab_bancos.id_banco%TYPE,
-    p_nom_banco tab_bancos.nom_banco%TYPE
+        p_nom_banco tab_bancos.nom_banco%TYPE
 ) RETURNS BOOLEAN AS $$
+DECLARE
+    v_id_banco tab_bancos.id_banco%TYPE;
 BEGIN
 
     -- Validaciones en caliente
-    IF p_id_banco IS NULL THEN
-        RAISE NOTICE 'El parámetro p_id_banco es inválido o nulo.';
-        RETURN FALSE;
-    END IF;
+    
 
     IF p_nom_banco IS NULL THEN
         RAISE NOTICE 'El parámetro p_nom_banco es inválido o nulo.';
@@ -18,14 +16,12 @@ BEGIN
 
 
     -- Operación DML Pura
-    PERFORM 1 FROM tab_bancos WHERE id_banco = p_id_banco;
-    IF FOUND THEN 
-        RAISE NOTICE 'El registro en tab_bancos ya existe.';
-        RETURN FALSE; 
-    END IF;
+
+    
+    v_id_banco := COALESCE((SELECT MAX(id_banco) FROM tab_bancos), 0) + 1;
 
     INSERT INTO tab_bancos (id_banco, nom_banco)
-    VALUES (p_id_banco, p_nom_banco);
+    VALUES (v_id_banco, p_nom_banco);
 
     RETURN TRUE;
 EXCEPTION

@@ -51,7 +51,7 @@ try {
             'nom_stand'       => $p['nom_stand'] ?? 'Stand artesanal',
             'img_stand'       => !empty($p['img_stand'])
                                     ? $base_url . $p['img_stand']
-                                    : $base_url . 'images/default.jpg',
+                                    : $base_url . 'images/profiles/default.webp',
             'imagen_producto' => !empty($p['primera_imagen'])
                                     ? $base_url . $p['primera_imagen']
                                     : $base_url . 'images/default_product.jpg',

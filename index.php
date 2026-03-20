@@ -79,6 +79,7 @@ $routes = [
     '/recuperar'           => 'src/controllers/recuperar.php',
     '/api/recuperar'       => 'src/api/recuperar.php',
     '/api/admin/actualizar_parametros' => 'src/api/admin/actualizar_parametros.php',
+    '/api/admin_crud'                  => 'src/api/admin_crud.php',
 ];
 
 if (array_key_exists($relative_uri, $routes)) {

@@ -8,15 +8,16 @@ BEGIN
 	IF w_mail IS TRUE THEN
         RETURN 'Correo no existe'; -- Correo no válido
     ELSE
-    -- Verificar si el correo electrónico ya está registrado
+    -- Verificar si el correo electrónico ya está registrado y el usuario no está borrado (soft-delete)
     	SELECT pass_user INTO w_pass
    		FROM tab_users
-    	WHERE mail_user = p_mail;
+    	WHERE mail_user = p_mail AND is_deleted = FALSE;
    		IF FOUND THEN
 	-- Retornamos el hash
             RETURN w_pass;
     	END IF;
 	END IF;
+    RETURN 'Usuario desactivado'; -- Existe pero está soft-deleted
 END;
 $$
 LANGUAGE plpgsql;

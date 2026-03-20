@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Recuperar el ID generado
-        $stmtId = $conn->query("SELECT MAX(id_producto) FROM tab_productos");
+        $stmtId = $db->ejecutar('obtenerUltimoIdProducto');
         $id_producto = $stmtId->fetchColumn();
 
         // 2. Subir imágenes físicas con el ID generado

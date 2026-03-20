@@ -20,8 +20,18 @@ try {
     $stmtPmtros = $db->ejecutar('obtenerConfiguracionGlobal');
     $pmtros = $stmtPmtros->fetch(PDO::FETCH_ASSOC);
     if (!$pmtros) $pmtros = [];
+
+    // Métricas del Dashboard
+    $totalUsuarios  = $db->ejecutar('contarUsuarios')->fetchColumn() ?: 0;
+    $totalProductos = $db->ejecutar('contarProductos')->fetchColumn() ?: 0;
+    $totalPedidos   = $db->ejecutar('contarPedidos')->fetchColumn() ?: 0;
+    $totalArtesanos = $db->ejecutar('contarArtesanos')->fetchColumn() ?: 0;
+    $ingresosMes    = $db->ejecutar('sumarIngresosMes')->fetchColumn() ?: 0;
+
 } catch (\Throwable $e) {
     $pmtros = []; // Fallback seguro
+    $totalUsuarios = $totalProductos = $totalPedidos = $totalArtesanos = $ingresosMes = 0;
 }
 
 require_once __DIR__ . '/../views/admin_dashboard.view.php';
+

@@ -2,9 +2,7 @@
 CREATE OR REPLACE FUNCTION set_updated()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Si viene vacío o NULL, usar el rol actual
-    NEW.updated_by := COALESCE(NULLIF(NEW.updated_by, ''), current_user);
-    -- Siempre sellamos la fecha/hora de actualización
+    NEW.updated_by := current_user;
     NEW.updated_at := CURRENT_TIMESTAMP;
     RETURN NEW;
 END;

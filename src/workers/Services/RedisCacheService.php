@@ -21,10 +21,15 @@ class RedisCacheService {
     
     private function connectPostgres(): PDO {
         try {
+            $host = $_ENV['DB_HOST'] ?? 'localhost';
+            $dbname = $_ENV['DB_NAME'] ?? 'db_viva';
+            $user = $_ENV['DB_USERNAME'] ?? '';
+            $pass = $_ENV['DB_PASSWORD'] ?? '';
+
             return new PDO(
-                'pgsql:host=10.5.213.111;dbname=db_levi',
-                'levi',
-                'Gerson03#',
+                "pgsql:host=$host;dbname=$dbname",
+                $user,
+                $pass,
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -66,7 +71,7 @@ class RedisCacheService {
      * Obtener usuario de PostgreSQL
      */
     private function getUsuarioFromDB(int $id): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id_user, nom_user, ape_user, mail_user, foto_user FROM tab_users WHERE id_user = ?");
         $stmt->execute([$id]);
         $user = $stmt->fetch();
         
@@ -117,7 +122,7 @@ class RedisCacheService {
     }
     
     private function getProductoFromDB(int $id): ?array {
-        $stmt = $this->pdo->prepare("SELECT * FROM productos WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id_producto, nom_producto, precio_producto, stock_productor FROM tab_productos WHERE id_producto = ?");
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
     }

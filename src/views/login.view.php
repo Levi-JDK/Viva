@@ -12,7 +12,7 @@ require_once __DIR__ . "/partials/header.php";
 			
 			<!-- Sign Up Container -->
 			<div class="form-container sign-up-container absolute top-0 left-0 h-full w-full md:w-1/2 opacity-0 z-1 md:opacity-0 md:z-1">
-				<form id="form-registro" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+				<form id="form-registro" data-action="register" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Crear Cuenta</h1>
 					<div class="social-container my-4">
@@ -32,14 +32,14 @@ require_once __DIR__ . "/partials/header.php";
 					
 					<!-- Botón para móviles -->
 					<div class="mobile-switch md:hidden mt-6 pt-4 border-t border-gray-200 w-full">
-						<p class="text-sm text-oscuro">¿Ya tienes cuenta? <a href="#" id="signIn-mobile" class="text-tierra-medio font-bold hover:text-naranja-artesanal hover:underline">Iniciar Sesión</a></p>
+						<p class="text-sm text-oscuro">¿Ya tienes cuenta? <a href="#" id="signIn-mobile" data-action="show-sign-in" class="text-tierra-medio font-bold hover:text-naranja-artesanal hover:underline">Iniciar Sesión</a></p>
 					</div>
 				</form>
 			</div>
 
 			<!-- Sign In Container -->
 			<div class="form-container sign-in-container absolute top-0 left-0 h-full w-full md:w-1/2 z-2">
-				<form id="form-login" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+				<form id="form-login" data-action="login" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Iniciar Sesión</h1>
 					<div class="social-container my-4">
@@ -59,7 +59,7 @@ require_once __DIR__ . "/partials/header.php";
 
 					<!-- Botón para móviles -->
 					<div class="mobile-switch md:hidden mt-6 pt-4 border-t border-gray-200 w-full">
-						<p class="text-sm text-oscuro">¿No tienes cuenta? <a href="#" id="signUp-mobile" class="text-tierra-medio font-bold hover:text-naranja-artesanal hover:underline">Registrarse</a></p>
+						<p class="text-sm text-oscuro">¿No tienes cuenta? <a href="#" id="signUp-mobile" data-action="show-sign-up" class="text-tierra-medio font-bold hover:text-naranja-artesanal hover:underline">Registrarse</a></p>
 					</div>
 				</form>
 			</div>
@@ -70,12 +70,12 @@ require_once __DIR__ . "/partials/header.php";
 					<div class="overlay-panel overlay-left absolute flex flex-col items-center justify-center px-10 text-center top-0 h-full w-1/2 transform -translate-x-[20%]">
 						<h1 class="font-bold text-3xl mb-4 text-oscuro">¡Bienvenido de nuevo!</h1>
 						<p class="text-sm leading-5 tracking-wide my-5 text-oscuro">Para mantenerte conectado con nosotros, por favor inicia sesión con tu información personal</p>
-						<button class="ghost rounded-full border border-oscuro bg-transparent text-oscuro text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-white/10 hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer" id="signIn">Iniciar Sesión</button>
+						<button class="ghost rounded-full border border-oscuro bg-transparent text-oscuro text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-white/10 hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer" id="signIn" data-action="show-sign-in">Iniciar Sesión</button>
 					</div>
 					<div class="overlay-panel overlay-right absolute right-0 flex flex-col items-center justify-center px-10 text-center top-0 h-full w-1/2 transform">
 						<h1 class="font-bold text-3xl mb-4 text-white">¡Hola, Amigo!</h1>
 						<p class="text-sm leading-5 tracking-wide my-5 text-white">Descubre una artesanía que cuente nuestra historia.</p>
-						<button class="ghost rounded-full border border-white bg-transparent text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-white/10 hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer" id="signUp">Registrarse</button>
+						<button class="ghost rounded-full border border-white bg-transparent text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-white/10 hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer" id="signUp" data-action="show-sign-up">Registrarse</button>
 					</div>
 				</div>
 			</div>

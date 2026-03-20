@@ -22,7 +22,7 @@ require_once __DIR__ . "/partials/header.php";
                 <p class="text-gray-500 text-sm mt-2">Ingresa tu correo y te enviamos un código de verificación.</p>
             </div>
 
-            <form id="form-solicitar" class="space-y-7">
+            <form id="form-solicitar" data-action="submit-solicitar" class="space-y-7">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Correo electrónico</label>
                     <input type="email" name="email" id="rec-email" required
@@ -49,12 +49,13 @@ require_once __DIR__ . "/partials/header.php";
                 <p class="text-gray-500 text-sm mt-2">Ingresa el código de 6 dígitos que te enviamos y tu nueva contraseña.</p>
             </div>
 
-            <form id="form-confirmar" class="space-y-7">
+            <form id="form-confirmar" data-action="submit-confirmar" class="space-y-7">
                 <input type="hidden" name="email" id="rec-email-confirm">
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Código de verificación</label>
                     <input type="text" name="token" id="rec-token" required maxlength="6" pattern="\d{6}"
+                           data-event="input:token-input, keydown:token-keydown"
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal text-sm text-center tracking-[0.5em] text-xl font-bold"
                            placeholder="000000">
                 </div>
@@ -63,6 +64,7 @@ require_once __DIR__ . "/partials/header.php";
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Nueva contraseña</label>
                     <div class="relative">
                         <input type="password" name="pass_nueva" id="rec-pass" required
+                               data-event="input:pass-input, keydown:pass-keydown"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal text-sm pr-10"
                                placeholder="Mínimo 8 caracteres">
                         <button type="button" data-action="toggle-password" data-target="rec-pass"
@@ -76,6 +78,7 @@ require_once __DIR__ . "/partials/header.php";
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Confirmar contraseña</label>
                     <div class="relative">
                         <input type="password" name="pass_confirmacion" id="rec-pass-conf" required
+                               data-event="input:pass-input, keydown:pass-keydown"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-naranja-artesanal text-sm pr-10"
                                placeholder="Repite la contraseña">
                         <button type="button" data-action="toggle-password" data-target="rec-pass-conf"

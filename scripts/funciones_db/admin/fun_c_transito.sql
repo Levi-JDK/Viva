@@ -1,15 +1,13 @@
 -- Generado automáticamente aplicando Skill: create-sql-function
 CREATE OR REPLACE FUNCTION fun_c_transito(
-    p_id_producto tab_transito.id_producto%TYPE,
-    p_cantidad tab_transito.val_entrada%TYPE
+        p_cantidad tab_transito.val_entrada%TYPE
 ) RETURNS BOOLEAN AS $$
+DECLARE
+    v_id_producto tab_transito.id_producto%TYPE;
 BEGIN
 
     -- Validaciones en caliente
-    IF p_id_producto IS NULL THEN
-        RAISE NOTICE 'El parámetro p_id_producto es inválido o nulo.';
-        RETURN FALSE;
-    END IF;
+    
 
     IF p_cantidad IS NULL THEN
         RAISE NOTICE 'El parámetro p_cantidad es inválido o nulo.';
@@ -17,14 +15,12 @@ BEGIN
     END IF;
 
     -- Operación DML Pura
-    PERFORM 1 FROM tab_transito WHERE id_producto = p_id_producto;
-    IF FOUND THEN 
-        RAISE NOTICE 'El registro en tab_transito ya existe.';
-        RETURN FALSE; 
-    END IF;
+
+    
+    v_id_producto := COALESCE((SELECT MAX(id_producto) FROM tab_transito), 0) + 1;
 
     INSERT INTO tab_transito (id_producto, val_entrada)
-    VALUES (p_id_producto, p_cantidad);
+    VALUES (v_id_producto, p_cantidad);
 
     RETURN TRUE;
 EXCEPTION

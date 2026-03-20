@@ -1,15 +1,13 @@
 -- Generado automáticamente aplicando Skill: create-sql-function
 CREATE OR REPLACE FUNCTION fun_c_grupo(
-    p_id_grupo tab_grupos.id_grupo%TYPE,
-    p_nom_grupo tab_grupos.nom_grupo%TYPE
+        p_nom_grupo tab_grupos.nom_grupo%TYPE
 ) RETURNS BOOLEAN AS $$
+DECLARE
+    v_id_grupo tab_grupos.id_grupo%TYPE;
 BEGIN
 
     -- Validaciones en caliente
-    IF p_id_grupo IS NULL THEN
-        RAISE NOTICE 'El parámetro p_id_grupo es inválido o nulo.';
-        RETURN FALSE;
-    END IF;
+    
 
     IF p_nom_grupo IS NULL THEN
         RAISE NOTICE 'El parámetro p_nom_grupo es inválido o nulo.';
@@ -17,14 +15,12 @@ BEGIN
     END IF;
 
     -- Operación DML Pura
-    PERFORM 1 FROM tab_grupos WHERE id_grupo = p_id_grupo;
-    IF FOUND THEN 
-        RAISE NOTICE 'El registro en tab_grupos ya existe.';
-        RETURN FALSE; 
-    END IF;
+
+    
+    v_id_grupo := COALESCE((SELECT MAX(id_grupo) FROM tab_grupos), 0) + 1;
 
     INSERT INTO tab_grupos (id_grupo, nom_grupo)
-    VALUES (p_id_grupo, p_nom_grupo);
+    VALUES (v_id_grupo, p_nom_grupo);
 
     RETURN TRUE;
 EXCEPTION

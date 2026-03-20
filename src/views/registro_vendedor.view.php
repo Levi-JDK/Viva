@@ -60,7 +60,7 @@ require_once __DIR__ . '/partials/base_head.php';
         <!-- Formulario -->
          <br>
         <div class="max-w-4xl mx-auto form-container p-5 md:p-6">
-            <form id="vendorRegistrationForm">
+            <form id="vendorRegistrationForm" data-action="submit-vendor-registration">
                 
                 <!-- PASO 1: Información Personal -->
                 <div class="form-step active" data-step="1">

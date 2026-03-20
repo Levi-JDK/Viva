@@ -16,13 +16,12 @@ class RegisterUserJob {
     }
     
     public function handle(PDO $pdo): bool {
-        // Ejecutar el stored procedure
-        $stmt = $pdo->prepare("SELECT fun_c_user(?, ?, ?, ?)");
-        $stmt->execute([
-            $this->userData['email'],
-            $this->userData['password'],
-            $this->userData['nombre'],
-            $this->userData['apellido']
+        $db = Database::getInstance();
+        $db->ejecutar('crearUsuario', [
+            ':email' => $this->userData['email'],
+            ':contrasena' => $this->userData['password'],
+            ':nombre' => $this->userData['nombre'],
+            ':apellido' => $this->userData['apellido']
         ]);
         
         return true;

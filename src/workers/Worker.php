@@ -7,6 +7,8 @@
  * Uso: php src/workers/Worker.php
  */
 
+require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/mail_service.php';
 require_once __DIR__ . '/Config/RedisConfig.php';
 require_once __DIR__ . '/Jobs/RegisterUserJob.php';
 require_once __DIR__ . '/Jobs/ProcessCartJob.php';
@@ -203,29 +205,41 @@ class Worker {
      * Ejecutar insert de usuario en PostgreSQL
      */
     private function ejecutarInsertUsuario(array $userData): void {
-        $stmt = $this->pdo->prepare("SELECT fun_c_user(?, ?, ?, ?)");
-        $stmt->execute([
-            $userData['mail'],
-            $userData['password'],
-            $userData['nombre'],
-            $userData['apellido']
+        $db = Database::getInstance();
+        $stmt = $db->ejecutar('crearUsuario', [
+            ':email' => $userData['mail'],
+            ':contrasena' => $userData['password'],
+            ':nombre' => $userData['nombre'],
+            ':apellido' => $userData['apellido']
         ]);
         
         $result = $stmt->fetch();
         $this->log("[*] Resultado: " . json_encode($result));
+
+        $nombreCompleto = trim(($userData['nombre'] ?? '') . ' ' . ($userData['apellido'] ?? ''));
+        try {
+            $mail = MailService::getInstance();
+            if ($mail->sendWelcomeEmail($userData['mail'], $nombreCompleto)) {
+                $this->log("[✓] Email de bienvenida enviado a " . $userData['mail']);
+            } else {
+                $this->log("[!] Error enviando email: " . $mail->getLastError());
+            }
+        } catch (Exception $e) {
+            $this->log("[!] Excepción enviando email: " . $e->getMessage());
+        }
     }
     
     /**
      * Ejecutar insert de carrito en PostgreSQL
      */
     private function ejecutarInsertCarrito(array $cartData, array $items): void {
-        // Aquí iría tu lógica para insertar el carrito
-        // Ejemplo: llamar a tu función fun_c_carrito
-        $stmt = $this->pdo->prepare("SELECT fun_c_carrito(?, ?, ?)");
-        $stmt->execute([
-            $cartData['usuario_id'],
-            json_encode($items),
-            $cartData['total'] ?? 0
+        // En un escenario real, esto llamaría a un SP que inserte el encabezado
+        // Por ahora lo procesamos vía jobs o delegamos a database.php
+        $db = Database::getInstance();
+        $db->ejecutar('registrarCarrito', [
+            ':id_user' => $cartData['usuario_id'],
+            ':items'   => json_encode($items),
+            ':total'   => $cartData['total'] ?? 0
         ]);
     }
     

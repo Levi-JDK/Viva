@@ -26,6 +26,6 @@
     
     <!-- CSS Extra dinámico (solo para páginas que lo necesiten) -->
     <?= $extra_css ?? '' ?>
-    <script type="module" src="<?= defined('BASE_URL') ? BASE_URL : '/' ?>src/scripts/main.js"></script>
+    <script type="module" defer src="<?= defined('BASE_URL') ? BASE_URL : '/' ?>src/scripts/main.js"></script>
 </head>
 <body class="<?= htmlspecialchars($body_class ?? 'bg-fondo-claro font-sans text-oscuro flex flex-col min-h-screen') ?>">

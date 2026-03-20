@@ -2,39 +2,22 @@
 /**
  * src/functions/navbar_usuario.php
  *
- * Helper centralizado para preparar las variables que necesita el navbar (partials/navbar.php).
+ * Prepara las variables que necesita el navbar (partials/navbar.php):
+ * $is_logged_in, $nombre_usuario, $foto_usuario, $email_usuario, $navbar_menus, $dropdown_menus.
  *
- * PROBLEMA QUE RESUELVE
- * ---------------------
- * El navbar.php usa las variables $is_logged_in, $nombre_usuario, $foto_usuario,
- * $email_usuario y $es_productor para decidir qué mostrar (avatar del usuario vs
- * botón "Iniciar Sesión"). Sin este helper, cada controlador tenía que repetir el
- * mismo bloque de ~15 líneas para consultar la DB y poblar esas variables.
- *
- * USO
- * ---
- * Llama a esta función justo antes de hacer require de la vista:
- *
- *   require_once __DIR__ . '/../functions/navbar_usuario.php';
+ * USO:
+ *   require_once __DIR__ . '/navbar_usuario.php';
  *   cargar_datos_navbar();
  *
- * Después de llamarla, las variables quedan disponibles en el scope del controlador
- * y la vista las hereda normalmente (PHP comparte el scope de include/require).
- *
- * FUNCIONAMIENTO INTERNO
- * ----------------------
- * 1. Lee $_SESSION['id_user'] (seteado al hacer login en auth_controller.php).
- * 2. Si existe, consulta la DB vía el Singleton Database para obtener nom_user,
- *    mail_user, foto_user y si el usuario es productor (validarProductor).
- * 3. Asigna los valores a las variables en el scope del llamador usando referencias
- *    ($GLOBALS) para que sean accesibles desde cualquier punto del controlador.
- * 4. Si no hay sesión o la consulta falla, los valores quedan en sus defaults
- *    seguros (false / cadena vacía / imagen por defecto).
- *
- * NOTA PARA PRODUCCIÓN
- * --------------------
- * Esta función depende de que database.php ya haya sido incluido. Si el controlador
- * aún no lo incluyó, la función lo importa por su cuenta con require_once.
+ * FUNCIONAMIENTO:
+ * 1. Carga menú público por defecto (visitantes).
+ * 2. Verifica JWT vía AuthHelper::verifyToken().
+ * 3. Si hay token válido:
+ *    a) Consulta Postgres para datos del usuario y menús autorizados.
+ *    b) Si el usuario no está en Postgres aún (async registration), hace fallback a Redis
+ *       para mostrar un estado básico (solo "Cerrar Sesión" en dropdown).
+ *    c) Si no está ni en Postgres ni en Redis, destruye el token orphan.
+ * 4. Si no hay token, devuelve defaults de visitante.
  */
 
 function cargar_datos_navbar(): void
@@ -43,7 +26,7 @@ function cargar_datos_navbar(): void
     $GLOBALS['is_logged_in']   = false;
     $GLOBALS['nombre_usuario'] = '';
     $GLOBALS['email_usuario']  = '';
-    $GLOBALS['foto_usuario']   = 'images/default.jpg';
+    $GLOBALS['foto_usuario']   = 'images/profiles/default.webp';
     $GLOBALS['navbar_menus']   = [];
     $GLOBALS['dropdown_menus'] = [];
 
@@ -78,32 +61,63 @@ function cargar_datos_navbar(): void
             $GLOBALS['email_usuario']  = $usuario['mail_user'] ?? '';
             $GLOBALS['foto_usuario']   = !empty($usuario['foto_user'])
                                             ? $usuario['foto_user']
-                                            : 'images/default.jpg';
-        }
+                                            : 'images/profiles/default.webp';
 
-        // Cargar todos los menús autorizados del usuario
-        $stmtMenu = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $id_user]);
-        $all_menus = $stmtMenu->fetchAll(PDO::FETCH_ASSOC);
+            // Cargar todos los menús autorizados del usuario
+            $stmtMenu = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $id_user]);
+            $all_menus = $stmtMenu->fetchAll(PDO::FETCH_ASSOC);
 
-        // Separar Navbar Principal (1, 2, 3) del Dropdown de Perfil
-        $GLOBALS['navbar_menus'] = array_filter($all_menus, fn($m) => in_array($m['id_menu'], [1, 2, 3]));
-        $dropdown_raw = array_filter($all_menus, fn($m) => !in_array($m['id_menu'], [1, 2, 3]));
+            // Separar Navbar Principal (1, 2, 3) del Dropdown de Perfil
+            $GLOBALS['navbar_menus'] = array_filter($all_menus, fn($m) => in_array($m['id_menu'], [1, 2, 3]));
+            $dropdown_raw = array_filter($all_menus, fn($m) => !in_array($m['id_menu'], [1, 2, 3]));
 
-        // Adaptar la URL de "Mi Stand" (ID 11) de forma dinámica para que apunte al stand público
-        $GLOBALS['dropdown_menus'] = array_map(function($m) use ($db, $id_user) {
-            if ($m['id_menu'] == 11) {
-                try {
-                    $stmt = $db->ejecutar('obtenerIdStandPorUser', [':id_user' => $id_user]);
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                    if ($row && isset($row['id_stand'])) {
-                        $m['url_menu'] = 'stand?id=' . $row['id_stand'];
+            // Adaptar la URL de "Mi Stand" (ID 11) de forma dinámica para que apunte al stand público
+            $GLOBALS['dropdown_menus'] = array_map(function($m) use ($db, $id_user) {
+                if ($m['id_menu'] == 11) {
+                    try {
+                        $stmt = $db->ejecutar('obtenerIdStandPorUser', [':id_user' => $id_user]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        if ($row && isset($row['id_stand'])) {
+                            $m['url_menu'] = 'stand?id=' . $row['id_stand'];
+                        }
+                    } catch (Exception $e) {
+                        error_log('Error adaptando URL de Mi Stand: ' . $e->getMessage());
                     }
-                } catch (Exception $e) {
-                    error_log('Error adaptando URL de Mi Stand: ' . $e->getMessage());
                 }
+                return $m;
+            }, $dropdown_raw);
+
+        } else {
+            // Usuario no encontrado en BD. Intentar Fallback en Redis (Ghost State)
+            require_once dirname(__DIR__) . '/workers/Config/RedisConfig.php';
+            try {
+                $redis = RedisConfig::getConnection();
+                $prefix = RedisConfig::getPrefix();
+                $redisUser = $redis->hgetall($prefix . 'user:' . $id_user);
+
+                if (!empty($redisUser)) {
+                    $GLOBALS['is_logged_in']   = true;
+                    // Usar nombre de Redis (sin badge para que el usuario no note la sincronización)
+                    $GLOBALS['nombre_usuario'] = $redisUser['nombre'] ?? 'Usuario';
+                    $GLOBALS['email_usuario']  = $redisUser['mail'] ?? '';
+
+                    // No sobreescribimos $GLOBALS['foto_usuario'] (ya tiene el default de arriba)
+                    // ni $GLOBALS['navbar_menus'] (ya cargó el menú público 1, 2, 3 de BD)
+
+                    // El dropdown queda vacío, por lo que en el navbar solo se renderizará el botón de "Cerrar Sesión"
+                    $GLOBALS['dropdown_menus'] = [];
+                    // Mantener el menú público en navbar (1, 2, 3), que ya fue cargado al inicio.
+                    // Evitamos menús de Vender o Registro de Vendedor.
+                } else {
+                    // Si no está ni en BD ni en Redis, el token es huérfano, limpiar sesión
+                    require_once __DIR__ . '/auth_helper.php';
+                    AuthHelper::clearAuthCookie();
+                    $GLOBALS['is_logged_in'] = false;
+                }
+            } catch (Exception $e) {
+                error_log('[navbar_usuario] Error comprobando Redis en Fallback: ' . $e->getMessage());
             }
-            return $m;
-        }, $dropdown_raw);
+        }
 
     } catch (Exception $e) {
         // Error no crítico: el navbar simplemente muestra el estado de visitante.

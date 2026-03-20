@@ -30,7 +30,7 @@ export class AdminService {
     }
 
     static async updateStand(formData) {
-        const response = await fetch('mis_productos?view=stand', {
+        const response = await fetch(BASE_URL + 'mis_productos?view=stand', {
             method: 'POST',
             body: formData
         });

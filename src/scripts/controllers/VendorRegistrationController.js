@@ -7,10 +7,6 @@ export class VendorRegistrationController {
     
     init() {
         this.updateSteps();
-        const form = document.getElementById('vendorRegistrationForm');
-        if (form) {
-            form.addEventListener('submit', this.handleSubmit.bind(this));
-        }
     }
 
     async handleSubmit(e) {

@@ -6,12 +6,12 @@
                                 <p class="text-gray-500 text-sm">Personaliza cómo los clientes ven tu marca.</p>
                             </div>
                             <?php $stand_url = !empty($stand['id_stand']) ? BASE_URL . 'stand?id=' . $stand['id_stand'] : '#'; ?>
-                            <a href="<?= $stand_url ?>" <?= $stand_url === '#' ? 'onclick="return false;" title=\'Guarda tu stand primero\'' : 'target="_blank"' ?> class="text-naranja-artesanal hover:text-tierra-oscuro font-medium text-sm flex items-center border border-naranja-artesanal rounded-full px-4 py-1.5 hover:bg-orange-50 transition-colors">
+                            <a href="<?= $stand_url ?>" <?= $stand_url === '#' ? 'data-event="click:preventEmptyStand" title=\'Guarda tu stand primero\'' : 'target="_blank"' ?> class="text-naranja-artesanal hover:text-tierra-oscuro font-medium text-sm flex items-center border border-naranja-artesanal rounded-full px-4 py-1.5 hover:bg-orange-50 transition-colors">
                                 <i class="fas fa-external-link-alt mr-2"></i>Ver página pública
                             </a>
                         </div>
                         <!-- Banner Placeholder -->
-                        <div id="banner-placeholder" onclick="document.getElementById('portada-upload').click()" class="h-56 bg-gradient-to-r from-tierra-claro to-beige-suave rounded-xl mb-12 relative group cursor-pointer overflow-hidden border-2 border-dashed border-transparent hover:border-naranja-artesanal transition-all" style="<?= !empty($stand['portada_stand']) ? "background-image: url('" . BASE_URL . $stand['portada_stand'] . "'); background-size: cover; background-position: center;" : '' ?>">
+                        <div id="banner-placeholder" data-event="click:triggerPortadaUpload" class="h-56 bg-gradient-to-r from-tierra-claro to-beige-suave rounded-xl mb-12 relative group cursor-pointer overflow-hidden border-2 border-dashed border-transparent hover:border-naranja-artesanal transition-all" style="<?= !empty($stand['portada_stand']) ? "background-image: url('" . BASE_URL . $stand['portada_stand'] . "'); background-size: cover; background-position: center;" : '' ?>">
                             <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all">
                                 <span class="opacity-0 group-hover:opacity-100 bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg font-medium text-sm transition-all transform scale-90 group-hover:scale-100">
                                     <i class="fas fa-camera mr-2"></i>Editar Portada
@@ -19,7 +19,7 @@
                             </div>
                         </div>
 
-                        <form id="stand-form" class="space-y-8 relative -mt-20 px-4">
+                        <form id="stand-form" data-action="submit-stand" class="space-y-8 relative -mt-20 px-4">
                             <!-- Hidden Inputs for Images (Moved Inside Form) -->
                             <input type="file" id="portada-upload" name="portada_stand" class="hidden" accept="image/*" data-action="preview-background" data-target="banner-placeholder">
                             <input type="file" id="logo-upload" name="img_stand" class="hidden" accept="image/*" data-action="preview-image" data-target="stand-logo-img">
@@ -29,7 +29,7 @@
                             
                             <div class="flex flex-col md:flex-row gap-8 items-start">
                                 <!-- Logo Upload -->
-                                <div class="relative group" onclick="document.getElementById('logo-upload').click()">
+                                <div class="relative group" data-event="click:triggerLogoUpload">
                                     <div class="w-32 h-32 bg-white rounded-full p-1 shadow-lg ring-4 ring-white relative z-10 flex-shrink-0 cursor-pointer">
                                         <div class="w-full h-full bg-gray-200 rounded-full overflow-hidden relative group-inner">
                                             <div class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all z-20"> 

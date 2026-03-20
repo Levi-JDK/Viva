@@ -79,7 +79,7 @@ if (!isset($stand) || empty($stand)) {
         <!-- Logo (superpuesto sobre la portada) -->
         <div class="flex justify-center -mt-12 mb-4">
             <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg overflow-hidden">
-                <img src="<?= !empty($stand['img_stand']) ? BASE_URL . $stand['img_stand'] : BASE_URL . 'images/default.jpg' ?>" 
+                <img src="<?= !empty($stand['img_stand']) ? BASE_URL . $stand['img_stand'] : BASE_URL . 'images/profiles/default.webp' ?>" 
                      alt="<?= htmlspecialchars($stand['nom_stand'] ?? 'Stand') ?>"
                      class="w-full h-full rounded-full object-cover">
             </div>

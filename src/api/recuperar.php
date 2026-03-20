@@ -55,8 +55,7 @@ if ($accion === 'solicitar') {
         }
 
         // Obtener nombre del usuario para el correo
-        $stmtUser = $db->connection->prepare("SELECT nom_user FROM tab_users WHERE mail_user = :email AND is_deleted = FALSE LIMIT 1");
-        $stmtUser->execute([':email' => $email]);
+        $stmtUser = $db->ejecutar('obtenerNombreUsuarioPorEmail', [':email' => $email]);
         $nombre = $stmtUser->fetchColumn() ?: 'Usuario';
 
         // Enviar correo

@@ -30,7 +30,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         echo $formattedTitle;
                     ?>
                 </h1>
-                <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto">
+                <p class="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl">
                     <?= htmlspecialchars($pmtros['landing_hero_subtitulo'] ?? 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.') ?>
                 </p>
                 <button data-action="scroll-to" data-target="categorias" class="btn-primary text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl inline-flex items-center space-x-3">

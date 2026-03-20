@@ -51,16 +51,29 @@ class EventRouter {
 
     // Escuchamos todos los clics en el body
     document.body.addEventListener('click', (event) => {
-      this.handleEvent(event, '[data-action]');
+      this.handleEvent(event, '[data-action], [data-event]');
     });
 
     // Escuchamos todos los cambios (selects, inputs) en el body
     document.body.addEventListener('change', (event) => {
-      this.handleEvent(event, '[data-action]');
+      this.handleEvent(event, '[data-action], [data-event]');
+    });
+
+    // Escuchamos envíos de formularios en el body
+    document.body.addEventListener('submit', (event) => {
+      this.handleEvent(event, '[data-action], [data-event]');
+    });
+
+    document.body.addEventListener('input', (event) => {
+      this.handleEvent(event, '[data-action], [data-event]');
+    });
+
+    document.body.addEventListener('keydown', (event) => {
+      this.handleEvent(event, '[data-action], [data-event]');
     });
 
     this.initialized = true;
-    console.log('[EventRouter] Inicializado correctamente en document.body para click y change.');
+
   }
 
   /**
@@ -70,7 +83,48 @@ class EventRouter {
     const actionElement = event.target.closest(selector);
     if (!actionElement) return;
 
-    const actionName = actionElement.getAttribute('data-action');
+    let actionName = actionElement.getAttribute('data-action');
+    const dataEvent = actionElement.getAttribute('data-event');
+
+    if (dataEvent) {
+      actionName = null; // Reset default actionName since we are using data-event mapping
+      const events = dataEvent.split(',').map(e => e.trim());
+      for (const evt of events) {
+        const [evtType, evtAction] = evt.split(':');
+        if (evtType === event.type) {
+          actionName = evtAction;
+          break;
+        }
+      }
+    } else if (actionName) {
+      // Default event mapping for data-action based on element tag
+      const tagName = actionElement.tagName.toLowerCase();
+      let expectedEvent = 'click';
+      
+      if (tagName === 'form') {
+        expectedEvent = 'submit';
+      } else if (tagName === 'select') {
+        expectedEvent = 'change';
+      } else if (tagName === 'input') {
+        const type = actionElement.type.toLowerCase();
+        if (type === 'file' || type === 'checkbox' || type === 'radio') {
+          expectedEvent = 'change';
+        } else if (type === 'submit' || type === 'button' || type === 'reset') {
+          expectedEvent = 'click';
+        } else {
+          expectedEvent = 'input';
+        }
+      } else if (tagName === 'textarea') {
+        expectedEvent = 'input';
+      }
+      
+      if (event.type !== expectedEvent) {
+        return; // Ignore events that don't match the expected default event
+      }
+    }
+
+    if (!actionName) return;
+
     const routeHandler = this.routes[actionName];
 
     if (routeHandler) {

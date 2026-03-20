@@ -12,7 +12,9 @@ require_once ROOT_PATH . 'src/functions/database.php';
 try {
     $db = Database::getInstance();
 } catch (Exception $e) {
-    die("Error de conexión a base de datos: " . $e->getMessage());
+    error_log("Error de conexión a base de datos: " . $e->getMessage());
+    header('Location: ' . BASE_URL . 'error?code=db_connection');
+    exit;
 }
 
 // ============================================================================
@@ -80,7 +82,10 @@ try {
         exit;
     }
 } catch (PDOException $e) {
-    die("Error al obtener datos del usuario: " . $e->getMessage());
+    error_log("Error al obtener datos del usuario: " . $e->getMessage());
+    AuthHelper::clearAuthCookie();
+    header('Location: ' . BASE_URL . 'login?error=db_error');
+    exit;
 }
 
 // ============================================================================
@@ -90,7 +95,7 @@ $nombre_usuario = $usuario['nom_user'] ?? 'Usuario';
 $apellido_usuario = $usuario['ape_user'] ?? '';
 $nombre_completo = $nombre_usuario . ' ' . $apellido_usuario;
 $email_usuario = $usuario['mail_user'] ?? '';
-$foto_usuario = $usuario['foto_user'] ?? 'images/default.jpg';
+$foto_usuario = $usuario['foto_user'] ?? 'images/profiles/default.webp';
 $fecha_registro = $usuario['created_at'] ?? null;
 
 // Formatear fecha de registro si existe
@@ -119,6 +124,16 @@ try {
 } catch (PDOException $e) {
     $pedidos = [];
     error_log("Error al obtener pedidos del usuario: " . $e->getMessage());
+}
+
+// Cargar menús asignados al usuario para controlar la visibilidad de secciones
+try {
+    $stmtMenus = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $id_usuario]);
+    $menu_ids_usuario = array_column($stmtMenus->fetchAll(PDO::FETCH_ASSOC), 'id_menu');
+    $menu_ids_usuario = array_map('intval', $menu_ids_usuario);
+} catch (PDOException $e) {
+    $menu_ids_usuario = [];
+    error_log("Error al obtener menús del usuario: " . $e->getMessage());
 }
 
 // Usamos ROOT_PATH para que el include sea absoluto desde el disco

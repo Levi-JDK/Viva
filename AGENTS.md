@@ -97,6 +97,9 @@ Los siguientes skills están disponibles y se activan automáticamente según el
 | "crear api" | create-api | Genera una nueva API REST |
 | "crear helper" | create-helper | Genera función helper |
 | "revisar seguridad" | security-audit | Analiza el código en busca de vulnerabilidades |
+| Vanilla JS, ES6 Modules, EventRouter | viva-js | Convenciones JS del proyecto (Clean Architecture, Controllers/Services/Domain, EventRouter, BASE_URL) |
+
+### Redis Worker Skills
 
 ### Redis Worker Skills
 
@@ -166,7 +169,7 @@ viva/
 - Proyecto: VIVA Marketplace
 - Stack: PHP + PostgreSQL + Vanilla JS + TailwindCSS
 - Redis: Predis (compatible cross-platform)
-- Última actualización: 2026-03-15
+- Última actualización: 2026-03-20
 
 ---
 

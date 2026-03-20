@@ -89,7 +89,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             </h1>
 
                             <!-- Review Stars Summary -->
-                            <div class="flex items-center mb-4 cursor-pointer hover:opacity-80 transition-opacity" onclick="document.getElementById('reviews-section').scrollIntoView({behavior: 'smooth'})">
+                            <div class="flex items-center mb-4 cursor-pointer hover:opacity-80 transition-opacity" data-event="click:scrollToReviews">
                                 <div class="flex text-yellow-400 text-sm mr-2">
                                     <?php for($i = 1; $i <= 5; $i++): ?>
                                         <?php if($i <= floor($promedio_estrellas)): ?>
@@ -239,7 +239,7 @@ require_once __DIR__ . '/partials/base_head.php';
 
                         <?php if($is_logged_in): ?>
                             <!-- Escribir reseña Button -->
-                            <button onclick="document.getElementById('review-form-container').classList.toggle('hidden')" class="mt-6 px-6 py-2 border-2 border-naranja-artesanal text-naranja-artesanal rounded-full font-bold hover:bg-naranja-artesanal hover:text-white transition-colors">
+                            <button data-event="click:toggleReviewForm" class="mt-6 px-6 py-2 border-2 border-naranja-artesanal text-naranja-artesanal rounded-full font-bold hover:bg-naranja-artesanal hover:text-white transition-colors">
                                 Escribir una reseña
                             </button>
                         <?php else: ?>
@@ -253,7 +253,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <!-- Review Form (Hidden by default) -->
                         <div id="review-form-container" class="hidden mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4">Tu Reseña</h3>
-                            <form id="formResena" data-producto-id="<?= (int)$producto['id_producto'] ?>">
+                            <form id="formResena" data-action="enviar-resena" data-producto-id="<?= (int)$producto['id_producto'] ?>">
                                 <div class="mb-4">
                                     <label class="block text-sm text-gray-600 mb-2">Calificación</label>
                                     <div class="flex gap-2 text-2xl cursor-pointer" id="star-rating">
@@ -270,8 +270,8 @@ require_once __DIR__ . '/partials/base_head.php';
                                     <textarea name="texto" rows="3" class="w-full rounded-lg border-gray-300 p-3 focus:ring-naranja-artesanal" required placeholder="¿Qué te pareció el producto?"></textarea>
                                 </div>
                                 <div class="flex justify-end">
-                                    <button type="button" onclick="document.getElementById('review-form-container').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:text-gray-700 mr-2">Cancelar</button>
-                                    <button type="button" data-action="enviar-resena" class="px-6 py-2 bg-naranja-artesanal text-white rounded-lg font-bold hover:bg-orange-600">Enviar</button>
+                                    <button type="button" data-event="click:hideReviewForm" class="px-4 py-2 text-gray-500 hover:text-gray-700 mr-2">Cancelar</button>
+                                    <button type="submit" class="px-6 py-2 bg-naranja-artesanal text-white rounded-lg font-bold hover:bg-orange-600">Enviar</button>
                                 </div>
                             </form>
                         </div>

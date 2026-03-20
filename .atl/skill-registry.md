@@ -1,6 +1,6 @@
 # Skill Registry - Viva Project
 
-Generated: 2026-03-17
+Generated: 2026-03-20
 
 ## User-Level Skills
 
@@ -58,6 +58,7 @@ Generated: 2026-03-17
 | "Crear pipeline Redis-PostgreSQL" | redis-async-worker | Workers asíncronos con Redis (Predis) |
 | "Crear worker asíncrono" | redis-async-worker | Sistema de colas con retry y DLQ |
 | "crear funcion sql" | create-sql-function | Genera y refactoriza funciones PSQL con tipado estricto |
+| Vanilla JS, ES6 Modules, EventRouter | viva-js | Convenciones JS del proyecto (Clean Architecture, Controllers/Services/Domain, EventRouter, BASE_URL) |
 
 ## Project Conventions
 

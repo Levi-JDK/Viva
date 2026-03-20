@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
             } catch (Exception $e) {
                 // Registrar error pero permitir que el usuario continúe (o detener si es crítico)
                 error_log("Error al actualizar foto en BD: " . $e->getMessage());
-                // Opcional: die("Error db: " . $e->getMessage());
+
             }
         }
 

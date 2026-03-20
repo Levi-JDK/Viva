@@ -51,7 +51,12 @@ class MailService
                 <small style=\"color: #888;\">Este correo fue generado automáticamente.</small>
             </div>
         ";
-        return $this->sendEmail($toEmail, $toName, $subject, $html);
+        
+        if (!$this->sendEmail($toEmail, $toName, $subject, $html)) {
+            $this->lastError = $this->mailer->ErrorInfo;
+            return false;
+        }
+        return true;
     }
 
     public function sendPasswordRecoveryEmail(string $toEmail, string $toName, string $token): bool
@@ -103,11 +108,15 @@ class MailService
         $this->mailer->Host = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
         $this->mailer->SMTPAuth = true;
         
-        // Aquí conectamos con tu .env para jalar la clave mágica
         $this->mailer->Username = $_ENV['SMTP_USERNAME'] ?? '';
         $this->mailer->Password = $_ENV['SMTP_PASSWORD'] ?? '';
         
-        $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $secure = strtolower($_ENV['SMTP_SECURE'] ?? 'ssl');
+        $this->mailer->SMTPSecure = match($secure) {
+            'tls' => PHPMailer::ENCRYPTION_STARTTLS,
+            'ssl' => PHPMailer::ENCRYPTION_SMTPS,
+            default => PHPMailer::ENCRYPTION_SMTPS,
+        };
         $this->mailer->Port = (int)($_ENV['SMTP_PORT'] ?? 465);
     }
 }

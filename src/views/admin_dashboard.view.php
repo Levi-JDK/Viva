@@ -16,7 +16,7 @@ $menus = [
     ['panel_id' => 'overview',   'nom_menu' => 'Resumen General',   'icono_menu' => 'fas fa-home',        'grupo' => 'Resumen',  'color_icon' => 'text-amber-400'],
     ['panel_id' => 'usuarios',   'nom_menu' => 'Usuarios',           'icono_menu' => 'fas fa-users',       'grupo' => 'Gestión',  'color_icon' => 'text-sky-400'],
     ['panel_id' => 'productos',  'nom_menu' => 'Aprobar Productos',  'icono_menu' => 'fas fa-box-open',    'grupo' => 'Gestión',  'color_icon' => 'text-emerald-400'],
-    ['panel_id' => 'roles',      'nom_menu' => 'Gestionar Roles',    'icono_menu' => 'fas fa-users-cog',   'grupo' => 'Gestión',  'color_icon' => 'text-rose-400'],
+    ['panel_id' => 'menus',      'nom_menu' => 'Gestión de Menús',   'icono_menu' => 'fas fa-layer-group', 'grupo' => 'Gestión',  'color_icon' => 'text-violet-400'],
     ['panel_id' => 'crud',       'nom_menu' => 'Gestor de CRUD',     'icono_menu' => 'fas fa-database',    'grupo' => 'Gestión',  'color_icon' => 'text-yellow-400'],
     ['panel_id' => 'reportes',   'nom_menu' => 'Reportes',           'icono_menu' => 'fas fa-chart-line',  'grupo' => 'Gestión',  'color_icon' => 'text-teal-400'],
     ['panel_id' => 'parametros', 'nom_menu' => 'Parámetros DB',      'icono_menu' => 'fas fa-sliders-h',   'grupo' => 'Sistema',  'color_icon' => 'text-slate-400'],
@@ -31,8 +31,8 @@ foreach ($menus as $m) {
 $panel_config = [
     'usuarios'   => ['color' => '#38BDF8', 'icon' => 'fa-users',      'desc' => 'Lista, edita y elimina usuarios. Activa o desactiva accesos de forma segura.'],
     'productos'  => ['color' => '#34D399', 'icon' => 'fa-box-open',   'desc' => 'Gestiona los productos. Revisa calidad, aprueba o solicita modificaciones.'],
-    'roles'      => ['color' => '#BC544B', 'icon' => 'fa-users-cog',  'desc' => 'Asigna y revoca menús y permisos a cada rol de usuario.'],
-    'crud'       => ['color' => '#D4AF37', 'icon' => 'fa-database',   'desc' => 'Realiza operaciones CRUD directas sobre tablas maestras. '],
+    'roles'      => ['color' => '#BC544B', 'icon' => 'fa-users-cog',  'desc' => 'Descontinuado: gestión de accesos por menús.'],
+    'crud'       => ['color' => '#D4AF37', 'icon' => 'fa-database',   'desc' => 'Realiza operaciones CRUD directas sobre tablas maestras.'],
     'reportes'   => ['color' => '#2D9E73', 'icon' => 'fa-chart-line', 'desc' => 'Visualiza estadísticas avanzadas y métricas globales del ecosistema.'],
 ];
 
@@ -57,7 +57,7 @@ $accesos = [
 <div class="flex h-screen w-full relative selection:bg-amber-500/30">
     
     <!-- Mobile overlay -->
-    <div id="mobile-overlay" onclick="closeSidebar()"
+    <div id="mobile-overlay" data-event="click:closeSidebar"
          class="hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity md:hidden"></div>
 
     <!-- ════════════════════════ SIDEBAR ════════════════════════ -->
@@ -178,10 +178,10 @@ $accesos = [
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
                     <?php
                     $metrics = [
-                        ['label' => 'Usuarios',   'icon' => 'fa-users',       'color' => '#38BDF8', 'bg_glow' => 'from-sky-500/10 to-transparent', 'shadow' => 'shadow-sky-500/5', 'sub' => 'Registrados en total', 'spark' => '0,50 20,38 40,44 60,28 80,32 100,18 120,22'],
-                        ['label' => 'Artesanos',  'icon' => 'fa-paint-brush', 'color' => '#f59e0b', 'bg_glow' => 'from-amber-500/10 to-transparent','shadow' => 'shadow-amber-500/5', 'sub' => 'Activos en plataforma', 'spark' => '0,55 20,40 40,48 60,30 80,35 100,20 120,15'],
-                        ['label' => 'Ingresos',   'icon' => 'fa-coins',       'color' => '#10B981', 'bg_glow' => 'from-emerald-500/10 to-transparent','shadow' => 'shadow-emerald-500/5', 'sub' => 'Mes actual', 'spark' => '0,45 20,42 40,35 60,38 80,22 100,28 120,12', 'prefix' => '$'],
-                        ['label' => 'Pedidos',    'icon' => 'fa-shopping-bag','color' => '#F43F5E', 'bg_glow' => 'from-rose-500/10 to-transparent','shadow' => 'shadow-rose-500/5', 'sub' => 'Total de órdenes', 'spark' => '0,52 20,44 40,46 60,36 80,40 100,24 120,30'],
+                        ['label' => 'Usuarios',   'icon' => 'fa-users',       'color' => '#38BDF8', 'bg_glow' => 'from-sky-500/10 to-transparent', 'shadow' => 'shadow-sky-500/5', 'sub' => 'Registrados en total', 'spark' => '0,50 20,38 40,44 60,28 80,32 100,18 120,22', 'valor' => number_format($totalUsuarios)],
+                        ['label' => 'Artesanos',  'icon' => 'fa-paint-brush', 'color' => '#f59e0b', 'bg_glow' => 'from-amber-500/10 to-transparent','shadow' => 'shadow-amber-500/5', 'sub' => 'Activos en plataforma', 'spark' => '0,55 20,40 40,48 60,30 80,35 100,20 120,15', 'valor' => number_format($totalArtesanos)],
+                        ['label' => 'Ingresos',   'icon' => 'fa-coins',       'color' => '#10B981', 'bg_glow' => 'from-emerald-500/10 to-transparent','shadow' => 'shadow-emerald-500/5', 'sub' => 'Mes actual', 'spark' => '0,45 20,42 40,35 60,38 80,22 100,28 120,12', 'prefix' => '$', 'valor' => number_format($ingresosMes, 0, ',', '.')],
+                        ['label' => 'Pedidos',    'icon' => 'fa-shopping-bag','color' => '#F43F5E', 'bg_glow' => 'from-rose-500/10 to-transparent','shadow' => 'shadow-rose-500/5', 'sub' => 'Total de órdenes', 'spark' => '0,52 20,44 40,46 60,36 80,40 100,24 120,30', 'valor' => number_format($totalPedidos)],
                     ];
                     foreach ($metrics as $mc): ?>
                         <div class="relative overflow-hidden bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 hover:-translate-y-1 hover:bg-white/[0.04] transition-all duration-300 group <?= $mc['shadow'] ?>">
@@ -204,7 +204,7 @@ $accesos = [
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-4xl font-black text-white tracking-tight mb-1"><?= ($mc['prefix'] ?? '') ?>—</p>
+                                    <p class="text-4xl font-black text-white tracking-tight mb-1"><?= ($mc['prefix'] ?? '') ?><?= $mc['valor'] ?></p>
                                     <p class="text-xs text-slate-500 font-medium"><?= $mc['sub'] ?></p>
                                 </div>
                             </div>
@@ -270,9 +270,123 @@ $accesos = [
 
             </section>
 
-            <!-- ══════ PANELES SECUNDARIOS EN DESARROLLO ══════ -->
+            <!-- ══════ PANEL: USUARIOS ══════ -->
+            <section id="panel-usuarios" class="admin-panel hidden">
+                <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Gestión de Usuarios</h2>
+                        <p class="text-sm text-slate-400 font-medium tracking-wide">Lista completa de usuarios registrados en la plataforma.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="relative group">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-400 transition-colors"></i>
+                            <input type="text" id="search-usuarios" placeholder="Buscar usuario..." data-event="input:search-usuarios-input"
+                                class="bg-black/40 border border-white/10 rounded-xl pl-12 pr-6 py-3 text-sm font-bold text-white focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 focus:outline-none transition-all w-64 shadow-inner">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-white/10 rounded-3xl p-6 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] min-h-[400px]">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full blur-3xl pointer-events-none -mt-32 -mr-32"></div>
+                    <div id="usuarios-loader" class="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
+                        <i class="fas fa-circle-notch fa-spin text-4xl text-sky-400"></i>
+                    </div>
+                    <div class="overflow-x-auto relative z-10">
+                        <table class="w-full text-left border-collapse" id="usuarios-table">
+                            <thead>
+                                <tr class="border-b border-white/10 text-[10px] font-bold tracking-widest uppercase text-slate-500">
+                                    <th class="px-4 py-3">ID</th>
+                                    <th class="px-4 py-3">Usuario</th>
+                                    <th class="px-4 py-3">Email</th>
+                                    <th class="px-4 py-3">Rol</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    <th class="px-4 py-3">Registro</th>
+                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuarios-tbody" class="divide-y divide-white/5 text-sm text-slate-300 font-medium">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ PANEL: PRODUCTOS ══════ -->
+            <section id="panel-productos" class="admin-panel hidden">
+                <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Gestión de Productos</h2>
+                        <p class="text-sm text-slate-400 font-medium tracking-wide">Revisa, aprueba y gestiona todos los productos de la plataforma.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="relative group">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors"></i>
+                            <input type="text" id="search-productos" placeholder="Buscar producto..." data-event="input:search-productos-input"
+                                class="bg-black/40 border border-white/10 rounded-xl pl-12 pr-6 py-3 text-sm font-bold text-white focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 focus:outline-none transition-all w-64 shadow-inner">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-white/10 rounded-3xl p-6 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] min-h-[400px]">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mt-32 -mr-32"></div>
+                    <div id="productos-loader" class="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
+                        <i class="fas fa-circle-notch fa-spin text-4xl text-emerald-400"></i>
+                    </div>
+                    <div class="overflow-x-auto relative z-10">
+                        <table class="w-full text-left border-collapse" id="productos-table">
+                            <thead>
+                                <tr class="border-b border-white/10 text-[10px] font-bold tracking-widest uppercase text-slate-500">
+                                    <th class="px-4 py-3">ID</th>
+                                    <th class="px-4 py-3">Imagen</th>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3">Precio</th>
+                                    <th class="px-4 py-3">Stock</th>
+                                    <th class="px-4 py-3">Categoría</th>
+                                    <th class="px-4 py-3">Stand</th>
+                                    <th class="px-4 py-3">Estado</th>
+                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productos-tbody" class="divide-y divide-white/5 text-sm text-slate-300 font-medium">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════ PANEL: MENÚS ══════ -->
+            <section id="panel-menus" class="admin-panel hidden">
+                <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Gestión de Menús</h2>
+                        <p id="menus-usuario-nombre" class="text-sm text-slate-400 font-medium tracking-wide">Selecciona un usuario desde el panel de Usuarios.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="menus-back-usuarios"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/30 text-xs font-bold tracking-widest uppercase transition-all duration-200">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                            <span>Volver a Usuarios</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="menus-panel-body" class="bg-slate-900 border border-white/10 rounded-3xl p-8 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] min-h-[350px]">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl pointer-events-none -mt-32 -mr-32"></div>
+                    <div id="menus-loader" class="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-sm items-center justify-center hidden">
+                        <i class="fas fa-circle-notch fa-spin text-4xl text-violet-400"></i>
+                    </div>
+                    <div id="menus-placeholder" class="flex flex-col items-center justify-center h-64 text-slate-500">
+                        <i class="fas fa-user-cog text-5xl mb-4 opacity-30"></i>
+                        <p class="font-medium text-sm">Selecciona un usuario para gestionar sus accesos</p>
+                    </div>
+                    <div id="menus-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 hidden"></div>
+                </div>
+            </section>
+
+            <!-- ══════ PANELES EN DESARROLLO (Roles, Reportes) ══════ -->
+
             <?php foreach ($panel_config as $pid => $pcfg):
-                if ($pid === 'crud') continue; 
+                if (in_array($pid, ['crud', 'usuarios', 'productos', 'menus'])) continue; 
             ?>
             <section id="panel-<?= $pid ?>" class="admin-panel hidden">
                 <div class="mb-10">
@@ -308,34 +422,38 @@ $accesos = [
             <section id="panel-crud" class="admin-panel hidden relative">
                 <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
                     <div>
-                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Gestor de Diccionarios y Maestras</h2>
-                        <p class="text-sm text-slate-400 font-medium tracking-wide">CRUD asíncrono universal sobre 17 tablas del sistema.</p>
+                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Gestor de CRUD</h2>
+                        <p class="text-sm text-slate-400 font-medium tracking-wide">Operaciones sobre tablas maestras del sistema.</p>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <div class="relative group">
-                            <i class="fas fa-database absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-400 transition-colors"></i>
-                            <select id="crud-entity-selector" class="bg-black/40 border border-white/10 rounded-xl pl-12 pr-10 py-3 text-sm font-bold text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 focus:outline-none transition-all cursor-pointer shadow-inner">
-                                <option value="" disabled selected>Seleccione Entidad</option>
-                                <option value="banco">Bancos</option>
-                                <option value="categoria">Categorías</option>
-                                <option value="ciudad">Ciudades</option>
-                                <option value="color">Colores</option>
-                                <option value="departamento">Departamentos</option>
-                                <option value="forma_pago">Formas de Pago</option>
-                                <option value="grupo">Grupos</option>
-                                <option value="idioma">Idiomas</option>
-                                <option value="materia">Materias Primas</option>
-                                <option value="moneda">Monedas</option>
-                                <option value="oficio">Oficios</option>
-                                <option value="pais">Países</option>
-                                <option value="parametros">Parámetros DB</option>
-                                <option value="tipo_doc">Tipos de Documento</option>
-                                <option value="transito">Tránsito Aduana</option>
-                                <option value="transportadora">Transportadoras</option>
-                            </select>
+                    <div class="flex items-center gap-3">
+                        <!-- Custom Dropdown (no native select) -->
+                        <div id="crud-dropdown" class="relative">
+                            <button type="button" id="crud-dropdown-trigger"
+                                class="flex items-center gap-3 bg-black/20 border border-white/5 rounded-xl px-5 py-3.5 min-w-[280px] hover:border-white/10 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 focus:outline-none transition-all cursor-pointer">
+                                <i class="fas fa-database text-slate-500 text-sm"></i>
+                                <span id="crud-dropdown-label" class="flex-1 text-left text-sm font-bold text-white">Seleccione Entidad</span>
+                                <i class="fas fa-chevron-down text-slate-500 text-[10px] transition-transform" id="crud-dropdown-arrow"></i>
+                            </button>
+                            <div id="crud-dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-full bg-slate-900 border border-white/10 rounded-xl shadow-2xl shadow-black/60 z-50 max-h-[320px] overflow-y-auto scrollbar-hide py-1">
+                                <?php
+                                $entidades = [
+                                    'banco' => 'Bancos', 'categoria' => 'Categorías', 'ciudad' => 'Ciudades',
+                                    'color' => 'Colores', 'departamento' => 'Departamentos', 'forma_pago' => 'Formas de Pago',
+                                    'grupo' => 'Grupos', 'idioma' => 'Idiomas', 'materia' => 'Materias Primas',
+                                    'moneda' => 'Monedas', 'oficio' => 'Oficios', 'pais' => 'Países',
+                                    'tipo_doc' => 'Tipos de Documento', 'transito' => 'Tránsito Aduana', 'transportadora' => 'Transportadoras',
+                                ];
+                                foreach ($entidades as $val => $label): ?>
+                                <button type="button" data-value="<?= $val ?>"
+                                    class="crud-dropdown-option w-full text-left px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
+                                    <?= $label ?>
+                                </button>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
-                        <button id="crud-btn-new" disabled class="disabled:opacity-50 disabled:cursor-not-allowed group relative px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-1 shadow-[0_5px_20px_-5px_rgba(245,158,11,0.5)]">
-                            <i class="fas fa-plus mr-2"></i> Nuevo
+                        <button id="crud-btn-new" disabled class="disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5 shadow-[0_5px_20px_-5px_rgba(245,158,11,0.5)]">
+                            <i class="fas fa-plus text-xs"></i>
+                            <span>Nuevo</span>
                         </button>
                     </div>
                 </div>
@@ -402,174 +520,56 @@ $accesos = [
                 </div>
             </div>
 
-            <!-- ══════ PANEL: PARÁMETROS DB Y LANDING ══════ -->
-            <section id="panel-parametros" class="admin-panel hidden">
-                
-                <div class="mb-10 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+            <!-- ══════ PANEL: PARÁMETROS DB ══════ -->
+            <section id="panel-parametros" class="admin-panel hidden relative">
+                <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
                     <div>
-                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Parámetros DB y Sistema</h2>
-                        <p class="text-sm text-slate-400 font-medium tracking-wide">Configuración ultra-segura de las variables maestras de VIVA.</p>
+                        <h2 class="text-3xl font-black tracking-tight text-white mb-2">Parámetros DB</h2>
+                        <p class="text-sm text-slate-400 font-medium tracking-wide">Registro único de configuración del sistema. Solo actualización.</p>
                     </div>
-                    <button type="submit" form="form-parametros" class="group relative px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-1" style="box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.8);">
-                        <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> Guardar Configuración
-                    </button>
+                    <div id="parametros-actions" class="hidden flex items-center gap-3">
+                        <button id="parametros-btn-cancel" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/5">
+                            <i class="fas fa-times text-xs"></i>
+                            <span>Cancelar</span>
+                        </button>
+                        <button id="parametros-btn-save" class="flex items-center gap-2 px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5 shadow-[0_5px_20px_-5px_rgba(245,158,11,0.5)]">
+                            <i class="fas fa-save text-xs"></i>
+                            <span>Guardar</span>
+                        </button>
+                    </div>
                 </div>
 
-                <form id="form-parametros" class="space-y-8 max-w-6xl pb-20">
-                    
-                    <!-- Global Settings -->
-                    <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 lg:p-10 relative shadow-2xl overflow-hidden">
-                        <div class="absolute top-0 right-0 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none -mt-20 -mr-20"></div>
-                        <div class="mb-10 flex items-center gap-4 relative z-10">
-                            <div class="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-sky-400 shadow-inner">
-                                <i class="fas fa-globe text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white mb-1">Entorno Global de la Empresa</h3>
-                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Identificadores y contacto matriz</p>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
-                            <!-- Ghost Inputs pro -->
-                            <div class="group">
-                                <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-sky-400 transition-colors">Nombre Plataforma Central</label>
-                                <input type="text" name="nom_plataforma" value="<?= htmlspecialchars($pmtros['nom_plataforma'] ?? '') ?>" 
-                                       class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white placeholder-slate-600 focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 focus:outline-none transition-all shadow-inner">
-                            </div>
-                            <div class="group">
-                                <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-sky-400 transition-colors">Correo Electrónico Matriz</label>
-                                <input type="email" name="correo_contacto" value="<?= htmlspecialchars($pmtros['correo_contacto'] ?? '') ?>" 
-                                       class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 focus:outline-none transition-all shadow-inner">
-                            </div>
-                            <div class="group col-span-full lg:col-span-1">
-                                <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-sky-400 transition-colors">Sede Corporativa Fsica</label>
-                                <input type="text" name="dir_contacto" value="<?= htmlspecialchars($pmtros['dir_contacto'] ?? '') ?>" 
-                                       class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 focus:outline-none transition-all shadow-inner">
-                            </div>
-                            
-                            <div class="col-span-full h-px bg-white/5 my-2"></div>
-                            
-                            <div class="group">
-                                <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-rose-500 transition-colors">Folio Inicial de Facturación</label>
-                                <input type="number" name="val_inifact" value="<?= htmlspecialchars($pmtros['val_inifact'] ?? '') ?>" 
-                                       class="w-full bg-black/20 border border-rose-500/20 rounded-xl px-5 py-3.5 text-sm font-mono font-bold text-rose-100 focus:border-rose-500/80 focus:ring-1 focus:ring-rose-500/50 focus:outline-none transition-all shadow-inner">
-                            </div>
-                            <div class="group">
-                                <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-emerald-500 transition-colors">Consecutivo Actual Emitido</label>
-                                <input type="number" name="val_actfact" value="<?= htmlspecialchars($pmtros['val_actfact'] ?? '') ?>" 
-                                       class="w-full bg-black/20 border border-emerald-500/20 rounded-xl px-5 py-3.5 text-sm font-mono font-bold text-emerald-100 focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/50 focus:outline-none transition-all shadow-inner">
-                            </div>
-                        </div>
-                    </div>
+                <div id="parametros-loader" class="flex items-center justify-center py-20 hidden">
+                    <i class="fas fa-circle-notch fa-spin text-4xl text-slate-400"></i>
+                </div>
 
-                    <!-- Landing Settings - Filosofía y Confianza -->
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                        
-                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 lg:p-10 shadow-2xl flex flex-col relative overflow-hidden">
-                            <div class="absolute bottom-0 left-0 w-full h-96 bg-emerald-500/5 blur-3xl pointer-events-none rounded-full translate-y-1/2"></div>
-                            <div class="mb-10 flex items-center gap-4 relative z-10">
-                                <div class="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-emerald-400 shadow-inner">
-                                    <i class="fas fa-leaf text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-white mb-1">Declaración de Marca frontend</h3>
-                                    <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Párrafos de filosofía para clientes</p>
-                                </div>
-                            </div>
-                            <div class="space-y-8 flex-1 flex flex-col relative z-10">
-                                <div class="group">
-                                    <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-emerald-400 transition-colors">Título de la sección sobre nosotros</label>
-                                    <input type="text" name="landing_filosofia_tit" value="<?= htmlspecialchars($pmtros['landing_filosofia_tit'] ?? '') ?>" 
-                                           class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3.5 text-sm font-bold text-white focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 focus:outline-none transition-all shadow-inner">
-                                </div>
-                                <div class="group">
-                                    <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-emerald-400 transition-colors">Manifiesto Empresarial - Párrafo 1</label>
-                                    <textarea name="landing_filosofia_p1" class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-5 text-sm font-bold text-slate-300 leading-relaxed focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 focus:outline-none transition-all shadow-inner resize-none min-h-[100px]"><?= htmlspecialchars($pmtros['landing_filosofia_p1'] ?? '') ?></textarea>
-                                </div>
-                                <div class="group flex-1 flex flex-col">
-                                    <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-emerald-400 transition-colors">Manifiesto de Impacto - Párrafo 2</label>
-                                    <textarea name="landing_filosofia_p2" class="flex-1 w-full bg-black/20 border border-white/5 rounded-xl px-5 py-5 text-sm font-bold text-slate-300 leading-relaxed focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 focus:outline-none transition-all shadow-inner resize-none min-h-[100px]"><?= htmlspecialchars($pmtros['landing_filosofia_p2'] ?? '') ?></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Panel Confianza -->
-                        <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 lg:p-10 shadow-2xl relative overflow-hidden">
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 blur-3xl pointer-events-none rounded-full"></div>
-                            
-                            <div class="mb-10 flex items-center gap-4 relative z-10">
-                                <div class="w-12 h-12 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center text-amber-500 shadow-inner">
-                                    <i class="fas fa-shield-alt text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-white mb-1">Garantías de Plataforma</h3>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Iconos y copys de seguridad mostrados</p>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-5 relative z-10">
-                                <!-- Conf 1 -->
-                                <div class="bg-black/40 rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row gap-5 focus-within:border-amber-500/40 transition-colors relative overflow-hidden group shadow-inner">
-                                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-amber-600 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                                    <div class="w-14 h-14 rounded-xl bg-white/5 flex shrink-0 items-center justify-center text-amber-500/40 group-focus-within:text-amber-400 transition-colors border border-white/5"><i class="fas fa-shipping-fast text-2xl"></i></div>
-                                    <div class="flex-1 space-y-3">
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">H3</span>
-                                            <input type="text" name="landing_conf_1_tit" value="<?= htmlspecialchars($pmtros['landing_conf_1_tit'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-white/10 px-1 py-1 text-sm font-bold text-white focus:border-amber-400 focus:outline-none transition-colors" placeholder="Garantía 1">
-                                        </div>
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Sub</span>
-                                            <input type="text" name="landing_conf_1_sub" value="<?= htmlspecialchars($pmtros['landing_conf_1_sub'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-transparent px-1 py-1 text-xs font-bold text-slate-400 focus:border-white/20 focus:text-slate-300 focus:outline-none transition-colors" placeholder="Explicación">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Conf 2 -->
-                                <div class="bg-black/40 rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row gap-5 focus-within:border-amber-500/40 transition-colors relative overflow-hidden group shadow-inner">
-                                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-amber-600 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                                    <div class="w-14 h-14 rounded-xl bg-white/5 flex shrink-0 items-center justify-center text-amber-500/40 group-focus-within:text-amber-400 transition-colors border border-white/5"><i class="fas fa-lock text-2xl"></i></div>
-                                    <div class="flex-1 space-y-3">
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">H3</span>
-                                            <input type="text" name="landing_conf_2_tit" value="<?= htmlspecialchars($pmtros['landing_conf_2_tit'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-white/10 px-1 py-1 text-sm font-bold text-white focus:border-amber-400 focus:outline-none transition-colors" placeholder="Garantía 2">
-                                        </div>
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Sub</span>
-                                            <input type="text" name="landing_conf_2_sub" value="<?= htmlspecialchars($pmtros['landing_conf_2_sub'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-transparent px-1 py-1 text-xs font-bold text-slate-400 focus:border-white/20 focus:text-slate-300 focus:outline-none transition-colors" placeholder="Explicación">
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Conf 3 -->
-                                <div class="bg-black/40 rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row gap-5 focus-within:border-amber-500/40 transition-colors relative overflow-hidden group shadow-inner">
-                                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-amber-400 to-amber-600 opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                                    <div class="w-14 h-14 rounded-xl bg-white/5 flex shrink-0 items-center justify-center text-amber-500/40 group-focus-within:text-amber-400 transition-colors border border-white/5"><i class="fas fa-hand-holding-heart text-2xl"></i></div>
-                                    <div class="flex-1 space-y-3">
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">H3</span>
-                                            <input type="text" name="landing_conf_3_tit" value="<?= htmlspecialchars($pmtros['landing_conf_3_tit'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-white/10 px-1 py-1 text-sm font-bold text-white focus:border-amber-400 focus:outline-none transition-colors" placeholder="Garantía 3">
-                                        </div>
-                                        <div class="relative">
-                                            <span class="absolute right-0 top-3 text-[9px] font-bold text-white/20 uppercase tracking-widest pointer-events-none">Sub</span>
-                                            <input type="text" name="landing_conf_3_sub" value="<?= htmlspecialchars($pmtros['landing_conf_3_sub'] ?? '') ?>" 
-                                                class="w-full bg-transparent border-b border-transparent px-1 py-1 text-xs font-bold text-slate-400 focus:border-white/20 focus:text-slate-300 focus:outline-none transition-colors" placeholder="Explicación">
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                <div id="parametros-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Bloques editables generados por JS -->
+                </div>
             </section>
 
         </main>
+    </div>
+
+    <!-- ══════ MODAL: CONFIRMACIÓN GLOBAL ══════ -->
+    <div id="crud-confirm-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl shadow-black/80 transform scale-95 transition-all duration-300">
+            <div class="text-center">
+                <div class="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-5">
+                    <i class="fas fa-exclamation-triangle text-rose-400 text-xl"></i>
+                </div>
+                <h3 id="crud-confirm-title" class="text-lg font-bold text-white mb-2">¿Estás seguro?</h3>
+                <p id="crud-confirm-message" class="text-sm text-slate-400 mb-8">Esta acción no se puede deshacer.</p>
+                <div class="flex items-center gap-3">
+                    <button id="crud-confirm-cancel" class="flex-1 px-5 py-3 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/5">
+                        Cancelar
+                    </button>
+                    <button id="crud-confirm-accept" class="flex-1 px-5 py-3 bg-rose-500 hover:bg-rose-400 text-white text-sm font-bold rounded-xl transition-all duration-300 shadow-[0_5px_20px_-5px_rgba(244,63,94,0.5)]">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
 <style>
@@ -586,8 +586,25 @@ $accesos = [
 .delay-200 { animation-delay: 200ms; }
 </style>
 
+<!-- ══════ MODAL DE CONFIRMACIÓN (Reemplaza confirm()) ══════ -->
+<div id="confirm-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-slate-900 border border-white/10 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600"></div>
+        <div class="p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-exclamation-triangle text-2xl text-rose-400"></i>
+            </div>
+            <h3 class="text-xl font-black text-white mb-2" id="confirm-title">¿Estás seguro?</h3>
+            <p class="text-sm text-slate-400 mb-8" id="confirm-message">Esta acción no se puede deshacer.</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-cancel" class="px-6 py-2.5 rounded-xl font-bold text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">Cancelar</button>
+                <button id="confirm-accept" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-rose-500 hover:bg-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)] transition-all">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
-<!-- Scripts limpios movidos a Clean Architecture -->
 <script src="<?= BASE_URL ?>src/scripts/admin_crud.js"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@ require_once __DIR__ . '/partials/base_head.php';
                 <i class="fas fa-home"></i>
                 <span>Ir al Inicio</span>
             </a>
-            <button onclick="history.back()" 
+            <button data-event="click:goBack" 
                     class="bg-white border-2 border-orange-500 text-orange-600 px-8 py-3 rounded-full font-semibold hover:bg-orange-50 transition-all duration-300 inline-flex items-center justify-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Volver Atrás</span>

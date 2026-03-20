@@ -68,8 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Verificar que el producto sea de este productor
-        $checkStmt = $conn->prepare("SELECT id_producto FROM tab_productos WHERE id_producto = ? AND id_productor = ?");
-        $checkStmt->execute([$id_producto, $id_productor]);
+        $checkStmt = $db->ejecutar('verificarPropiedadProducto', [
+            ':id_p' => $id_producto,
+            ':id_prod' => $id_productor
+        ]);
         if (!$checkStmt->fetchColumn()) {
             throw new Exception("No tienes permiso para editar este producto.");
         }
@@ -108,8 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Obtener imágenes actuales de la BD para la validación final
-        $stmtImg = $conn->prepare("SELECT id_imagen, url_imagen FROM tab_imagenes WHERE id_producto = ?");
-        $stmtImg->execute([$id_producto]);
+        $stmtImg = $db->ejecutar('obtenerImagenesProducto', [':id' => $id_producto]);
         $imagenes_actuales_db = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
         $urls_actuales_db = array_column($imagenes_actuales_db, 'url_imagen');
 
@@ -125,19 +126,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $conn->beginTransaction();
 
-        // 1. Actualizar producto usando PostgreSQL function call manually as there is no prepared statement yet
-        $stmtUpdate = $conn->prepare("SELECT fun_u_producto(
-            ?, ?, ?, ?, ?, ?, ?
-        )");
-        
-        $stmtUpdate->execute([
-            $id_producto,
-            $nom_producto,
-            $stock,
-            $id_categoria,
-            $id_color,
-            $id_oficio,
-            $id_materia
+        // 1. Actualizar producto usando PostgreSQL function call via centralized statement
+        $stmtUpdate = $db->ejecutar('actualizarProducto', [
+            ':id_producto'  => $id_producto,
+            ':nom_producto' => $nom_producto,
+            ':stock'        => $stock,
+            ':id_categoria' => $id_categoria,
+            ':id_color'     => $id_color,
+            ':id_oficio'    => $id_oficio,
+            ':id_materia'   => $id_materia
         ]);
 
         $result_update = $stmtUpdate->fetchColumn();
@@ -147,8 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Actualizar descripcion y precio directamente (fun_u_producto no las incluye)
-        $stmtDesc = $conn->prepare("UPDATE tab_productos SET descripcion_producto = ?, precio_producto = ? WHERE id_producto = ?");
-        $stmtDesc->execute([$desc, $precio, $id_producto]);
+        $db->ejecutar('actualizarDescripcionPrecio', [
+            ':desc'    => $desc,
+            ':precio'  => $precio,
+            ':id'      => $id_producto
+        ]);
 
         // 2. Gestionar imágenes si se proporcionaron o se eliminaron algunas
         // A. Procesar imágenes existentes eliminadas
@@ -174,8 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (file_exists($ruta_fisica)) {
                 unlink($ruta_fisica);
             }
-            $delStmt = $conn->prepare("DELETE FROM tab_imagenes WHERE id_imagen = ?");
-            $delStmt->execute([$img_borrar['id_imagen']]);
+            $db->ejecutar('eliminarImagen', [':id' => $img_borrar['id_imagen']]);
         }
 
         // B. Subir nuevas imágenes físicas (validadas previamente)
