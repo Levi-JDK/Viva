@@ -42,11 +42,15 @@ if ($accion === 'solicitar') {
 
     try {
         $minutos = (int)($_ENV['RESET_TOKEN_EXP_MINUTES'] ?? 15);
+        
+        error_log('[Recuperar] Creando token para: ' . $email . ' con ' . $minutos . ' minutos');
         $stmt = $db->ejecutar('crearResetToken', [
             ':mail_user' => $email,
             ':minutos'   => $minutos,
         ]);
         $token = $stmt->fetchColumn();
+        
+        error_log('[Recuperar] Token generado: ' . ($token ? 'SI' : 'NO'));
 
         if (!$token) {
             // No revelar si el correo existe o no (seguridad)
@@ -55,11 +59,15 @@ if ($accion === 'solicitar') {
         }
 
         // Obtener nombre del usuario para el correo
+        error_log('[Recuperar] Obteniendo nombre para: ' . $email);
         $stmtUser = $db->ejecutar('obtenerNombreUsuarioPorEmail', [':email' => $email]);
         $nombre = $stmtUser->fetchColumn() ?: 'Usuario';
+        
+        error_log('[Recuperar] Nombre obtenido: ' . $nombre);
 
         // Enviar correo
         $mail = MailService::getInstance();
+        error_log('[Recuperar] Enviando correo de recuperación...');
         $enviado = $mail->sendPasswordRecoveryEmail($email, $nombre, $token);
 
         if (!$enviado) {
