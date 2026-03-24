@@ -63,7 +63,7 @@ class MailService
     {
         $safeName = htmlspecialchars($toName, ENT_QUOTES, 'UTF-8');
         $safeToken = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
-        $minutes = (int)($_ENV['RESET_TOKEN_EXP_MINUTES'] ?? 5);
+        $minutes = (int)($_ENV['RESET_TOKEN_EXP_MINUTES'] ?? 15);
         $subject = 'Recuperación de contraseña - VIVA';
         $html = "
             <div style=\"font-family: Arial, sans-serif; line-height:1.5; color: #333;\">
