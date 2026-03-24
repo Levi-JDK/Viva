@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $db = Database::getInstance();
 } catch (Exception $e) {
-    echo json_encode(['exito' => false, 'mensaje' => 'Error de base de datos']);
+    echo json_encode(['exito' => false, 'mensaje' => 'Error interno del servidor']);
     exit;
 }
 
