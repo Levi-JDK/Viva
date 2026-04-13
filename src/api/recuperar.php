@@ -60,11 +60,18 @@ if ($accion === 'solicitar') {
 
         // Enviar correo
         $mail = MailService::getInstance();
-        $mail->sendPasswordRecoveryEmail($email, $nombre, $token);
+        $enviado = $mail->sendPasswordRecoveryEmail($email, $nombre, $token);
+
+        if (!$enviado) {
+            $ultimoError = method_exists($mail, 'getLastError') ? $mail->getLastError() : 'Error al enviar el correo';
+            error_log('[Recuperar] Fallo al enviar correo: ' . $ultimoError);
+            echo json_encode(['exito' => false, 'mensaje' => 'Error al enviar el correo. Por favor, intenta de nuevo más tarde.']);
+            exit;
+        }
 
         echo json_encode(['exito' => true, 'mensaje' => 'Si el correo existe, recibirás el código en breve.']);
 
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         error_log('[Recuperar] Error al solicitar OTP: ' . $e->getMessage());
         echo json_encode(['exito' => false, 'mensaje' => 'Error interno. Inténtalo de nuevo.']);
     }
@@ -115,7 +122,7 @@ if ($accion === 'solicitar') {
 
         echo json_encode(['exito' => true, 'mensaje' => '¡Contraseña actualizada! Ya puedes iniciar sesión.']);
 
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         error_log('[Recuperar] Error al confirmar OTP: ' . $e->getMessage());
         echo json_encode(['exito' => false, 'mensaje' => 'Error interno. Inténtalo de nuevo.']);
     }
