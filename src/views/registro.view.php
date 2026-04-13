@@ -8,7 +8,7 @@ require_once __DIR__ . "/partials/header.php";
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
 	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
-		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl w-full max-w-[min(90%,768px)]" id="container">
+		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,42rem)] min-h-[37.5rem] md:min-h-[34.375rem]" id="container">
 			
 			<!-- Overlay Panel (left side - desktop only) -->
 			<div class="hidden md:flex md:w-1/2 bg-gradient-to-r from-claro to-principal text-white flex-col items-center justify-center p-10 text-center">
@@ -18,7 +18,7 @@ require_once __DIR__ . "/partials/header.php";
 			</div>
 
 			<!-- Register Form (right side) -->
-			<div class="w-full md:w-1/2 flex flex-col items-center justify-center p-6 md:p-12">
+			<div class="w-full md:w-1/2 flex flex-col items-center justify-center px-8 py-10">
 				<form id="form-registro" data-action="register" method="POST" class="flex flex-col items-center justify-center text-center w-full">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Crear Cuenta</h1>

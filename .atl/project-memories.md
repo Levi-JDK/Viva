@@ -62,7 +62,11 @@
 - **Where**: `src/views/login.view.php`, `src/views/registro.view.php`, `index.php`
 - **Learned**: Separar vistas lógicas y usar Flexbox (Side-by-side) es superior en mantenibilidad y accesibilidad frente a hacks de CSS de animación de superposición (overlay).
 
-### Desbloqueo de Límites de Modelos Potentes (Qwen/Claude)
+### UI Proportions & REM vs PX
+- **What**: Ajuste de proporciones en el refactor de Login/Registro: cambio de `px` a `rem` y reducción del ancho máximo de las tarjetas.
+- **Why**: El usuario reportó que los contenedores se veían "súper gordos" y no escalaban bien al hacer zoom o cambiar el tamaño de fuente del navegador. 
+- **Where**: `src/views/login.view.php`, `src/views/registro.view.php`
+- **Learned**: Siempre preferir medidas relativas (`rem`) sobre absolutas (`px`) en utilidades arbitrarias de Tailwind (ej. `max-w-[42rem]` en lugar de `max-w-[768px]`). Para diseños de tarjetas divididas al medio (Split UI), anchos superiores a `42rem` (672px) suelen verse desproporcionados o estirados ("gordos") en desktop.
 - **What**: Eliminación de los límites artificiales (`context` y `output`) harcodeados en el archivo de configuración global `~/.config/opencode/opencode.json` y corrección en el plugin de auth.
 - **Why**: El modelo abortaba tareas grandes a la mitad porque la configuración le imponía un límite estricto de tokens de salida (`output: 65536`) que chocaba con la capacidad real del modelo (como `qwen3.6` o `claude-3.5`).
 - **Where**: `~/.config/opencode/opencode.json`, `opencode-qwencode-auth`
