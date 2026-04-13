@@ -1,7 +1,6 @@
 import { Toast } from '../ui/Toast.js';
 import { AuthValidator } from '../domain/AuthValidator.js';
 import { ApiService } from '../services/ApiService.js';
-import { loginUIController } from './LoginUIController.js';
 
 export class AuthController {
     async handleRegister(form) {
@@ -40,9 +39,9 @@ export class AuthController {
             if (data.clase === 'mensaje-exito') {
                 form.reset();
                 
-                // Deslizamiento automático hacia el login después del registro usando el controlador centralizado
+                // Redirigir al login después del registro
                 setTimeout(() => {
-                    loginUIController.showSignIn();
+                    window.location.href = BASE_URL + 'login';
                 }, 1500); // Esperar 1.5s para que vea el Toast verde
             }
         } catch (error) {

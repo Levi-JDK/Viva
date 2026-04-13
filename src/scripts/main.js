@@ -12,7 +12,6 @@ import { authController } from './controllers/AuthController.js';
 import { cartController } from './controllers/CartController.js';
 import { favoritesController } from './controllers/FavoritesController.js';
 import { userMenuController } from './controllers/UserMenuController.js';
-import { loginUIController } from './controllers/LoginUIController.js';
 import { locationController } from './controllers/LocationController.js';
 import { catalogController } from './controllers/CatalogController.js';
 import { productDetailController } from './controllers/ProductDetailController.js';
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cartController.init();
     favoritesController.init();
     userMenuController.init();
-    loginUIController.init();
     locationController.init();
     catalogController.init();
     productDetailController.init();
@@ -159,11 +157,6 @@ eventRouter.register('misc-keypress', (e, el) => productAdminController.handleMi
 
 eventRouter.register('register', (e, form) => { e.preventDefault(); authController.handleRegister(form); });
 eventRouter.register('login', (e, form) => { e.preventDefault(); authController.handleLogin(form); });
-
-eventRouter.register('show-sign-up', (e) => { if(e) e.preventDefault(); loginUIController.showSignUp(); });
-eventRouter.register('show-sign-in', (e) => { if(e) e.preventDefault(); loginUIController.showSignIn(); });
-
-
 
 // Admin Dashboard: Users & Products panels
 eventRouter.register('toggle-user', (e, btn) => { e.preventDefault(); adminDashboardController.handleToggleUser(btn); });

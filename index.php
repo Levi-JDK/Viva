@@ -47,6 +47,7 @@ $routes = [
     '/'             => 'src/controllers/index.php',
     '/index.php'    => 'src/controllers/index.php',
     '/login'        => 'src/controllers/login.php',
+    '/registro'     => 'src/controllers/registro.php',
     '/dashboard'    => function() {
         header('Location: ' . BASE_URL . 'perfil');
         exit;

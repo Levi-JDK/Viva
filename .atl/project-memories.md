@@ -55,3 +55,15 @@
 - **What**: Se restauraron las reglas de `.htaccess` y se limpiaron los cambios locales en el servidor, además de asegurar que los errores de la DB no se expongan en la API.
 - **Why**: Un error crítico ocurrió al remover el `.env` del tracking de git y hacer un `git pull` en producción, lo que borró el archivo del servidor rompiendo la conexión a la base de datos.
 - **Rule**: NUNCA dejar el `.env` en tracking, pero manejar con cuidado los despliegues para no borrar el archivo físico en producción.
+
+### Login Refactor a Flexbox
+- **What**: Refactorización de las vistas de autenticación (login y registro) eliminando el diseño basado en animaciones absolutas (sliding overlay) por una estructura limpia en Flexbox (`flex-col md:flex-row`).
+- **Why**: El diseño original causaba problemas graves de responsiveness (cajas super gordas) y generaba barras de desplazamiento horizontales al hacer zoom en el navegador por usar `w-[200%]` y `overflow-hidden`.
+- **Where**: `src/views/login.view.php`, `src/views/registro.view.php`, `index.php`
+- **Learned**: Separar vistas lógicas y usar Flexbox (Side-by-side) es superior en mantenibilidad y accesibilidad frente a hacks de CSS de animación de superposición (overlay).
+
+### Desbloqueo de Límites de Modelos Potentes (Qwen/Claude)
+- **What**: Eliminación de los límites artificiales (`context` y `output`) harcodeados en el archivo de configuración global `~/.config/opencode/opencode.json` y corrección en el plugin de auth.
+- **Why**: El modelo abortaba tareas grandes a la mitad porque la configuración le imponía un límite estricto de tokens de salida (`output: 65536`) que chocaba con la capacidad real del modelo (como `qwen3.6` o `claude-3.5`).
+- **Where**: `~/.config/opencode/opencode.json`, `opencode-qwencode-auth`
+- **Learned**: Si un modelo potente aborta tareas grandes o deja código a la mitad, es casi seguro culpa del límite inyectado por la configuración local del CLI o plugins.
