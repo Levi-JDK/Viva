@@ -7,12 +7,12 @@ require_once __DIR__ . "/partials/header.php";
 	<!-- Toast Container -->
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
-		<div class="container relative bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[768px] min-h-[600px] md:min-h-[550px]" id="container">
+	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat overflow-hidden" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
+		<div class="container relative bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,768px)] min-h-[600px] md:min-h-[550px]" id="container">
 			
 			<!-- Sign Up Container -->
-			<div class="form-container sign-up-container absolute top-0 left-0 h-full w-full md:w-1/2 opacity-0 z-1 md:opacity-0 md:z-1">
-				<form id="form-registro" data-action="register" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+			<div class="form-container sign-up-container absolute top-0 left-0 h-full w-full md:w-1/2 opacity-0 z-1 md:opacity-0 md:z-1 max-w-full">
+				<form id="form-registro" data-action="register" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-6 md:px-12 text-center w-full max-w-[100%]">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Crear Cuenta</h1>
 					<div class="social-container my-4">
@@ -38,8 +38,8 @@ require_once __DIR__ . "/partials/header.php";
 			</div>
 
 			<!-- Sign In Container -->
-			<div class="form-container sign-in-container absolute top-0 left-0 h-full w-full md:w-1/2 z-2">
-				<form id="form-login" data-action="login" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-8 md:px-12 text-center">
+			<div class="form-container sign-in-container absolute top-0 left-0 h-full w-full md:w-1/2 z-2 max-w-full">
+				<form id="form-login" data-action="login" method="POST" class="bg-fondo-claro flex flex-col items-center justify-center h-full px-6 md:px-12 text-center w-full max-w-[100%]">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Iniciar Sesión</h1>
 					<div class="social-container my-4">

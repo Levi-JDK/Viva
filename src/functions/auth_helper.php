@@ -24,9 +24,20 @@ if (!defined('BASE_URL')) {
 class AuthHelper {
 
     /**
-     * @var string Clave secreta para firmar el token (Idealmente desde $_ENV)
+     * @var string|null Clave secreta para firmar el token (se carga de $_ENV['JWT_SECRET'])
      */
-    private static string $secret_key = 'TU_SUPER_CLAVE_SECRETA_AQUI_CAMBIAME'; 
+    private static ?string $secret_key = null;
+
+    /**
+     * Carga la clave secreta desde $_ENV['JWT_SECRET'] con fail-fast si no está configurada.
+     */
+    private static function ensureSecret(): string {
+        if (self::$secret_key === null) {
+            self::$secret_key = $_ENV['JWT_SECRET']
+                ?? throw new \RuntimeException('JWT_SECRET no configurada en .env');
+        }
+        return self::$secret_key;
+    } 
     
     /**
      * @var string Algoritmo de encriptación utilizado por Firebase JWT
@@ -54,7 +65,7 @@ class AuthHelper {
              'data' => $user_data
          ];
 
-         return JWT::encode($payload, self::$secret_key, self::$encrypt);
+         return JWT::encode($payload, self::ensureSecret(), self::$encrypt);
     }
 
     /**
@@ -106,7 +117,7 @@ class AuthHelper {
 
         try {
             // Decodifica y valida simultáneamente
-            $decoded = JWT::decode($jwt, new Key(self::$secret_key, self::$encrypt));
+            $decoded = JWT::decode($jwt, new Key(self::ensureSecret(), self::$encrypt));
             
             if (isset($decoded->data)) {
                 // Verificar si el token (ID) ha sido revocado en Redis (Patovica)

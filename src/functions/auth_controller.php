@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/auth_helper.php';
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/error_handler.php';
 require_once __DIR__ . '/mail_service.php';
 require_once dirname(__DIR__) . '/workers/Config/RedisConfig.php';
 require_once dirname(__DIR__) . '/workers/Services/ValidationService.php';
@@ -11,8 +12,9 @@ try {
     $db = Database::getInstance();
 }
 catch (Exception $e) {
+    $response = ErrorHandler::handle($e, 'auth_controller.db_init');
     echo json_encode([
-        "mensaje" => "Error al inicializar la base de datos: " . $e->getMessage(),
+        "mensaje" => $response['message'],
         "clase" => "mensaje-error"
     ]);
     exit;
@@ -109,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
                 
                 // 3. LPUSH a la cola de registros
-                $pipe->lpush($prefix . 'cola:registros', $idWorker);
+                $pipe->lpush($prefix . 'queue:users', $idWorker);
                 
                 // 4. HSET email_to_id (índice invertido)
                 $pipe->hset($prefix . 'email_to_id', $email, $idWorker);
@@ -134,12 +136,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             catch (\Exception $redisEx) {
                 error_log('[Auth] Redis no disponible para registro asíncrono. Fallback... Error: ' . $redisEx->getMessage());
 
-                // Validar que el email no exista en DB (validación rápida síncrona) fallback
-                $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
-                $existeEmail = $stmtCheck->fetchColumn();
+                // ── Re-validar datos antes del fallback síncrono ──
+                $validacion = ValidationService::validarRegistro($datosRegistro);
+                if (!$validacion['valido']) {
+                    echo json_encode([
+                        "mensaje" => implode("\n", $validacion['errores']),
+                        "clase" => "mensaje-error"
+                    ]);
+                    exit;
+                }
 
-                if ($existeEmail) {
-                    echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
+                // Validar que el email no exista en DB (validación rápida síncrona) fallback
+                try {
+                    $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
+                    $existeEmail = $stmtCheck->fetchColumn();
+
+                    if ($existeEmail) {
+                        echo json_encode(["mensaje" => "El correo ya está registrado.", "clase" => "mensaje-error"]);
+                        exit;
+                    }
+                }
+                catch (\Exception $dbCheckEx) {
+                    error_log('[Auth] No se pudo validar email en DB durante fallback: ' . $dbCheckEx->getMessage());
+                    echo json_encode([
+                        "mensaje" => "No se pudo completar el registro. Intente nuevamente más tarde.",
+                        "clase" => "mensaje-error"
+                    ]);
                     exit;
                 }
 
@@ -163,7 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         }
         catch (PDOException $e) {
-            echo json_encode(["mensaje" => "Error validando datos: " . $e->getMessage(), "clase" => "mensaje-error"]);
+            $response = ErrorHandler::handle($e, 'auth_controller.registro');
+            echo json_encode(["mensaje" => $response['message'], "clase" => "mensaje-error"]);
         }
 
     // ── Login ─────────────────────────────────────────────────────────────────
@@ -227,7 +250,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 AuthHelper::setAuthCookie($token);
 
-                $redirectTo = !empty($_POST['redirect']) ? $_POST['redirect'] : BASE_URL;
+                $redirectRaw = $_POST['redirect'] ?? '';
+                $redirectTo = BASE_URL;
+
+                if (!empty($redirectRaw)) {
+                    $host_actual = parse_url(BASE_URL, PHP_URL_HOST);
+                    $host_redirect = parse_url($redirectRaw, PHP_URL_HOST);
+                    if ($host_redirect === $host_actual) {
+                        $redirectTo = $redirectRaw;
+                    }
+                }
                 echo json_encode(["mensaje" => "Inicio de sesión exitoso", "clase" => "mensaje-exito", "redirect" => $redirectTo]);
             }
             else {
@@ -236,7 +268,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         }
         catch (PDOException $e) {
-            echo json_encode(["mensaje" => "Error en la base de datos: " . $e->getMessage(), "clase" => "mensaje-error"]);
+            $response = ErrorHandler::handle($e, 'auth_controller.login');
+            echo json_encode(["mensaje" => $response['message'], "clase" => "mensaje-error"]);
         }
 
     // ── Logout ────────────────────────────────────────────────────────────────
