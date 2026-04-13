@@ -8,7 +8,7 @@ require_once __DIR__ . "/partials/header.php";
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
 	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
-		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,42rem)] min-h-[37.5rem] md:min-h-[34.375rem]" id="container">
+		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,50rem)] min-h-[37.5rem] md:min-h-[34.375rem]" id="container">
 			
 			<!-- Overlay Panel (left side - desktop only) -->
 			<div class="hidden md:flex md:w-1/2 bg-gradient-to-r from-claro to-principal text-white flex-col items-center justify-center p-10 text-center">
