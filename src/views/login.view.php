@@ -1,6 +1,7 @@
 <?php 
 $page_title = "VIVA | Iniciar Sesión - Artesanías Colombianas";
 $body_class = "flex flex-col min-h-screen font-sans text-oscuro bg-fondo-claro";
+$extra_css = '<link rel="prefetch" href="' . (defined('BASE_URL') ? BASE_URL : '/') . 'registro">';
 require_once __DIR__ . '/partials/base_head.php'; 
 require_once __DIR__ . "/partials/header.php"; 
 ?>
