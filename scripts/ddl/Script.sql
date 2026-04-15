@@ -637,7 +637,11 @@ CREATE TABLE IF NOT EXISTS tab_reset_tokens
     token_reset  VARCHAR(6)    NOT NULL,                                         -- Código OTP de 6 dígitos
     expira_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL,                           -- Fecha/hora de expiración
     is_used      BOOLEAN       NOT NULL DEFAULT FALSE,                           -- Si ya fue utilizado
+    created_by   VARCHAR       NOT NULL DEFAULT current_user,                    -- Usuario que creó
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de creación
+    updated_by   VARCHAR       NOT NULL DEFAULT 'N/A',                           -- Usuario que modificó
+    updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT '1900-01-01 00:00:00', -- Fecha de modificación
+    is_deleted   BOOLEAN       NOT NULL DEFAULT FALSE,                           -- Borrado lógico
     PRIMARY KEY(id_token),
     FOREIGN KEY(id_user) REFERENCES tab_users(id_user)
 );

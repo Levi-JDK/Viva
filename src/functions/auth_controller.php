@@ -125,7 +125,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Ejecutamos todo el pipeline
                 $pipe->execute();
 
-                // PASO 4 - Responder al frontend
+                // PASO 4 - Enviar email de bienvenida (flujo normal)
+                try {
+                    $mail = MailService::getInstance();
+                    $mail->sendWelcomeEmail($email, $nombre . ' ' . $apellido);
+                }
+                catch (Exception $e) {
+                    error_log('[Auth] Error enviando email de bienvenida: ' . $e->getMessage());
+                }
+
+                // PASO 5 - Responder al frontend
                 // Si todo ok -> JSON de éxito
                 echo json_encode([
                     "mensaje" => "Registro aceptado. Estamos procesando su solicitud...",

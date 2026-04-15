@@ -98,18 +98,27 @@ class MailService
             return true;
         } catch (Exception $e) {
             $this->lastError = $this->mailer->ErrorInfo;
+            error_log('[MailService] Error enviando email: ' . $e->getMessage() . ' | ErrorInfo: ' . $this->mailer->ErrorInfo);
             return false;
         }
     }
 
     private function configureTransport(): void
     {
+        // FAIL-FAST: Credenciales SMTP son obligatorias — sin fallbacks inseguros
+        $smtpUsername = $_ENV['SMTP_USERNAME'] ?? '';
+        $smtpPassword = $_ENV['SMTP_PASSWORD'] ?? '';
+
+        if ($smtpUsername === '' || $smtpPassword === '') {
+            throw new \Exception('SMTP_USERNAME y SMTP_PASSWORD deben estar configurados en .env');
+        }
+
         $this->mailer->isSMTP();
         $this->mailer->Host = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
         $this->mailer->SMTPAuth = true;
         
-        $this->mailer->Username = $_ENV['SMTP_USERNAME'] ?? '';
-        $this->mailer->Password = $_ENV['SMTP_PASSWORD'] ?? '';
+        $this->mailer->Username = $smtpUsername;
+        $this->mailer->Password = $smtpPassword;
         
         $secure = strtolower($_ENV['SMTP_SECURE'] ?? 'ssl');
         $this->mailer->SMTPSecure = match($secure) {
