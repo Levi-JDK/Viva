@@ -21,10 +21,18 @@ class RedisCacheService {
     
     private function connectPostgres(): PDO {
         try {
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $dbname = $_ENV['DB_NAME'] ?? 'db_viva';
-            $user = $_ENV['DB_USERNAME'] ?? '';
-            $pass = $_ENV['DB_PASSWORD'] ?? '';
+            $requiredEnvVars = ['DB_HOST', 'DB_NAME', 'DB_USERNAME', 'DB_PASSWORD'];
+
+            foreach ($requiredEnvVars as $envVar) {
+                if (!array_key_exists($envVar, $_ENV)) {
+                    throw new RuntimeException("Missing required env var: {$envVar}");
+                }
+            }
+
+            $host = $_ENV['DB_HOST'];
+            $dbname = $_ENV['DB_NAME'];
+            $user = $_ENV['DB_USERNAME'];
+            $pass = $_ENV['DB_PASSWORD'];
 
             return new PDO(
                 "pgsql:host=$host;dbname=$dbname",

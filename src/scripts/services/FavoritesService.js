@@ -4,7 +4,7 @@
  */
 export class FavoritesService {
     static get baseUrl() {
-        return (window.BASE_URL || '/') + 'api/favoritos';
+        return (window.BASE_URL || '/') + 'favoritos';
     }
 
     static async getFavorites() {

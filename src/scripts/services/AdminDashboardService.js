@@ -6,19 +6,19 @@
 export class AdminDashboardService {
 
     static async fetchUsers() {
-        const response = await fetch(`${BASE_URL}api/admin_crud?accion=list_users&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?accion=list_users&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to fetch users');
         return response.json();
     }
 
     static async fetchProducts() {
-        const response = await fetch(`${BASE_URL}api/admin_crud?accion=list_products&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?accion=list_products&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to fetch products');
         return response.json();
     }
 
     static async toggleUser(idUser, isActive) {
-        const response = await fetch(`${BASE_URL}api/admin_crud`, {
+        const response = await fetch(`${BASE_URL}admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `accion=toggle_user&id_user=${idUser}&is_active=${isActive}`
@@ -28,7 +28,7 @@ export class AdminDashboardService {
     }
 
     static async toggleProduct(idProducto, isActive) {
-        const response = await fetch(`${BASE_URL}api/admin_crud`, {
+        const response = await fetch(`${BASE_URL}admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `accion=toggle_product&id_producto=${idProducto}&is_active=${isActive}`
@@ -38,7 +38,7 @@ export class AdminDashboardService {
     }
 
     static async crudRead(entidad) {
-        const response = await fetch(`${BASE_URL}api/admin_crud?accion=read&entidad=${entidad}&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?accion=read&entidad=${entidad}&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to read entity');
         return response.json();
     }
@@ -50,7 +50,7 @@ export class AdminDashboardService {
         for (const [k, v] of Object.entries(datos)) {
             urlEncoded.append(k, v);
         }
-        const response = await fetch(`${BASE_URL}api/admin_crud`, {
+        const response = await fetch(`${BASE_URL}admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: urlEncoded.toString()

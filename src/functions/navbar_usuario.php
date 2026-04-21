@@ -36,7 +36,9 @@ function cargar_datos_navbar(): void
         $db = Database::getInstance();
         $stmtPublic = $db->ejecutar('obtenerMenuPublico');
         $GLOBALS['navbar_menus'] = $stmtPublic->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) { }
+    } catch (Exception $e) {
+        throw $e;
+    }
 
     require_once __DIR__ . '/auth_helper.php';
     $userData = AuthHelper::verifyToken();
@@ -81,7 +83,7 @@ function cargar_datos_navbar(): void
                             $m['url_menu'] = 'stand?id=' . $row['id_stand'];
                         }
                     } catch (Exception $e) {
-                        error_log('Error adaptando URL de Mi Stand: ' . $e->getMessage());
+                        throw $e;
                     }
                 }
                 return $m;
@@ -99,7 +101,7 @@ function cargar_datos_navbar(): void
                     $GLOBALS['is_logged_in']   = true;
                     // Usar nombre de Redis (sin badge para que el usuario no note la sincronización)
                     $GLOBALS['nombre_usuario'] = $redisUser['nombre'] ?? 'Usuario';
-                    $GLOBALS['email_usuario']  = $redisUser['mail'] ?? '';
+                    $GLOBALS['email_usuario']  = $redisUser['email'] ?? '';
 
                     // No sobreescribimos $GLOBALS['foto_usuario'] (ya tiene el default de arriba)
                     // ni $GLOBALS['navbar_menus'] (ya cargó el menú público 1, 2, 3 de BD)
@@ -115,13 +117,11 @@ function cargar_datos_navbar(): void
                     $GLOBALS['is_logged_in'] = false;
                 }
             } catch (Exception $e) {
-                error_log('[navbar_usuario] Error comprobando Redis en Fallback: ' . $e->getMessage());
+                throw $e;
             }
         }
 
     } catch (Exception $e) {
-        // Error no crítico: el navbar simplemente muestra el estado de visitante.
-        // Se registra en el log para trazabilidad.
-        error_log('[navbar_usuario] Error cargando datos del usuario: ' . $e->getMessage());
+        throw $e;
     }
 }

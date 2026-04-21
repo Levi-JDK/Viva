@@ -3,7 +3,7 @@
  * Manejador de Subida de Productos
  */
 
-require_once __DIR__ . '/image_uploader.php';
+require_once __DIR__ . '/../utils/image_uploader.php';
 
 require_once __DIR__ . '/database.php';
 
@@ -78,51 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("No se encontró el perfil de productor.");
         }
 
-        // --- 3. Validación Inicial de Imágenes ANTES de tocar la BD ---
-        // Esto evita que se cree un producto "fantasma" si las imágenes son inválidas.
-        
-        $files_to_process = [];
-        if (isset($_FILES['imagen_producto'])) {
-            $files = $_FILES['imagen_producto'];
-            $count = is_array($files['name']) ? count($files['name']) : 1;
-
-            if (!is_array($files['name'])) {
-                $files = ['name' => [$files['name']], 'type' => [$files['type']], 'tmp_name' => [$files['tmp_name']], 'error' => [$files['error']], 'size' => [$files['size']]];
-            }
-
-            for ($i = 0; $i < $count; $i++) {
-                if ($files['error'][$i] === UPLOAD_ERR_NO_FILE) continue; // Si algún campo vino vacío
-                
-                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                    throw new Exception("Error nativo al subir imagen: " . $files['error'][$i]);
-                }
-
-                // Check extension
-                $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg', 'jpeg', 'webp', 'png'])) {
-                    throw new Exception("La imagen " . $files['name'][$i] . " tiene un formato no válido.");
-                }
-
-                // Check Size (5MB)
-                $max_size = 5 * 1024 * 1024;
-                if ($files['size'][$i] > $max_size) {
-                    throw new Exception("La imagen " . $files['name'][$i] . " excede el tamaño máximo de 5MB.");
-                }
-
-                $files_to_process[] = [
-                    'name'     => $files['name'][$i],
-                    'type'     => $files['type'][$i],
-                    'tmp_name' => $files['tmp_name'][$i],
-                    'error'    => $files['error'][$i],
-                    'size'     => $files['size'][$i]
-                ];
-            }
-        }
-
-        if (empty($files_to_process)) {
-            throw new Exception("Debe subir al menos una imagen válida.");
-        }
-
         // --- FIN VALIDACIONES, EJECUTAR INSERCIÓN ---
 
         $conn->beginTransaction();
@@ -151,18 +106,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtId = $db->ejecutar('obtenerUltimoIdProducto');
         $id_producto = $stmtId->fetchColumn();
 
-        // 2. Subir imágenes físicas con el ID generado
-        $uploaded_paths = [];
+        // 2. Subir imágenes físicas con validación centralizada
         $target_directory = __DIR__ . '/../../images/products/';
+        $result = processAndUploadImages($_FILES['imagen_producto'] ?? null, $target_directory, 'prod_' . $id_producto . '_', 'images/products/');
+        if (!$result['success']) {
+            throw new Exception($result['message']);
+        }
 
-        foreach ($files_to_process as $current_file) {
-            $result = handleImageUpload($current_file, $target_directory, 'prod_' . $id_producto . '_', 'images/products/');
-            if ($result['success']) {
-                $uploaded_paths[] = $result['path'];
-            } else {
-                // Falla crítica: deshacer bd y abortar
-                throw new Exception("Fallo en compresión de imagen: " . $result['message']);
-            }
+        $uploaded_paths = $result['paths'] ?? [];
+        if (empty($uploaded_paths) && !empty($result['path'])) {
+            $uploaded_paths = [$result['path']];
         }
 
         // Doble chequeo crítico
@@ -186,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($conn) && $conn->inTransaction()) {
             $conn->rollBack();
         }
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        throw $e;
     }
 }
 else {

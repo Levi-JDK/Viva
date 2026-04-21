@@ -3,7 +3,7 @@
  * Manejador de Actualización de Productos
  */
 
-require_once __DIR__ . '/image_uploader.php';
+require_once __DIR__ . '/../utils/image_uploader.php';
 require_once __DIR__ . '/database.php';
 
 // Detectar BASE_URL
@@ -76,39 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("No tienes permiso para editar este producto.");
         }
 
-        // --- Validación Previa de Nuevas Imágenes ---
-        $files_to_process = [];
-        if (isset($_FILES['imagen_producto'])) {
-            $files = $_FILES['imagen_producto'];
-            $count = is_array($files['name']) ? count($files['name']) : 1;
-
-            if (!is_array($files['name'])) {
-                $files = ['name' => [$files['name']], 'type' => [$files['type']], 'tmp_name' => [$files['tmp_name']], 'error' => [$files['error']], 'size' => [$files['size']]];
-            }
-
-            for ($i = 0; $i < $count; $i++) {
-                if ($files['error'][$i] === UPLOAD_ERR_NO_FILE) continue; 
-                
-                if ($files['error'][$i] !== UPLOAD_ERR_OK) {
-                    throw new Exception("Error al subir imagen: " . $files['error'][$i]);
-                }
-
-                $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg', 'jpeg', 'webp', 'png'])) {
-                    throw new Exception("Formato inválido: " . $files['name'][$i]);
-                }
-
-                if ($files['size'][$i] > 5 * 1024 * 1024) {
-                    throw new Exception("Excede el límite de 5MB: " . $files['name'][$i]);
-                }
-
-                $files_to_process[] = [
-                    'name' => $files['name'][$i], 'type' => $files['type'][$i], 
-                    'tmp_name' => $files['tmp_name'][$i], 'error' => $files['error'][$i], 'size' => $files['size'][$i]
-                ];
-            }
-        }
-
         // Obtener imágenes actuales de la BD para la validación final
         $stmtImg = $db->ejecutar('obtenerImagenesProducto', [':id' => $id_producto]);
         $imagenes_actuales_db = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
@@ -119,8 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $urls_mantenidas = array_column($imagenes_mantenidas, 'url');
 
         // Validación: debe quedar al menos UNA imagen (ya sea persistente o nueva)
-        $total_final_images = count($urls_mantenidas) + count($files_to_process);
-        if ($total_final_images === 0) {
+        if (count($urls_mantenidas) === 0 && !hasUploadedImages($_FILES['imagen_producto'] ?? null)) {
             throw new Exception("El producto debe tener al menos una imagen.");
         }
 
@@ -177,17 +143,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->ejecutar('eliminarImagen', [':id' => $img_borrar['id_imagen']]);
         }
 
-        // B. Subir nuevas imágenes físicas (validadas previamente)
+        // B. Subir nuevas imágenes físicas
         $uploaded_paths = [];
         $target_directory = __DIR__ . '/../../images/products/';
 
-        foreach ($files_to_process as $current_file) {
-            $result = handleImageUpload($current_file, $target_directory, 'prod_' . $id_producto . '_' . time() . '_', 'images/products/');
-            
-            if ($result['success']) {
-                $uploaded_paths[] = $result['path'];
-            } else {
-                throw new Exception("Error al procesar imagen " . $current_file['name'] . ": " . $result['message']);
+        if (hasUploadedImages($_FILES['imagen_producto'] ?? null)) {
+            $result = processAndUploadImages($_FILES['imagen_producto'] ?? null, $target_directory, 'prod_' . $id_producto . '_' . time() . '_', 'images/products/');
+            if (!$result['success']) {
+                throw new Exception($result['message']);
+            }
+
+            $uploaded_paths = $result['paths'] ?? [];
+            if (empty($uploaded_paths) && !empty($result['path'])) {
+                $uploaded_paths = [$result['path']];
             }
         }
 
@@ -206,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($conn) && $conn->inTransaction()) {
             $conn->rollBack();
         }
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        throw $e;
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);

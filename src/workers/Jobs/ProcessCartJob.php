@@ -7,48 +7,68 @@
 use Predis\Client as Redis;
 
 class ProcessCartJob {
-    private int $cartId;
-    private array $cartData;
-    private array $items;
+    private int $userId;
+    private array $acciones;
+    private string $sessionKey;
     
-    public function __construct(int $cartId, array $cartData, array $items) {
-        $this->cartId = $cartId;
-        $this->cartData = $cartData;
-        $this->items = $items;
+    public function __construct(int $userId, array $acciones, string $sessionKey) {
+        $this->userId = $userId;
+        $this->acciones = $acciones;
+        $this->sessionKey = $sessionKey;
     }
     
     public function handle(PDO $pdo): bool {
         $db = Database::getInstance();
-        // Por cada item, procesar el INSERT/UPDATE/DELETE
-        foreach ($this->items as $item) {
-            $db->ejecutar('registrarCarritoItem', [
-                ':usuario_id'  => (int)$this->cartData['usuario_id'],
-                ':producto_id' => (int)$item['producto_id'],
-                ':cantidad'    => (int)$item['cantidad'],
-                ':precio'      => (float)($item['precio'] ?? 0)
+        
+        foreach ($this->acciones as $accionItem) {
+            if (!is_array($accionItem) || empty($accionItem['accion'])) {
+                throw new InvalidArgumentException('Payload de carrito inválido: falta accion.');
+            }
+
+            $idProducto = array_key_exists('id_producto', $accionItem) && $accionItem['id_producto'] !== null
+                ? (int) $accionItem['id_producto']
+                : null;
+
+            $cantidad = array_key_exists('cantidad', $accionItem) && $accionItem['cantidad'] !== null
+                ? (int) $accionItem['cantidad']
+                : null;
+
+            $db->ejecutar('gestionarCarrito', [
+                ':id_user' => $this->userId,
+                ':accion' => (string) $accionItem['accion'],
+                ':id_producto' => $idProducto,
+                ':cantidad' => $cantidad,
             ]);
         }
-        
-        // Actualizar estado del carrito
-        $db->ejecutar('cambiarEstadoCarrito', [
-            ':status' => 'procesado',
-            ':id'     => $this->cartId
-        ]);
-        
+
         return true;
     }
+
+    public function getSessionKey(): string {
+        return $this->sessionKey;
+    }
     
-    public static function fromRedis(Redis $redis, int $cartId): ?self {
-        $key = 'viva:carrito:' . $cartId;
-        
+    public static function fromRedis(Redis $redis, array $payload): ?self {
+        if (empty($payload['user_id']) || empty($payload['session_key'])) {
+            throw new InvalidArgumentException('Mensaje de cola de carrito inválido.');
+        }
+
+        $key = (string) $payload['session_key'];
         $data = $redis->hGetAll($key);
-        
+
         if (empty($data)) {
             return null;
         }
-        
-        $items = json_decode($data['items'] ?? '[]', true);
-        
-        return new self($cartId, $data, $items);
+
+        if (!isset($data['acciones_json'])) {
+            throw new RuntimeException('Hash de sesión sin acciones_json.');
+        }
+
+        $acciones = json_decode($data['acciones_json'], true);
+        if (!is_array($acciones)) {
+            throw new RuntimeException('acciones_json inválido en Redis.');
+        }
+
+        return new self((int) $payload['user_id'], $acciones, $key);
     }
 }

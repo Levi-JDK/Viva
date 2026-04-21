@@ -9,7 +9,7 @@ const BASE = window.BASE_URL || '';
 
 async function fetchJSON(accion, params = {}) {
     const body = new URLSearchParams({ accion, ...params });
-    const res = await fetch(`${BASE}api/admin_crud`, {
+    const res = await fetch(`${BASE}admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString()

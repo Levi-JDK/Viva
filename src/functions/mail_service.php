@@ -18,11 +18,20 @@ class MailService
         $this->mailer = new PHPMailer(true);
         $this->mailer->CharSet = 'UTF-8';
         
-        // Cargamos el remitente desde el .env
-        $this->fromEmail = $_ENV['MAIL_FROM_ADDRESS'] ?? 'tu_correo@gmail.com';
-        $this->fromName = $_ENV['MAIL_FROM_NAME'] ?? 'VIVA Marketplace';
+        // Cargamos remitente desde .env con fail-fast
+        $this->fromEmail = self::getRequiredEnv('MAIL_FROM_ADDRESS');
+        $this->fromName = self::getRequiredEnv('MAIL_FROM_NAME');
         
         $this->configureTransport();
+    }
+
+    private static function getRequiredEnv(string $key): string
+    {
+        if (!isset($_ENV[$key]) || trim((string) $_ENV[$key]) === '') {
+            throw new \RuntimeException($key . ' debe estar configurado en .env');
+        }
+
+        return trim((string) $_ENV[$key]);
     }
 
     public static function getInstance(): MailService
@@ -63,7 +72,7 @@ class MailService
     {
         $safeName = htmlspecialchars($toName, ENT_QUOTES, 'UTF-8');
         $safeToken = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
-        $minutes = (int)($_ENV['RESET_TOKEN_EXP_MINUTES'] ?? 15);
+        $minutes = (int) self::getRequiredEnv('RESET_TOKEN_EXP_MINUTES');
         $subject = 'Recuperación de contraseña - VIVA';
         $html = "
             <div style=\"font-family: Arial, sans-serif; line-height:1.5; color: #333;\">
@@ -98,34 +107,29 @@ class MailService
             return true;
         } catch (Exception $e) {
             $this->lastError = $this->mailer->ErrorInfo;
-            error_log('[MailService] Error enviando email: ' . $e->getMessage() . ' | ErrorInfo: ' . $this->mailer->ErrorInfo);
-            return false;
+            throw $e;
         }
     }
 
     private function configureTransport(): void
     {
         // FAIL-FAST: Credenciales SMTP son obligatorias — sin fallbacks inseguros
-        $smtpUsername = $_ENV['SMTP_USERNAME'] ?? '';
-        $smtpPassword = $_ENV['SMTP_PASSWORD'] ?? '';
-
-        if ($smtpUsername === '' || $smtpPassword === '') {
-            throw new \Exception('SMTP_USERNAME y SMTP_PASSWORD deben estar configurados en .env');
-        }
+        $smtpUsername = self::getRequiredEnv('SMTP_USERNAME');
+        $smtpPassword = self::getRequiredEnv('SMTP_PASSWORD');
 
         $this->mailer->isSMTP();
-        $this->mailer->Host = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
+        $this->mailer->Host = self::getRequiredEnv('SMTP_HOST');
         $this->mailer->SMTPAuth = true;
         
         $this->mailer->Username = $smtpUsername;
         $this->mailer->Password = $smtpPassword;
         
-        $secure = strtolower($_ENV['SMTP_SECURE'] ?? 'ssl');
+        $secure = strtolower(self::getRequiredEnv('SMTP_SECURE'));
         $this->mailer->SMTPSecure = match($secure) {
             'tls' => PHPMailer::ENCRYPTION_STARTTLS,
             'ssl' => PHPMailer::ENCRYPTION_SMTPS,
-            default => PHPMailer::ENCRYPTION_SMTPS,
+            default => throw new \RuntimeException('SMTP_SECURE debe ser tls o ssl'),
         };
-        $this->mailer->Port = (int)($_ENV['SMTP_PORT'] ?? 465);
+        $this->mailer->Port = (int) self::getRequiredEnv('SMTP_PORT');
     }
 }

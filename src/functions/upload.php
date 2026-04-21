@@ -15,7 +15,7 @@ if (!defined('BASE_URL')) {
 }
 
 // Incluir archivos necesarios (estamos en el mismo directorio)
-require_once __DIR__ . '/image_uploader.php';
+require_once __DIR__ . '/../utils/image_uploader.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
@@ -34,7 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
         // VARIABLE: $ruta_imagen_final
         // Esta variable almacena la ruta RELATIVA para guardar en la base de datos
         // Debe ser: images/profiles/foto.webp (NO ruta absoluta de Windows)
-        $ruta_imagen_final = $result['path'];
+        $ruta_imagen_final = $result['path'] ?? (($result['paths'][0] ?? null));
+
+        if (!$ruta_imagen_final) {
+            $errorMsg = urlencode('No se pudo determinar la ruta de la imagen.');
+            header("Location: " . BASE_URL . "perfil?error=" . $errorMsg . "#profile");
+            exit;
+        }
 
         // ----------------------------------------
         // UPDATE A LA BASE DE DATOS
@@ -74,9 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
                 }
 
             } catch (Exception $e) {
-                // Registrar error pero permitir que el usuario continúe (o detener si es crítico)
-                error_log("Error al actualizar foto en BD: " . $e->getMessage());
-
+                throw $e;
             }
         }
 

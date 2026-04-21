@@ -15,6 +15,7 @@ import { userMenuController } from './controllers/UserMenuController.js';
 import { locationController } from './controllers/LocationController.js';
 import { catalogController } from './controllers/CatalogController.js';
 import { productDetailController } from './controllers/ProductDetailController.js';
+import { checkoutController } from './controllers/CheckoutController.js';
 import { adminDashboardController } from './controllers/AdminDashboardController.js';
 import { adminMenusController } from './controllers/AdminMenusController.js';
 import { productAdminController } from './controllers/ProductAdminController.js';
@@ -33,12 +34,14 @@ eventRouter.init();
 
 // Inicialización de estados al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
+    authController.init();
     cartController.init();
     favoritesController.init();
     userMenuController.init();
     locationController.init();
     catalogController.init();
     productDetailController.init();
+    checkoutController.init();
     adminDashboardController.init();
     adminMenusController.init();
     productAdminController.init();
@@ -167,6 +170,4 @@ eventRouter.register('search-productos-input', (e, el) => adminDashboardControll
 // Admin Dashboard: Menús panel
 eventRouter.register('menus-usuario-select', (e, el) => adminMenusController.onUserSelect(el));
 eventRouter.register('gestionar-menu', (e, btn) => { e.preventDefault(); adminDashboardController.handleGestionMenu(btn); });
-
-
 

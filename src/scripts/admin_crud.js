@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSubmit.disabled = true;
 
             const baseUrl = window.BASE_URL || '';
-            const res = await fetch(`${baseUrl}api/admin_crud`, {
+            const res = await fetch(`${baseUrl}admin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: urlEncoded.toString()
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const baseUrl = window.BASE_URL || '';
-            const res = await fetch(`${baseUrl}api/admin_crud?accion=read&entidad=${currentEntity}&_=${Date.now()}`);
+            const res = await fetch(`${baseUrl}admin?accion=read&entidad=${currentEntity}&_=${Date.now()}`);
             const data = await res.json();
 
             if (data.success) {
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let k in fullRow) urlEncoded.append(k, fullRow[k]);
 
         const baseUrl = window.BASE_URL || '';
-        const res = await fetch(`${baseUrl}api/admin_crud`, {
+        const res = await fetch(`${baseUrl}admin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: urlEncoded.toString()

@@ -135,7 +135,7 @@ class AuthHelper {
                         }
                     }
                 } catch (\Exception $e) {
-                    error_log('[AuthHelper] Fallo Redis al verificar revocacion: ' . $e->getMessage());
+                    throw $e;
                 }
                 
                 return $decoded->data;
@@ -143,12 +143,10 @@ class AuthHelper {
             return false;
             
         } catch (ExpiredException $e) {
-            // Si el token expiró oficialmente según su fecha 'exp'
             self::clearAuthCookie();
-            return false;
+            throw $e;
         } catch (\Exception $e) {
-            // Firmas inválidas o alteraciones maliciosas
-            return false;
+            throw $e;
         }
     }
 

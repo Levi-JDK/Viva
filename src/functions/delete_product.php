@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($conn)) {
             $conn->rollBack();
         }
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        throw $e;
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);

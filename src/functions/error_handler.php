@@ -94,7 +94,7 @@ class ErrorHandler
      * Ejemplo de uso:
      * 
      * } catch (Exception $e) {
-     *     echo json_encode(ErrorHandler::jsonResponse($e, 'mi_api'));
+     *     throw $e;
      * }
      */
     public static function jsonResponse($e, string $context = ''): array

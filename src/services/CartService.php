@@ -1,0 +1,215 @@
+<?php
+
+require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../workers/Config/RedisConfig.php';
+
+class CartService
+{
+    private const REDIS_CART_META_UPDATED_AT = '__updated_at';
+    private const REDIS_CART_META_DIRTY = '__dirty';
+
+    public static function gestionarItemsCarrito(int $userId, string $accion, $productoId = null, $cantidad = null): array
+    {
+        $db = Database::getInstance();
+
+        $params = [
+            ':id_user' => $userId,
+            ':accion' => $accion,
+            ':id_producto' => $productoId ? (int) $productoId : null,
+            ':cantidad' => $cantidad ? (int) $cantidad : null,
+        ];
+
+        $stmt = $db->ejecutar('gestionarCarrito', $params);
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return json_decode($fila['fun_carrito'] ?? $fila[array_key_first($fila)], true);
+    }
+
+    public static function redisUpdate(int $userId, array $acciones): array
+    {
+        if ($userId <= 0) {
+            throw new InvalidArgumentException('id_user inválido para redis_update.');
+        }
+
+        if (!array_is_list($acciones) || empty($acciones)) {
+            throw new InvalidArgumentException('acciones debe ser array no vacío para redis_update.');
+        }
+
+        $redis = RedisConfig::getConnection();
+        $hashKey = self::getRedisCartHashKey($userId);
+        $timestamp = date('Y-m-d H:i:s');
+        $snapshot = self::readRedisCartSnapshot($redis, $hashKey);
+
+        foreach ($acciones as $indice => $accion) {
+            self::applyRedisCartAction($snapshot, self::normalizeAction($accion, $indice));
+        }
+
+        self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp);
+
+        return [
+            'success' => true,
+            'message' => 'Carrito consolidado en Redis',
+            'hash_key' => $hashKey,
+            'items_count' => count($snapshot),
+            'updated_at' => $timestamp,
+        ];
+    }
+
+    public static function flushToPostgres(int $userId, bool $forceSync = false, ?array $acciones = null): array
+    {
+        if ($userId <= 0) {
+            throw new InvalidArgumentException('id_user inválido para flush_to_postgres.');
+        }
+
+        $redis = RedisConfig::getConnection();
+        $hashKey = self::getRedisCartHashKey($userId);
+        $timestamp = date('Y-m-d H:i:s');
+        $snapshot = self::readRedisCartSnapshot($redis, $hashKey);
+
+        if ($acciones !== null) {
+            if (!array_is_list($acciones)) {
+                throw new InvalidArgumentException('acciones debe ser array válido para flush_to_postgres.');
+            }
+
+            foreach ($acciones as $indice => $accion) {
+                self::applyRedisCartAction($snapshot, self::normalizeAction($accion, $indice));
+            }
+
+            self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp);
+        }
+
+        if (!$redis->exists($hashKey)) {
+            return [
+                'success' => true,
+                'message' => 'No hay cambios pendientes en Redis',
+                'force_sync' => $forceSync,
+                'flushed' => false,
+                'items_count' => 0,
+            ];
+        }
+
+        self::gestionarItemsCarrito($userId, 'limpiar');
+
+        foreach ($snapshot as $productoId => $cantidad) {
+            self::gestionarItemsCarrito($userId, 'agregar', (int) $productoId, (int) $cantidad);
+        }
+
+        $redis->del([$hashKey]);
+
+        return [
+            'success' => true,
+            'message' => 'Carrito persistido desde Redis a Postgres',
+            'force_sync' => $forceSync,
+            'flushed' => true,
+            'items_count' => count($snapshot),
+            'flushed_at' => date('Y-m-d H:i:s'),
+        ];
+    }
+
+    private static function getRedisCartHashKey(int $userId): string
+    {
+        return RedisConfig::getPrefix() . 'carrito:user:' . $userId;
+    }
+
+    private static function readRedisCartSnapshot($redis, string $hashKey): array
+    {
+        $rawHash = $redis->hgetall($hashKey);
+
+        if (!is_array($rawHash) || empty($rawHash)) {
+            return [];
+        }
+
+        $snapshot = [];
+
+        foreach ($rawHash as $field => $value) {
+            if (str_starts_with((string) $field, '__')) {
+                continue;
+            }
+
+            $productoId = (int) $field;
+            $cantidad = (int) $value;
+
+            if ($productoId <= 0 || $cantidad < 0) {
+                throw new UnexpectedValueException('Hash de carrito Redis corrupto para user_id ' . $hashKey . '.');
+            }
+
+            if ($cantidad > 0) {
+                $snapshot[$productoId] = $cantidad;
+            }
+        }
+
+        return $snapshot;
+    }
+
+    private static function writeRedisCartSnapshot($redis, string $hashKey, array $snapshot, string $timestamp): void
+    {
+        $redis->del([$hashKey]);
+        $redis->hset($hashKey, self::REDIS_CART_META_DIRTY, '1');
+        $redis->hset($hashKey, self::REDIS_CART_META_UPDATED_AT, $timestamp);
+
+        foreach ($snapshot as $productoId => $cantidad) {
+            $redis->hset($hashKey, (string) $productoId, (string) $cantidad);
+        }
+
+        $redis->expire($hashKey, 86400);
+    }
+
+    private static function normalizeAction(array $accion, int $indice): array
+    {
+        $nombreAccion = (string) ($accion['accion'] ?? '');
+
+        if (!in_array($nombreAccion, ['agregar', 'actualizar', 'eliminar', 'limpiar'], true)) {
+            throw new InvalidArgumentException('Acción de carrito inválida en posición ' . $indice . '.');
+        }
+
+        $productoId = array_key_exists('id_producto', $accion) && $accion['id_producto'] !== null
+            ? (int) $accion['id_producto']
+            : null;
+
+        $cantidad = array_key_exists('cantidad', $accion) && $accion['cantidad'] !== null
+            ? (int) $accion['cantidad']
+            : null;
+
+        if ($nombreAccion !== 'limpiar' && ($productoId === null || $productoId <= 0)) {
+            throw new InvalidArgumentException('id_producto inválido en posición ' . $indice . '.');
+        }
+
+        if (in_array($nombreAccion, ['agregar', 'actualizar'], true) && ($cantidad === null || $cantidad <= 0)) {
+            throw new InvalidArgumentException('cantidad inválida en posición ' . $indice . '.');
+        }
+
+        return [
+            'accion' => $nombreAccion,
+            'id_producto' => $productoId,
+            'cantidad' => $cantidad,
+        ];
+    }
+
+    private static function applyRedisCartAction(array &$snapshot, array $accion): void
+    {
+        $nombreAccion = $accion['accion'];
+
+        if ($nombreAccion === 'limpiar') {
+            $snapshot = [];
+            return;
+        }
+
+        $productoId = (int) $accion['id_producto'];
+
+        if ($nombreAccion === 'eliminar') {
+            unset($snapshot[$productoId]);
+            return;
+        }
+
+        if ($nombreAccion === 'actualizar') {
+            $snapshot[$productoId] = (int) $accion['cantidad'];
+            return;
+        }
+
+        $snapshot[$productoId] = (int) ($snapshot[$productoId] ?? 0) + (int) $accion['cantidad'];
+
+        if ($snapshot[$productoId] <= 0) {
+            unset($snapshot[$productoId]);
+        }
+    }
+}

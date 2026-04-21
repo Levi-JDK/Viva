@@ -24,7 +24,7 @@ class Worker {
     private array $backoff = [1, 5, 30, 60]; // Exponential backoff en segundos
     
     // Constantes de colas
-    private const QUEUE_REGISTROS = 'viva:cola:registros';
+    private const QUEUE_REGISTROS = 'viva:queue:users';
     private const QUEUE_CARRITO = 'viva:cola:carrito';
     private const QUEUE_DLQ = 'viva:cola:deadletter'; // Dead Letter Queue
     
@@ -107,15 +107,14 @@ class Worker {
                     $this->log("[*] Mensaje recibido de: $cola");
                     
                     try {
-                        $mensajeInt = (int) $mensaje;
-                        
                         match ($cola) {
-                            self::QUEUE_REGISTROS => $this->procesarRegistro($mensajeInt),
-                            self::QUEUE_CARRITO => $this->procesarCarrito($mensajeInt),
+                            self::QUEUE_REGISTROS => $this->procesarRegistro((int) $mensaje),
+                            self::QUEUE_CARRITO => $this->procesarCarrito((string) $mensaje),
                             default => $this->log("[!] Cola desconocida: $cola")
                         };
                     } catch (Exception $e) {
                         $this->log("[ERROR] Excepción: " . $e->getMessage());
+                        throw $e;
                     }
                 }
             }
@@ -148,14 +147,7 @@ class Worker {
                 return;
                 
             } catch (PDOException $e) {
-                $this->log("[!] Intento $intento/{$this->maxRetries} falló: " . $e->getMessage());
-                echo $e->getMessage() . "\n";
-                
-                if ($intento < $this->maxRetries) {
-                    $espera = $this->backoff[$intento - 1] ?? 60;
-                    $this->log("[*] Esperando $espera segundos antes de reintentar...");
-                    sleep($espera);
-                }
+                throw $e;
             }
         }
         
@@ -166,39 +158,37 @@ class Worker {
     /**
      * Procesar carrito de compras
      */
-    private function procesarCarrito(int $cartId): void {
-        $this->log("[*] Procesando carrito ID: $cartId");
-        
-        $prefix = RedisConfig::getPrefix();
-        $cartData = $this->redis->hgetall($prefix . 'carrito:' . $cartId);
-        
-        if (empty($cartData)) {
-            $this->log("[!] No se encontraron datos para carrito $cartId");
+    private function procesarCarrito(string $mensaje): void {
+        $payload = json_decode($mensaje, true);
+
+        if (!is_array($payload)) {
+            throw new InvalidArgumentException('Mensaje de cola de carrito inválido.');
+        }
+
+        $userId = (int) ($payload['user_id'] ?? 0);
+        $this->log("[*] Procesando carrito user_id: $userId");
+
+        $job = ProcessCartJob::fromRedis($this->redis, $payload);
+
+        if ($job === null) {
+            $this->log("[!] No se encontraron datos de sesión para carrito user_id: $userId");
             return;
         }
-        
-        $items = json_decode($cartData['items'] ?? '[]', true);
-        
+
         for ($intento = 1; $intento <= $this->maxRetries; $intento++) {
             try {
-                $this->ejecutarInsertCarrito($cartData, $items);
-                
-                // Éxito
-                $this->redis->del($prefix . 'carrito:' . $cartId);
-                $this->log("[✓] Carrito $cartId procesado correctamente");
+                $job->handle($this->pdo);
+                $this->redis->del($job->getSessionKey());
+                $this->log("[✓] Carrito user_id $userId procesado correctamente");
                 
                 return;
                 
             } catch (PDOException $e) {
-                $this->log("[!] Intento $intento falló: " . $e->getMessage());
-                
-                if ($intento < $this->maxRetries) {
-                    sleep($this->backoff[$intento - 1]);
-                }
+                throw $e;
             }
         }
-        
-        $this->moverADLQ('carrito', $cartId, $cartData);
+
+        $this->moverADLQ('carrito', $userId, $payload);
     }
     
     /**
@@ -207,7 +197,7 @@ class Worker {
     private function ejecutarInsertUsuario(array $userData): void {
         $db = Database::getInstance();
         $stmt = $db->ejecutar('crearUsuario', [
-            ':email' => $userData['mail'],
+            ':email' => $userData['email'],
             ':contrasena' => $userData['password'],
             ':nombre' => $userData['nombre'],
             ':apellido' => $userData['apellido']
@@ -216,31 +206,22 @@ class Worker {
         $result = $stmt->fetch();
         $this->log("[*] Resultado: " . json_encode($result));
 
+        $this->enviarCorreoBienvenidaRegistro($userData);
+    }
+
+    private function enviarCorreoBienvenidaRegistro(array $userData): void {
         $nombreCompleto = trim(($userData['nombre'] ?? '') . ' ' . ($userData['apellido'] ?? ''));
+
         try {
             $mail = MailService::getInstance();
-            if ($mail->sendWelcomeEmail($userData['mail'], $nombreCompleto)) {
-                $this->log("[✓] Email de bienvenida enviado a " . $userData['mail']);
+            if ($mail->sendWelcomeEmail($userData['email'], $nombreCompleto)) {
+                $this->log("[✓] Email de bienvenida enviado a " . $userData['email']);
             } else {
                 $this->log("[!] Error enviando email: " . $mail->getLastError());
             }
         } catch (Exception $e) {
-            $this->log("[!] Excepción enviando email: " . $e->getMessage());
+            throw $e;
         }
-    }
-    
-    /**
-     * Ejecutar insert de carrito en PostgreSQL
-     */
-    private function ejecutarInsertCarrito(array $cartData, array $items): void {
-        // En un escenario real, esto llamaría a un SP que inserte el encabezado
-        // Por ahora lo procesamos vía jobs o delegamos a database.php
-        $db = Database::getInstance();
-        $db->ejecutar('registrarCarrito', [
-            ':id_user' => $cartData['usuario_id'],
-            ':items'   => json_encode($items),
-            ':total'   => $cartData['total'] ?? 0
-        ]);
     }
     
     /**
@@ -266,13 +247,13 @@ class Worker {
                 $this->redis->setex($prefix . 'jwt_revoked:' . $id, 86400, 1);
                 
                 // Liberar el email para que el usuario pueda intentar registrarse nuevamente
-                if (isset($data['mail'])) {
-                    $this->redis->srem($prefix . 'emails:registrados', $data['mail']);
-                    $this->redis->hdel($prefix . 'email_to_id', $data['mail']);
-                    $this->log("[*] Compensación: Liberado email " . $data['mail'] . " y JWT revocado.");
+                if (isset($data['email'])) {
+                    $this->redis->srem($prefix . 'emails:registrados', $data['email']);
+                    $this->redis->hdel($prefix . 'email_to_id', $data['email']);
+                    $this->log("[*] Compensación: Liberado email " . $data['email'] . " y JWT revocado.");
                 }
             } catch (\Exception $e) {
-                $this->log("[ERROR] Fallo en compensación de errores: " . $e->getMessage());
+                throw $e;
             }
         }
     }

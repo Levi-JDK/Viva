@@ -60,5 +60,5 @@ try {
     }
 
 } catch (Exception $e) {
-    echo "[ERROR] Fallo el Warm-up: " . $e->getMessage() . "\n";
+    throw $e;
 }

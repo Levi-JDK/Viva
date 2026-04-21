@@ -115,7 +115,7 @@ $accesos = [
                         <?= htmlspecialchars($nombre_usuario ?? 'Admin Global') ?>
                     </p>
                     <p class="text-[10px] tracking-wide font-medium text-slate-400 truncate">
-                        <?= htmlspecialchars($email_usuario ?? 'master@viva.com') ?>
+                        <?= htmlspecialchars($email_usuario) ?>
                     </p>
                 </div>
             </div>

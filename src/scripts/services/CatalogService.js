@@ -1,7 +1,7 @@
 export class CatalogService {
     static async getProducts(queryString) {
         const baseUrl = (typeof window.VIVACatalogo !== 'undefined' ? window.VIVACatalogo.baseUrl : (typeof BASE_URL !== 'undefined' ? BASE_URL : ''));
-        const response = await fetch(`${baseUrl}api/productos${queryString ? '?' + queryString : ''}`, {
+        const response = await fetch(`${baseUrl}catalogo${queryString ? '?' + queryString : ''}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',

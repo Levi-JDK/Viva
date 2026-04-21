@@ -1,6 +1,6 @@
 export class AdminService {
     static async updateParameters(formData) {
-        const response = await fetch(BASE_URL + 'api/admin/actualizar_parametros', {
+        const response = await fetch(BASE_URL + 'admin?action=actualizar_parametros', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',

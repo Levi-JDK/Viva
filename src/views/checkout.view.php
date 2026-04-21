@@ -208,9 +208,7 @@ var data = {
     email_billing:"<?= $_SESSION['mail_user'] ?? '' ?>"
 };
 
-document.getElementById('btn-pagar').addEventListener('click', function () {
-    if (!this.disabled) handler.open(data);
-});
+window.VIVA_CHECKOUT_EPAYCO = { handler, data };
 
 // ── Dirección de envío ───────────────────────────────────────────
 const selectCiudad = document.getElementById('ciudad');
@@ -225,7 +223,7 @@ const msgEnvio     = document.getElementById('msg-envio');
     // consultar_ciudades.js maneja el cambio de departamento.
     // Aquí solo cargamos las ciudades del dpto guardado y pre-seleccionamos la ciudad.
     const idCiudadGuardada = <?= json_encode((string)$cliente_envio['id_ciudad']) ?>;
-    fetch(`${BASE_URL}api/get_ciudades?id_departamento=<?= $cliente_envio['id_departamento'] ?>`)
+    fetch(`${BASE_URL}ciudades?id_departamento=<?= $cliente_envio['id_departamento'] ?>`)
         .then(r => r.json())
         .then(res => {
             if (res.success) {
@@ -261,7 +259,7 @@ document.getElementById('form-envio').addEventListener('submit', async function 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
     try {
-        const res  = await fetch(`${BASE_URL}api/guardar_cliente`, { method: 'POST', body: new FormData(this) });
+        const res  = await fetch(`${BASE_URL}perfil`, { method: 'POST', body: new FormData(this) });
         const json = await res.json();
 
         if (json.exito) {
