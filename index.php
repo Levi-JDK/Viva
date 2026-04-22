@@ -81,6 +81,7 @@ $routes = [
     },
     '/perfil'       => 'src/controllers/perfil.controller.php',
     '/vender'       => 'src/controllers/registro_vendedor.controller.php',
+    '/registro_vendedor' => 'src/controllers/vendor_registration.controller.php',
     '/logout'       => 'src/controllers/logout.controller.php',
     '/mis_productos'=> 'src/controllers/mis_productos.controller.php',
     '/catalogo'     => 'src/controllers/catalogo.controller.php',

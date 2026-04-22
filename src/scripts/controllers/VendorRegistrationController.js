@@ -22,7 +22,7 @@ export class VendorRegistrationController {
         try {
             const formData = new FormData(form);
             const { ApiService } = await import('../services/ApiService.js');
-            const data = await ApiService.post(window.BASE_URL + 'registro', formData);
+            const data = await ApiService.post(window.BASE_URL + 'registro_vendedor', formData);
             
             if (data.success) {
                 Toast.show(data.message || 'Registro exitoso', 'success');

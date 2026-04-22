@@ -80,14 +80,27 @@ class RegisterService
         $idWorker = $redis->incr($prefix . 'contador:usuarios');
         $lockKey = $prefix . 'lock:email:' . $email;
 
+        // Primero: guardar datos del usuario y pushear a cola
         $pipe = $redis->pipeline();
         $pipe->setex($lockKey, 3600, '1');
         $pipe->hset($prefix . 'user:' . $idWorker, 'nombre', $nombre, 'apellido', $apellido, 'email', $email, 'password', $hash, 'created_at', date('Y-m-d H:i:s'));
         $pipe->lpush($prefix . 'queue:users', $idWorker);
-        $pipe->hset($prefix . 'email_to_id', $email, $idWorker);
-        $pipe->sadd($prefix . 'emails:registrados', $email);
-        $pipe->sismember($prefix . 'emails:registrados', $email);
         $pipe->execute();
+
+        // Verificar que los datos se guardaron en Redis
+        // (cola puede estar vacía si worker ya lo consumió - eso es OK)
+        $userKeyExists = $redis->exists($prefix . 'user:' . $idWorker);
+
+        if (!$userKeyExists) {
+            $redis->del($prefix . 'user:' . $idWorker);
+            throw new RuntimeException('Error al guardar usuario - intentá de nuevo');
+        }
+
+        // Solo si llegó a la cola, marcar como registrado
+        $pipe2 = $redis->pipeline();
+        $pipe2->hset($prefix . 'email_to_id', $email, $idWorker);
+        $pipe2->sadd($prefix . 'emails:registrados', $email);
+        $pipe2->execute();
 
         return [
             'mensaje' => 'Registro aceptado. Estamos procesando su solicitud...',
