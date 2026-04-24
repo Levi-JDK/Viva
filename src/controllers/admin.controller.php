@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             $landing_filosofia_p2   = $_POST['landing_filosofia_p2'] ?? null;
 
             if (isset($_FILES['foto_hero']) && ($_FILES['foto_hero']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-                $upload = handleImageUpload($_FILES['foto_hero'], ROOT_PATH . 'images/landing/', 'landing_hero_', 'images/landing/');
+                $upload = handleImageUpload($_FILES['foto_hero'], __DIR__ . '/../../images/landing/', 'landing_hero_', 'images/landing/');
                 if (!$upload['success']) {
                     echo json_encode(['success' => false, 'message' => $upload['message'] ?? 'Error al subir la imagen hero.']);
                     exit;
@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
         unset($datos['accion'], $datos['entidad']);
 
         if ($entidad === 'categoria' && isset($_FILES['img_cat']) && ($_FILES['img_cat']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-            $upload = handleImageUpload($_FILES['img_cat'], ROOT_PATH . 'images/categorias/', 'categoria_', 'images/categorias/');
+            $upload = handleImageUpload($_FILES['img_cat'], __DIR__ . '/../../images/categorias/', 'categoria_', 'images/categorias/');
             if (!$upload['success']) {
                 echo json_encode(['success' => false, 'message' => $upload['message'] ?? 'Error al subir la imagen de la categoría.']);
                 exit;
