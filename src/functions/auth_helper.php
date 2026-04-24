@@ -224,18 +224,9 @@ class AuthHelper {
     public static function checkAccess(int $id_menu): void {
         $userData = self::protectRoute();
         
-        require_once __DIR__ . '/database.php';
-        $db = Database::getInstance();
-        $stmtMenu = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $userData->id_user]);
-        $user_menus = $stmtMenu->fetchAll(\PDO::FETCH_ASSOC);
-
-        $hasAccess = false;
-        foreach ($user_menus as $menu) {
-            if (isset($menu['id_menu']) && $menu['id_menu'] == $id_menu) {
-                $hasAccess = true;
-                break;
-            }
-        }
+        require_once __DIR__ . '/../services/UserService.php';
+        $menuIds = UserService::obtenerMenuIdsUsuario($userData->id_user);
+        $hasAccess = in_array($id_menu, $menuIds);
 
         if (!$hasAccess) {
             // Check for AJAX to return JSON instead

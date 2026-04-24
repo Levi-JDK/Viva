@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 
 class UserService
 {
@@ -55,11 +56,31 @@ class UserService
     public static function obtenerMenuIdsUsuario(int $userId): array
     {
         try {
+            $redis = RedisConfig::getConnection();
+            $cacheKey = RedisConfig::getPrefix() . "user:{$userId}:menus";
+            
+            $cached = $redis->get($cacheKey);
+            if ($cached) {
+                return json_decode($cached, true);
+            }
+        } catch (Exception $e) {
+            // Fail-safe: Si Redis falla, continuamos a la DB
+            error_log("Redis Cache Error in UserService: " . $e->getMessage());
+        }
+
+        try {
             $db = Database::getInstance();
             $stmt = $db->ejecutar('obtenerNavegacionUsuario', [':id_user' => $userId]);
             $menuIds = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id_menu');
+            $menusLimpio = array_map('intval', $menuIds);
 
-            return array_map('intval', $menuIds);
+            try {
+                if (isset($redis) && isset($cacheKey)) {
+                    $redis->setex($cacheKey, 86400, json_encode($menusLimpio));
+                }
+            } catch (Exception $e) {} // Ignorar si falla al escribir
+            
+            return $menusLimpio;
         } catch (PDOException $e) {
             throw $e;
         }

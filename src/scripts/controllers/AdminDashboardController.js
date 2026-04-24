@@ -382,6 +382,10 @@ export class AdminDashboardController {
                         class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3 text-sm font-bold text-white file:mr-4 file:border-0 file:rounded-lg file:bg-amber-500 file:px-3 file:py-2 file:text-xs file:font-bold file:text-slate-900 hover:file:bg-amber-400 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 focus:outline-none transition-all shadow-inner"
                     >
                     <p class="mt-2 text-xs text-slate-500 break-all">${value ? `Actual: ${escapedValue}` : 'Sin imagen cargada'}</p>
+                    <div class="mt-3 flex items-center gap-2">
+                        <input type="checkbox" name="remove_img_cat" value="1" id="remove_img_cat" class="rounded bg-black/20 border-white/10 text-amber-500 focus:ring-amber-500/50">
+                        <label for="remove_img_cat" class="text-xs text-slate-400 cursor-pointer hover:text-white transition-colors">Volver a imagen por defecto</label>
+                    </div>
                 `;
 
                 this.crudFormFields.appendChild(wrapper);
@@ -879,6 +883,10 @@ export class AdminDashboardController {
                             class="param-file-input w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-sm font-bold text-white file:mr-4 file:border-0 file:rounded-lg file:bg-amber-500 file:px-3 file:py-2 file:text-xs file:font-bold file:text-slate-900 hover:file:bg-amber-400 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 focus:outline-none transition-all"
                         >
                         <p class="mt-2 text-xs text-slate-500 break-all">${val ? `Actual: ${escapedValue}` : 'Sin imagen cargada'}</p>
+                        <div class="mt-3 flex items-center gap-2">
+                            <input type="checkbox" name="remove_foto_hero" value="1" id="remove_foto_hero" class="param-input rounded bg-black/20 border-white/10 text-amber-500 focus:ring-amber-500/50" data-original="0">
+                            <label for="remove_foto_hero" class="text-xs text-slate-400 cursor-pointer hover:text-white transition-colors">Volver a imagen por defecto</label>
+                        </div>
                     </div>`;
                 return;
             }
