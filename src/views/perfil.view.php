@@ -82,8 +82,9 @@ require_once __DIR__ . '/partials/base_head.php';
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
                 <div class="min-h-full flex flex-col bg-gradient-to-br from-orange-50/50 via-white/80 to-amber-50/50">
                     <div class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-8">
-                    <!-- Profile Section -->
-                    <section id="profile" class="content-section active">
+                    <?php if (in_array(4, $menu_ids_usuario)): ?>
+                <!-- Profile Section -->
+                <section id="profile" class="content-section active">
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
@@ -164,7 +165,9 @@ require_once __DIR__ . '/partials/base_head.php';
                             </form>    
                     </div>
                 </section>
+                <?php endif; ?>
 
+                <?php if (in_array(5, $menu_ids_usuario)): ?>
                 <!-- Orders Section -->
                 <section id="orders" class="content-section">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -236,7 +239,9 @@ require_once __DIR__ . '/partials/base_head.php';
                         </div>
                     </div>
                 </section>
+                <?php endif; ?>
 
+                <?php if (in_array(6, $menu_ids_usuario)): ?>
                 <!-- Favorites Section -->
                 <section id="favorites" class="content-section">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -265,7 +270,9 @@ require_once __DIR__ . '/partials/base_head.php';
                         </div>
                     </div>
                 </section>
+                <?php endif; ?>
 
+                <?php if (in_array(7, $menu_ids_usuario)): ?>
                 <!-- Settings Section -->
                 <section id="settings" class="content-section">
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
