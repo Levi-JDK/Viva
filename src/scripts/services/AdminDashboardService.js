@@ -6,13 +6,13 @@
 export class AdminDashboardService {
 
     static async fetchUsers() {
-        const response = await fetch(`${BASE_URL}admin?accion=list_users&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?ajax=1&accion=list_users&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to fetch users');
         return response.json();
     }
 
     static async fetchProducts() {
-        const response = await fetch(`${BASE_URL}admin?accion=list_products&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?ajax=1&accion=list_products&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to fetch products');
         return response.json();
     }
@@ -38,7 +38,7 @@ export class AdminDashboardService {
     }
 
     static async crudRead(entidad) {
-        const response = await fetch(`${BASE_URL}admin?accion=read&entidad=${entidad}&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}admin?ajax=1&accion=read&entidad=${entidad}&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to read entity');
         return response.json();
     }

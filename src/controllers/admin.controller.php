@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../utils/image_uploader.php';
 
 AuthHelper::checkAccess(8);
 
@@ -28,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
         || isset($_POST['landing_conf_3_sub'])
         || isset($_POST['landing_filosofia_tit'])
         || isset($_POST['landing_filosofia_p1'])
-        || isset($_POST['landing_filosofia_p2']);
+        || isset($_POST['landing_filosofia_p2'])
+        || isset($_FILES['foto_hero']);
 
     try {
         $db = Database::getInstance();
@@ -45,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             $val_finfact     = isset($_POST['val_finfact']) ? (int) $_POST['val_finfact'] : null;
             $val_actfact     = isset($_POST['val_actfact']) ? (int) $_POST['val_actfact'] : null;
             $val_observa     = $_POST['val_observa'] ?? null;
+            $foto_hero       = $_POST['foto_hero'] ?? null;
 
             $landing_hero_titulo    = $_POST['landing_hero_titulo'] ?? null;
             $landing_hero_subtitulo  = $_POST['landing_hero_subtitulo'] ?? null;
@@ -59,6 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             $landing_filosofia_p1   = $_POST['landing_filosofia_p1'] ?? null;
             $landing_filosofia_p2   = $_POST['landing_filosofia_p2'] ?? null;
 
+            if (isset($_FILES['foto_hero']) && ($_FILES['foto_hero']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $upload = handleImageUpload($_FILES['foto_hero'], ROOT_PATH . 'images/landing/', 'landing_hero_', 'images/landing/');
+                if (!$upload['success']) {
+                    echo json_encode(['success' => false, 'message' => $upload['message'] ?? 'Error al subir la imagen hero.']);
+                    exit;
+                }
+
+                $foto_hero = $upload['path'] ?? ($upload['paths'][0] ?? null);
+            }
+
             $stmt = $db->ejecutar('actualizarParametrosGlob', [
                 ':id_parametro'           => $id_parametro,
                 ':nom_plataforma'         => $nom_plataforma,
@@ -68,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
                 ':val_finfact'            => $val_finfact,
                 ':val_actfact'            => $val_actfact,
                 ':val_observa'            => $val_observa,
+                ':foto_hero'              => $foto_hero,
                 ':landing_hero_titulo'    => $landing_hero_titulo,
                 ':landing_hero_subtitulo' => $landing_hero_subtitulo,
                 ':landing_hero_btn'       => $landing_hero_btn,
@@ -191,6 +205,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
 
         $datos = $_REQUEST;
         unset($datos['accion'], $datos['entidad']);
+
+        if ($entidad === 'categoria' && isset($_FILES['img_cat']) && ($_FILES['img_cat']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $upload = handleImageUpload($_FILES['img_cat'], ROOT_PATH . 'images/categorias/', 'categoria_', 'images/categorias/');
+            if (!$upload['success']) {
+                echo json_encode(['success' => false, 'message' => $upload['message'] ?? 'Error al subir la imagen de la categoría.']);
+                exit;
+            }
+
+            $datos['img_cat'] = $upload['path'] ?? ($upload['paths'][0] ?? null);
+        }
 
         $resultado = $db->gestionarCRUDAdmin($accion, $entidad, $datos);
         echo json_encode(['success' => true, 'data' => $resultado]);

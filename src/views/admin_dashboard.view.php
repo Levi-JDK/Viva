@@ -251,7 +251,7 @@ $accesos = [
                         </div>
                         <div class="grid grid-cols-2 gap-4 flex-1">
                             <?php foreach ($accesos as $ac): ?>
-                                <button data-action="show-panel" data-panel-id="<?= $ac['panel'] ?>"
+                                <button data-action="show-panel" data-panel="<?= $ac['panel'] ?>" data-nom="<?= htmlspecialchars($ac['nom']) ?>"
                                     class="relative group rounded-2xl bg-black/20 border border-white/5 p-6 flex flex-col items-center justify-center gap-4 text-center overflow-hidden transition-all duration-300 <?= $ac['border_glow'] ?> hover:-translate-y-1">
                                     <!-- Glow hover interior -->
                                     <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -362,7 +362,7 @@ $accesos = [
                         <p id="menus-usuario-nombre" class="text-sm text-slate-400 font-medium tracking-wide">Selecciona un usuario desde el panel de Usuarios.</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <button id="menus-back-usuarios"
+                        <button id="menus-back-usuarios" data-action="show-panel" data-panel="usuarios" data-nom="Usuarios"
                             class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/30 text-xs font-bold tracking-widest uppercase transition-all duration-200">
                             <i class="fas fa-arrow-left text-xs"></i>
                             <span>Volver a Usuarios</span>
@@ -444,14 +444,14 @@ $accesos = [
                                     'tipo_doc' => 'Tipos de Documento', 'transito' => 'Tránsito Aduana', 'transportadora' => 'Transportadoras',
                                 ];
                                 foreach ($entidades as $val => $label): ?>
-                                <button type="button" data-value="<?= $val ?>"
+                                <button type="button" data-action="select-crud-entity" data-entity="<?= $val ?>" data-value="<?= $val ?>"
                                     class="crud-dropdown-option w-full text-left px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors">
                                     <?= $label ?>
                                 </button>
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        <button id="crud-btn-new" disabled class="disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5 shadow-[0_5px_20px_-5px_rgba(245,158,11,0.5)]">
+                        <button id="crud-btn-new" data-action="open-crud-modal" disabled class="disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5 shadow-[0_5px_20px_-5px_rgba(245,158,11,0.5)]">
                             <i class="fas fa-plus text-xs"></i>
                             <span>Nuevo</span>
                         </button>
@@ -498,18 +498,18 @@ $accesos = [
                             <h3 class="text-xl font-black text-white" id="crud-modal-title">Nuevo Registro</h3>
                             <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mt-1" id="crud-modal-subtitle">Entidad</p>
                         </div>
-                        <button id="crud-modal-close" class="w-8 h-8 rounded-full bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors">
+                        <button id="crud-modal-close" data-action="close-crud-modal" class="w-8 h-8 rounded-full bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
 
                     <div class="p-8 pb-10">
-                        <form id="crud-form" class="space-y-5">
+                        <form id="crud-form" data-action="submit-crud-form" class="space-y-5">
                             <div id="crud-form-fields" class="space-y-5">
                                 <!-- Dinámico Ghost Inputs -->
                             </div>
                             <div class="mt-8 flex justify-end gap-4 pt-4 border-t border-white/5">
-                                <button type="button" id="crud-btn-cancel" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">Cancelar</button>
+                                <button type="button" id="crud-btn-cancel" data-action="close-crud-modal" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors">Cancelar</button>
                                 <button type="submit" id="crud-btn-save" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all hover:scale-105 flex items-center gap-2">
                                     <i class="fas fa-save hidden" id="crud-save-icon"></i> 
                                     <span>Guardar Datos</span>
@@ -604,7 +604,5 @@ $accesos = [
     </div>
 </div>
 
-<!-- Scripts -->
-<script src="<?= BASE_URL ?>src/scripts/admin_crud.js"></script>
 </body>
 </html>

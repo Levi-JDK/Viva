@@ -161,7 +161,7 @@ class Database {
         $this->statements['actualizarParametrosGlob'] = $this->connection->prepare("
             SELECT fun_u_parametros(
                 :id_parametro, :nom_plataforma, :dir_contacto, :correo_contacto,
-                :val_inifact, :val_finfact, :val_actfact, :val_observa,
+                :val_inifact, :val_finfact, :val_actfact, :val_observa, :foto_hero,
                 :landing_hero_titulo, :landing_hero_subtitulo, :landing_hero_btn,
                 :landing_conf_1_tit, :landing_conf_1_sub, :landing_conf_2_tit, :landing_conf_2_sub,
                 :landing_conf_3_tit, :landing_conf_3_sub, :landing_filosofia_tit, :landing_filosofia_p1, :landing_filosofia_p2
