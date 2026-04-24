@@ -48,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             $val_actfact     = isset($_POST['val_actfact']) ? (int) $_POST['val_actfact'] : null;
             $val_observa     = $_POST['val_observa'] ?? null;
             $foto_hero       = $_POST['foto_hero'] ?? null;
+            if (isset($_POST['remove_foto_hero']) && $_POST['remove_foto_hero'] === '1') {
+                $foto_hero = 'images/hero.jpeg';
+            }
 
             $landing_hero_titulo    = $_POST['landing_hero_titulo'] ?? null;
             $landing_hero_subtitulo  = $_POST['landing_hero_subtitulo'] ?? null;
@@ -205,6 +208,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
 
         $datos = $_REQUEST;
         unset($datos['accion'], $datos['entidad']);
+
+        if ($entidad === 'categoria' && isset($_POST['remove_img_cat']) && $_POST['remove_img_cat'] === '1') {
+            $datos['img_cat'] = 'images/default_category.webp';
+        }
 
         if ($entidad === 'categoria' && isset($_FILES['img_cat']) && ($_FILES['img_cat']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             $upload = handleImageUpload($_FILES['img_cat'], __DIR__ . '/../../images/categorias/', 'categoria_', 'images/categorias/');
