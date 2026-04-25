@@ -72,7 +72,7 @@ if (!isset($product) || empty($product)) {
 // Obtener primera imagen estandarizada o usar placeholder
 $product_image_path = $product['primera_imagen'] ?? $product['imagen_principal'] ?? null;
 $product_image = !empty($product_image_path)
-    ? '/var/www/html/viva/' . ltrim($product_image_path, '/')
+    ? base_url_path($product_image_path)
     : '/var/www/html/viva/images/default.webp';
 $stand_logo = !empty($product['img_stand']) ? base_url_path($product['img_stand']) : base_url_path('images/default.webp');
 ?>
