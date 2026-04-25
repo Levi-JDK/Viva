@@ -1,4 +1,3 @@
-<?php // if (isset($_GET['debug'])) echo "View Loaded...<br>"; ?>
 <?php 
 $page_title = ($producto && isset($producto['nom_producto'])) ? htmlspecialchars($producto['nom_producto']) . " | VIVA" : "Producto no encontrado | VIVA";
 $body_class = "bg-gray-50 font-sans antialiased text-gray-800";
@@ -11,7 +10,7 @@ require_once __DIR__ . '/partials/base_head.php';
                 <i class="fas fa-exclamation-circle text-6xl text-gray-300 mb-4"></i>
                 <h1 class="text-2xl font-bold text-gray-700 mb-2">Lo sentimos</h1>
                 <p class="text-gray-500 mb-6"><?= htmlspecialchars($error_message) ?></p>
-                <a href="<?= BASE_URL ?>catalogo" class="px-6 py-2 bg-naranja-artesanal text-white rounded-full hover:bg-orange-600 transition-colors">
+                <a href="<?= base_url_path('catalogo') ?>" class="px-6 py-2 bg-naranja-artesanal text-white rounded-full hover:bg-orange-600 transition-colors">
                     Volver al Catálogo
                 </a>
             </div>
@@ -21,14 +20,14 @@ require_once __DIR__ . '/partials/base_head.php';
             <nav class="flex text-sm text-gray-500 mb-6" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="<?= BASE_URL ?>" class="hover:text-naranja-artesanal transition-colors">
+                        <a href="<?= base_url_path() ?>" class="hover:text-naranja-artesanal transition-colors">
                             <i class="fas fa-home mr-2"></i>Inicio
                         </a>
                     </li>
                     <li>
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-xs mx-2"></i>
-                            <a href="<?= BASE_URL ?>catalogo?cat=<?= $producto['id_categoria'] ?>" class="hover:text-naranja-artesanal transition-colors">
+                            <a href="<?= base_url_path('catalogo?cat=' . $producto['id_categoria']) ?>" class="hover:text-naranja-artesanal transition-colors">
                                 <?= htmlspecialchars($producto['nom_categoria']) ?>
                             </a>
                         </div>
@@ -47,11 +46,18 @@ require_once __DIR__ . '/partials/base_head.php';
                     
                     <!-- Image Gallery Column -->
                     <div class="lg:col-span-7 bg-gray-100 p-6 flex flex-col items-center justify-center relative">
+                        <?php
+                            $imagenPrincipalRaw = $producto['imagen_principal'] ?? null;
+                            $imagenPrincipalPublicUrl = !empty($imagenPrincipalRaw) ? base_url_path($imagenPrincipalRaw) : null;
+                            $firstThumbnailRaw = (!empty($producto['imagenes']) && isset($producto['imagenes'][0]['url'])) ? $producto['imagenes'][0]['url'] : null;
+                            $firstThumbnailPublicUrl = !empty($firstThumbnailRaw) ? base_url_path($firstThumbnailRaw) : null;
+                        ?>
+
                         <!-- Main Image -->
                         <div class="w-full h-[400px] md:h-[500px] mb-4">
                             <?php if (!empty($producto['imagen_principal'])): ?>
                                 <div id="imageContainer" class="w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white flex items-center justify-center p-4 relative group cursor-zoom-in">
-                                    <img id="mainImage" src="<?= BASE_URL . $producto['imagen_principal'] ?>" alt="<?= htmlspecialchars($producto['nom_producto']) ?>" class="max-w-full max-h-full object-contain transition-transform duration-200">
+                                    <img id="mainImage" src="<?= htmlspecialchars($imagenPrincipalPublicUrl) ?>" alt="<?= htmlspecialchars($producto['nom_producto']) ?>" class="max-w-full max-h-full object-contain transition-transform duration-200">
                                 </div>
                             <?php else: ?>
                                 <div class="w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white flex items-center justify-center p-4 relative group">
@@ -64,8 +70,8 @@ require_once __DIR__ . '/partials/base_head.php';
                          <?php if (!empty($producto['imagenes']) && count($producto['imagenes']) > 1): ?>
                             <div class="flex space-x-2 overflow-x-auto pb-2 w-full justify-center">
                                 <?php foreach ($producto['imagenes'] as $img): ?>
-                                    <button data-action="change-main-image" data-src="<?= BASE_URL . $img['url'] ?>" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
-                                        <img src="<?= BASE_URL . $img['url'] ?>" class="w-full h-full object-cover">
+                                    <button data-action="change-main-image" data-src="<?= base_url_path($img['url']) ?>" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
+                                        <img src="<?= base_url_path($img['url']) ?>" class="w-full h-full object-cover">
                                     </button>
                                 <?php endforeach; ?>
                             </div>
@@ -113,16 +119,16 @@ require_once __DIR__ . '/partials/base_head.php';
                                 $vendedor_slogan = $has_stand ? $producto['slogan_stand'] : 'Artesano Colombiano';
                             ?>
                             <div class="mt-4 mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex items-start gap-4">
-                                <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="flex-shrink-0 group">
+                                <a href="<?= base_url_path('stand?id=' . $producto['id_stand']) ?>" class="flex-shrink-0 group">
                                     <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-all">
-                                        <img src="<?= BASE_URL . $vendedor_imagen ?>" 
+                                        <img src="<?= base_url_path($vendedor_imagen) ?>" 
                                              alt="<?= htmlspecialchars($vendedor_nombre) ?>" 
                                              class="w-full h-full object-cover">
                                     </div>
                                 </a>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-bold text-naranja-artesanal uppercase tracking-wider mb-1">Vendido por</p>
-                                    <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="block group">
+                                    <a href="<?= base_url_path('stand?id=' . $producto['id_stand']) ?>" class="block group">
                                         <h3 class="text-lg font-bold text-tierra-oscuro truncate group-hover:text-naranja-artesanal transition-colors">
                                             <?= htmlspecialchars($vendedor_nombre) ?>
                                         </h3>
@@ -134,7 +140,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                         <i class="fas fa-map-marker-alt mr-1"></i>
                                         <span class="truncate"><?= htmlspecialchars($producto['ubicacion'] ?? 'Colombia') ?></span>
                                         <span class="mx-2 text-gray-300">|</span>
-                                        <a href="<?= BASE_URL ?>stand?id=<?= $producto['id_stand'] ?>" class="text-blue-600 hover:underline font-medium">
+                                        <a href="<?= base_url_path('stand?id=' . $producto['id_stand']) ?>" class="text-blue-600 hover:underline font-medium">
                                             Ver <?= $has_stand ? 'Stand' : 'Perfil' ?>
                                         </a>
                                     </div>
@@ -243,7 +249,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 Escribir una reseña
                             </button>
                         <?php else: ?>
-                            <p class="mt-4 text-sm text-gray-500">Debes <a href="<?= BASE_URL ?>login" class="text-blue-600 hover:underline">iniciar sesión</a> para opinar.</p>
+                            <p class="mt-4 text-sm text-gray-500">Debes <a href="<?= base_url_path('login') ?>" class="text-blue-600 hover:underline">iniciar sesión</a> para opinar.</p>
                         <?php endif; ?>
                     </div>
 
@@ -288,7 +294,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shadow-sm border border-gray-100">
-                                                    <img src="<?= BASE_URL . $r['foto_user'] ?>" alt="Foto" class="w-full h-full object-cover">
+                                                    <img src="<?= base_url_path($r['foto_user']) ?>" alt="Foto" class="w-full h-full object-cover">
                                                 </div>
                                                 <div>
                                                     <h4 class="font-bold text-gray-800 text-sm"><?= htmlspecialchars($r['nom_user'] . ' ' . $r['ape_user']) ?></h4>

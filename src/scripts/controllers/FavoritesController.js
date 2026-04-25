@@ -149,18 +149,20 @@ class FavoritesController {
 
     renderFavoritesList(favoritos, contenedor) {
         contenedor.innerHTML = '';
-        const baseUrl = window.BASE_URL || '/';
 
         favoritos.forEach(fav => {
             const precioOptions = { style: 'currency', currency: 'COP', minimumFractionDigits: 0 };
             let precioFormat = new Intl.NumberFormat('es-CO', precioOptions).format(fav.precio_producto);
             if (!precioFormat.includes('$')) precioFormat = '$' + precioFormat;
 
-            const imgUrl = fav.primera_imagen ? baseUrl + fav.primera_imagen : baseUrl + 'images/default_product.jpg';
+            const imgUrl = this.resolveAppUrl(fav.primera_imagen || 'images/default_product.jpg');
+            const productUrl = this.resolveAppUrl(`producto?id=${fav.id_producto}`);
+            const standId = fav.id_stand || fav.id_productor || '';
+            const standUrl = standId ? this.resolveAppUrl(`stand?id=${standId}`) : '#';
 
             const cardHTML = `
                 <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all group relative bg-white flex flex-col h-full">
-                    <a href="${baseUrl}producto?id=${fav.id_producto}" class="block relative flex-shrink-0 h-48 overflow-hidden bg-gray-50">
+                    <a href="${productUrl}" class="block relative flex-shrink-0 h-48 overflow-hidden bg-gray-50">
                         <img src="${imgUrl}" alt="${this.escapeHtml(fav.nom_producto)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300"></div>
                     </a>
@@ -170,13 +172,13 @@ class FavoritesController {
                     </button>
                     
                     <div class="p-4 flex flex-col flex-1">
-                        <a href="${baseUrl}producto?id=${fav.id_producto}" class="block mb-1">
+                        <a href="${productUrl}" class="block mb-1">
                             <h3 class="font-semibold text-gray-800 line-clamp-2 hover:text-naranja-artesanal transition-colors leading-tight">
                                 ${this.escapeHtml(fav.nom_producto)}
                             </h3>
                         </a>
                         
-                        <a href="${baseUrl}stand/${fav.id_productor || ''}" class="text-xs text-gray-500 mb-3 hover:text-tierra-oscuro transition-colors truncate block">
+                        <a href="${standUrl}" class="text-xs text-gray-500 mb-3 hover:text-tierra-oscuro transition-colors truncate block">
                             Vendido por <span class="font-medium">${this.escapeHtml(fav.nom_stand || 'Stand artesanal')}</span>
                         </a>
                         
@@ -192,6 +194,23 @@ class FavoritesController {
             `;
             contenedor.insertAdjacentHTML('beforeend', cardHTML);
         });
+    }
+
+    resolveAppUrl(path = '') {
+        if (!path) {
+            return typeof window.buildAppUrl === 'function' ? window.buildAppUrl('') : (window.BASE_URL || '/');
+        }
+
+        if (/^https?:\/\//i.test(path)) {
+            return path;
+        }
+
+        if (typeof window.buildAppUrl === 'function') {
+            return window.buildAppUrl(path);
+        }
+
+        const baseUrl = String(window.BASE_URL || '').replace(/\/+$/, '');
+        return `${baseUrl}/${String(path).replace(/^\/+/, '')}`;
     }
 
     escapeHtml(texto) {

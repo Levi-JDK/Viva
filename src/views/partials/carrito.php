@@ -13,7 +13,7 @@
 ?>
 <script>
     window.USER_IS_LOGGED_IN = <?= isset($is_logged_in) && $is_logged_in ? 'true' : 'false' ?>;
-    window.LOGIN_URL = '<?= BASE_URL ?>login';
+    window.LOGIN_URL = '<?= base_url_path('login') ?>';
 </script>
 
 <!-- ═══════════════════════════════════════════════════════
@@ -92,7 +92,7 @@
         </button>
 
         <!-- Botón checkout -->
-        <a href="<?= BASE_URL ?>checkout"
+        <a href="<?= base_url_path('checkout') ?>"
            class="block w-full text-center bg-principal hover:bg-secundario text-white font-bold
                   py-3 rounded-full transition-all hover:-translate-y-0.5 shadow hover:shadow-lg">
             Proceder al Pago <i class="fas fa-arrow-right ml-2"></i>

@@ -1,7 +1,7 @@
 <?php 
 $page_title = "VIVA | Artesanías Colombianas - Conecta con nuestras raíces";
 $body_class = "font-sans bg-white scroll-smooth";
-$extra_css = '<link rel="stylesheet" href="' . BASE_URL . 'src/styles/responsive.css">';
+$extra_css = '<link rel="stylesheet" href="' . base_url_path('src/styles/responsive.css') . '">';
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
     <!-- Prueba de GGA-->
@@ -12,8 +12,8 @@ require_once __DIR__ . '/partials/base_head.php';
         <!-- Hero Background -->
         <div class="absolute inset-0 z-0">
             <picture>
-                <source media="(max-width: 640px)" srcset="<?= !empty($pmtros["foto_hero"]) ? BASE_URL . $pmtros["foto_hero"] : '' ?>">
-                <img src="<?= !empty($pmtros["foto_hero"]) ? BASE_URL . $pmtros["foto_hero"] : '' ?>" 
+                <source media="(max-width: 640px)" srcset="<?= !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : '' ?>">
+                <img src="<?= !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : '' ?>" 
                      alt="Artesanías Colombianas" 
                      class="w-full h-full object-cover">
             </picture>
@@ -107,14 +107,14 @@ require_once __DIR__ . '/partials/base_head.php';
                         <?php 
                         // Habilitar enlace a la página de detalle
                         $show_link = true;
-                        $stand_url = BASE_URL . 'stand?id=' . $stand['id_stand'];
+                        $stand_url = base_url_path('stand?id=' . $stand['id_stand']);
                         require __DIR__ . '/../views/partials/card_stand.php'; 
                         ?>
                     <?php endforeach; ?>
                 </div>
 
                 <div class="text-center mt-10">
-                    <a href="<?= BASE_URL ?>stands" 
+                    <a href="<?= base_url_path('stands') ?>" 
                             class="btn-primary text-white px-8 py-3 rounded-full font-medium text-lg hover:shadow-xl inline-flex items-center transition-all">
                         Ver todos los emprendimientos
                         <i class="fas fa-arrow-right ml-2"></i>
@@ -148,10 +148,10 @@ require_once __DIR__ . '/partials/base_head.php';
                     foreach ($categorias_mostrar as $cat): 
                         // Usar la imagen de la BD, o la default si está vacía
                         $img_src = !empty($cat['img_cat']) 
-                            ? BASE_URL . $cat['img_cat'] 
-                            : BASE_URL . 'images/default_category.webp'; 
+                            ? base_url_path($cat['img_cat']) 
+                            : base_url_path('images/default_category.webp'); 
                 ?>
-                    <a href="<?= BASE_URL ?>catalogo?cat=<?= $cat['id_categoria'] ?>" class="category-card card-hover rounded-2xl p-6 text-center cursor-pointer h-full flex flex-col items-center justify-center transition-all">
+                    <a href="<?= base_url_path('catalogo?cat=' . $cat['id_categoria']) ?>" class="category-card card-hover rounded-2xl p-6 text-center cursor-pointer h-full flex flex-col items-center justify-center transition-all">
                         <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center p-2">
                             <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($cat['nom_categoria']) ?>" class="max-w-full max-h-full object-contain">
                         </div>
@@ -197,7 +197,7 @@ require_once __DIR__ . '/partials/base_head.php';
 
             <div class="text-center mt-8">
                 <button class="btn-primary text-white px-8 py-3 rounded-full font-medium hover:shadow-xl">
-                    <a href="<?= BASE_URL ?>catalogo">Ver todos los productos</a>
+                    <a href="<?= base_url_path('catalogo') ?>">Ver todos los productos</a>
                 </button>
             </div>
         </div>
@@ -223,7 +223,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <div class="w-full h-96 bg-gradient-to-br from-tierra-claro via-beige-suave to-verde-artesanal rounded-2xl overflow-hidden relative">
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">
-                                    <img src="<?= BASE_URL ?>images/foot.jpeg" alt="">
+                                    <img src="<?= base_url_path('images/foot.jpeg') ?>" alt="">
                                     <p class="text-tierra-oscuro font-medium">Artesanos trabajando</p>
                                     <p class="text-sm text-gray-600">Preservando tradiciones ancestrales</p>
                                 </div>

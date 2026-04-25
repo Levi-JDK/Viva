@@ -160,7 +160,7 @@ class MyProductsService
 
         return array_map(static function (array $producto): array {
             $imagenes = json_decode($producto['imagenes'] ?? '[]', true);
-            $producto['imagen'] = 'images/default_product.png';
+            $producto['imagen'] = 'images/default.webp';
             $producto['vistas'] = (int) ($producto['vistas'] ?? 0);
             $producto['stock_productor'] = (int) ($producto['stock_productor'] ?? 0);
             $producto['activo'] = !empty($producto['activo']);

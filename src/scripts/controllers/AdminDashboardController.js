@@ -595,7 +595,7 @@ export class AdminDashboardController {
         list.forEach(u => {
             const isActive = u.is_active === true || u.is_active === 't' || u.is_active === 'true';
             const fecha = u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '—';
-            const avatar = u.foto_user ? `${BASE_URL}${u.foto_user}` : `${BASE_URL}images/profiles/default.webp`;
+            const avatar = u.foto_user ? `${BASE_URL}${u.foto_user}` : `${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/profiles/default.webp`;
 
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-white/[0.02] transition-colors group';
@@ -745,7 +745,7 @@ export class AdminDashboardController {
 
     _renderProductRow(tbody, p, isArchived) {
         const isActive = p.is_active === true || p.is_active === 't' || p.is_active === 'true';
-        const img = p.primera_imagen ? `${BASE_URL}${p.primera_imagen}` : `${BASE_URL}images/default_product.jpg`;
+        const img = p.primera_imagen ? `${BASE_URL}${p.primera_imagen}` : `${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/default_product.jpg`;
         const precio = parseFloat(p.precio_producto || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
         const tr = document.createElement('tr');
@@ -753,7 +753,7 @@ export class AdminDashboardController {
         tr.innerHTML = `
             <td class="px-4 py-3 font-mono text-slate-500">${p.id_producto}</td>
             <td class="px-4 py-3">
-                <img src="${img}" class="w-10 h-10 rounded-xl object-cover border border-white/10 ${isArchived ? 'grayscale' : ''}" alt="" onerror="this.src='${BASE_URL}images/default_product.jpg'">
+                <img src="${img}" class="w-10 h-10 rounded-xl object-cover border border-white/10 ${isArchived ? 'grayscale' : ''}" alt="" onerror="this.src='${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/default_product.jpg'">
             </td>
             <td class="px-4 py-3 font-bold text-white max-w-[200px] truncate ${isArchived ? 'line-through text-slate-500' : ''}">${p.nom_producto || '—'}</td>
             <td class="px-4 py-3 font-mono text-emerald-400">${precio}</td>

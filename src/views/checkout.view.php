@@ -27,7 +27,7 @@ require_once __DIR__ . '/partials/base_head.php';
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex gap-4 items-center">
                     <div class="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                         <?php if(!empty($item['imagen'])): ?>
-                            <img src="<?= BASE_URL . $item['imagen'] ?>" alt="<?= htmlspecialchars($item['nom_producto']) ?>" class="w-full h-full object-cover">
+                            <img src="<?= base_url_path($item['imagen']) ?>" alt="<?= htmlspecialchars($item['nom_producto']) ?>" class="w-full h-full object-cover">
                         <?php else: ?>
                             <div class="w-full h-full flex items-center justify-center text-gray-400">
                                 <i class="fas fa-image text-2xl"></i>
@@ -202,8 +202,8 @@ var data = {
     lang:         "es",
     external:     "false",
     // ePayco rechaza "localhost" en su validador de URL, usamos 127.0.0.1 como fallback
-    response:     "<?= str_replace('localhost', '127.0.0.1', BASE_URL) ?>checkout/respuesta",
-    confirmation: "<?= str_replace('localhost', '127.0.0.1', BASE_URL) ?>api/epayco_webhook",
+    response:     "<?= str_replace('localhost', '127.0.0.1', base_url_path('checkout/respuesta')) ?>",
+    confirmation: "<?= str_replace('localhost', '127.0.0.1', base_url_path('api/epayco_webhook')) ?>",
     name_billing: "<?= $_SESSION['nom_user'] ?? 'Cliente VIVA' ?>",
     email_billing:"<?= $_SESSION['mail_user'] ?? '' ?>"
 };
@@ -223,7 +223,7 @@ const msgEnvio     = document.getElementById('msg-envio');
     // consultar_ciudades.js maneja el cambio de departamento.
     // Aquí solo cargamos las ciudades del dpto guardado y pre-seleccionamos la ciudad.
     const idCiudadGuardada = <?= json_encode((string)$cliente_envio['id_ciudad']) ?>;
-    fetch(`${BASE_URL}ciudades?id_departamento=<?= $cliente_envio['id_departamento'] ?>`)
+    fetch(window.buildAppUrl(`api/ciudades?id_departamento=<?= $cliente_envio['id_departamento'] ?>`))
         .then(r => r.json())
         .then(res => {
             if (res.success) {
@@ -259,7 +259,7 @@ document.getElementById('form-envio').addEventListener('submit', async function 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
     try {
-        const res  = await fetch(`${BASE_URL}perfil`, { method: 'POST', body: new FormData(this) });
+        const res  = await fetch(window.buildAppUrl('perfil'), { method: 'POST', body: new FormData(this) });
         const json = await res.json();
 
         if (json.exito) {

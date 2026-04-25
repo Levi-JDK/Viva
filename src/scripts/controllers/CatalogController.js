@@ -125,15 +125,18 @@ export class CatalogController {
 
     renderTarjetaProducto(p) {
         const precio = new Intl.NumberFormat('es-CO').format(p.precio_producto);
+        const productImage = this.resolveAppUrl(p.primera_imagen || p.imagen_producto || 'images/default_product.jpg');
+        const standImage = this.resolveAppUrl(p.img_stand || 'images/default.webp');
+        const productUrl = this.resolveAppUrl(p.url_producto || `producto?id=${p.id_producto}`);
         return `
-            <a href="${p.url_producto}"
+            <a href="${productUrl}"
                class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl
                       transition-all duration-300 flex flex-col group h-full">
                 <div class="h-64 bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">
-                    <img src="${p.imagen_producto}"
+                    <img src="${productImage}"
                          alt="${this.escapeHtml(p.nom_producto)}"
                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                         onerror="this.src='${this.baseURL}images/default_product.jpg'">
+                         onerror="this.src='${this.resolveAppUrl('images/default_product.jpg')}'">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
                 </div>
                 <div class="p-5 flex-1 flex flex-col">
@@ -143,10 +146,10 @@ export class CatalogController {
                     </h3>
                     <div class="flex items-center gap-2 mb-3">
                         <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-tierra-claro">
-                            <img src="${p.img_stand}"
+                            <img src="${standImage}"
                                  alt="${this.escapeHtml(p.nom_stand)}"
                                  class="w-full h-full object-cover"
-                                 onerror="this.src='${this.baseURL}images/default.jpg'">
+                                 onerror="this.src='${this.resolveAppUrl('images/default.jpg')}'">
                         </div>
                         <span class="text-sm text-gray-600 truncate">${this.escapeHtml(p.nom_stand)}</span>
                     </div>
@@ -157,7 +160,7 @@ export class CatalogController {
                                 $${precio}
                             </span>
                             <button class="bg-naranja-artesanal text-white px-4 py-2 rounded-lg
-                                           text-sm font-medium hover:bg-tierra-oscuro transition-colors" data-action="add-cart" data-id="${p.id_producto}" onclick="event.preventDefault();">
+                                           text-sm font-medium hover:bg-tierra-oscuro transition-colors" data-action="cart-add" data-id="${p.id_producto}" data-qty="1" onclick="event.preventDefault();">
                                 <i class="fas fa-shopping-cart mr-1"></i>Comprar
                             </button>
                         </div>
@@ -165,6 +168,23 @@ export class CatalogController {
                 </div>
             </a>
         `;
+    }
+
+    resolveAppUrl(path = '') {
+        if (!path) {
+            return this.baseURL || '/';
+        }
+
+        if (/^https?:\/\//i.test(path)) {
+            return path;
+        }
+
+        if (typeof window.buildAppUrl === 'function') {
+            return window.buildAppUrl(path);
+        }
+
+        const normalizedBase = String(this.baseURL || '').replace(/\/+$/, '');
+        return `${normalizedBase}/${String(path).replace(/^\/+/, '')}`;
     }
 
     renderVacio() {

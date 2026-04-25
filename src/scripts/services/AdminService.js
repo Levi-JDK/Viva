@@ -1,6 +1,6 @@
 export class AdminService {
     static async updateParameters(formData) {
-        const response = await fetch(BASE_URL + 'admin?action=actualizar_parametros', {
+        const response = await fetch(BASE_URL + '/admin?action=actualizar_parametros', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -12,7 +12,7 @@ export class AdminService {
     }
 
     static async deleteProduct(idProducto) {
-        const response = await fetch(BASE_URL + 'api/delete_product', {
+        const response = await fetch(BASE_URL + '/api/delete_product', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_producto: idProducto })
@@ -21,7 +21,7 @@ export class AdminService {
     }
 
     static async saveProduct(formData, isEditMode) {
-        const apiEndpoint = isEditMode ? 'api/update_product' : 'api/upload_product';
+        const apiEndpoint = isEditMode ? '/api/update_product' : '/api/upload_product';
         const response = await fetch(BASE_URL + apiEndpoint, {
             method: 'POST',
             body: formData
@@ -30,7 +30,7 @@ export class AdminService {
     }
 
     static async updateStand(formData) {
-        const response = await fetch(BASE_URL + 'mis_productos?view=stand', {
+        const response = await fetch(BASE_URL + '/mis_productos?view=stand', {
             method: 'POST',
             body: formData
         });

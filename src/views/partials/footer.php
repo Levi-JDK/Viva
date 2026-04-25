@@ -5,7 +5,7 @@
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center space-x-3 mb-4">
                         <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center">
-                            <img src="<?= BASE_URL ?>images/Logo.png" alt="">
+                            <img src="<?= base_url_path('images/Logo.png') ?>" alt="">
                         </div>
                         <div>
                             <h3 class="text-xl font-bold">VIVA</h3>
@@ -32,8 +32,8 @@
                 <div>
                     <h4 class="font-semibold text-lg mb-4">Enlaces rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="<?= BASE_URL ?>politica_privacidad" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Políticas de privacidad</a></li>
-                        <li><a href="<?= BASE_URL ?>terminos_condiciones" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Términos y condiciones</a></li>
+                        <li><a href="<?= base_url_path('politica_privacidad') ?>" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Políticas de privacidad</a></li>
+                        <li><a href="<?= base_url_path('terminos_condiciones') ?>" target="_blank" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Términos y condiciones</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Contacto</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Preguntas frecuentes</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-naranja-artesanal transition-colors">Blog</a></li>

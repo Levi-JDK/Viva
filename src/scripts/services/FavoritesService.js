@@ -4,12 +4,19 @@
  */
 export class FavoritesService {
     static get baseUrl() {
-        return (window.BASE_URL || '/') + 'favoritos';
+        if (typeof window.buildAppUrl === 'function') {
+            return window.buildAppUrl('api/favoritos');
+        }
+
+        const baseUrl = String(window.BASE_URL || '');
+        const normalizedBaseUrl = baseUrl === '/' ? '' : baseUrl.replace(/\/+$/, '');
+        return `${normalizedBaseUrl}/api/favoritos`;
     }
 
     static async getFavorites() {
         try {
             const res = await fetch(this.baseUrl, {
+                credentials: 'same-origin',
                 headers: { 'Accept': 'application/json' }
             });
 
@@ -28,6 +35,7 @@ export class FavoritesService {
         try {
             const res = await fetch(this.baseUrl, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'

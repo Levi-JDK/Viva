@@ -1,11 +1,12 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/src/functions/error_handler.php';
+require_once __DIR__ . '/src/functions/url_helper.php';
 
 set_exception_handler(function (Throwable $e): void {
     $response = ErrorHandler::handle($e, 'index.php');
-    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-    $isApiRequest = strpos($requestPath, '/api/') === 0;
+    $relativePath = request_relative_path();
+    $isApiRequest = is_api_route_path($relativePath);
 
     if (!headers_sent()) {
         http_response_code(500);
@@ -24,7 +25,10 @@ set_exception_handler(function (Throwable $e): void {
         header('Content-Type: text/html; charset=utf-8');
     }
 
-    echo '<h1>Error en el servidor</h1><p>Por favor, intente más tarde.</p>';
+    $message = htmlspecialchars($response['message'] ?? 'Error en el servidor. Por favor, intente más tarde.', ENT_QUOTES, 'UTF-8');
+
+    echo "<h1>Ha ocurrido un error</h1>"
+        . "<p>{$message}</p>";
     exit;
 });
 
@@ -45,38 +49,42 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Detectar el protocolo y host
-$protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
-$host = $_SERVER['HTTP_HOST'];
-
 // Detectar carpeta del proyecto
-$proyecto_folder = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$proyecto_folder = parse_url(BASE_URL, PHP_URL_PATH) ?? '';
 $proyecto_folder = rtrim($proyecto_folder, '/');
-
-// 3. Definir BASE_URL = url https
-define('BASE_URL', $protocolo . "://" . $host . $proyecto_folder . "/");
 
 // Definir Root_path para la direccion de la carpeta
 
 define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT'] . $proyecto_folder . DIRECTORY_SEPARATOR);
 
-// Enrutar
-$request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$relative_uri = str_replace($proyecto_folder, '', $request_uri);
-$relative_uri = '/' . ltrim($relative_uri, '/');
+if (!function_exists('send_json_error_response')) {
+    function send_json_error_response(int $statusCode, string $message): void
+    {
+        if (!headers_sent()) {
+            http_response_code($statusCode);
+            header('Content-Type: application/json; charset=utf-8');
+        }
 
-// Normalizar URI (quitar slash final si no es la raíz)
-if ($relative_uri !== '/' && substr($relative_uri, -1) === '/') {
-    $relative_uri = rtrim($relative_uri, '/');
+        echo json_encode([
+            'success' => false,
+            'message' => $message,
+            'status' => $statusCode,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
 }
+
+// Enrutar
+$request_uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+$relative_uri = request_relative_path($request_uri);
 // Definir rutas
 $routes = [
     '/'             => 'src/controllers/index.controller.php',
-    '/index.php'    => 'src/controllers/index.php',
+    '/index.php'    => 'src/controllers/index.controller.php',
     '/login'        => 'src/controllers/login.controller.php',
     '/registro'     => 'src/controllers/register.controller.php',
     '/dashboard'    => function() {
-        header('Location: ' . BASE_URL . 'perfil');
+        header('Location: ' . base_url_path('perfil'));
         exit;
     },
     '/perfil'       => 'src/controllers/perfil.controller.php',
@@ -91,10 +99,12 @@ $routes = [
     '/api/update_product' => 'src/functions/update_product.php',
     '/api/delete_product' => 'src/functions/delete_product.php',
     '/api/upload'         => 'src/functions/upload.php',
-    '/carrito'          => 'src/controllers/carrito.controller.php',
-    '/favoritos'        => 'src/controllers/favoritos.controller.php',
-    '/resenas'          => 'src/controllers/resenas.controller.php',
-    '/ciudades'         => 'src/controllers/ciudades.controller.php',
+    '/carrito'            => 'src/controllers/carrito.controller.php',
+    '/api/carrito'        => 'src/controllers/carrito.controller.php',
+    '/favoritos'          => 'src/controllers/favoritos.controller.php',
+    '/api/favoritos'      => 'src/controllers/favoritos.controller.php',
+    '/api/resenas'        => 'src/controllers/resenas.controller.php',
+    '/api/ciudades'       => 'src/controllers/ciudades.controller.php',
     '/producto'           => 'src/controllers/producto.controller.php',
     '/stand'              => 'src/controllers/stand_detail.controller.php',
     '/stands'             => 'src/controllers/stands.controller.php',
@@ -114,6 +124,10 @@ if (array_key_exists($relative_uri, $routes)) {
         require_once ROOT_PATH . $route;
     }
 } else {
+    if (strpos($relative_uri, '/api/') === 0) {
+        send_json_error_response(404, 'Ruta API no encontrada.');
+    }
+
     require_once ROOT_PATH . "src/views/404.php";
 }
 

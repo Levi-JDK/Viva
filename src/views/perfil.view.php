@@ -328,6 +328,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         </div>
                     </div>
                 </section>
+                <?php endif; ?>
                 
                 </div>
             </div>

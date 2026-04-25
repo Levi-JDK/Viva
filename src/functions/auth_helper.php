@@ -6,20 +6,10 @@
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/url_helper.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
-
-// Detectar BASE_URL
-$protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
-$host = $_SERVER['HTTP_HOST'];
-$script_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-// Dependiendo desde dónde se llame, limpiamos los subdirectorios conocidos:
-$proyecto_folder = str_replace(['/src/functions', '/src/api', '/src/controllers/mis_productos', '/src/controllers'], '', $script_dir);
-$proyecto_folder = rtrim($proyecto_folder, '/');
-if (!defined('BASE_URL')) {
-    define('BASE_URL', $protocolo . "://" . $host . $proyecto_folder . "/");
-}
 
 class AuthHelper {
 
@@ -206,7 +196,7 @@ class AuthHelper {
                 exit();
             } else {
                 // Petición de navegación tradicional (redirección)
-                header("Location: " . BASE_URL . "login"); 
+                header('Location: ' . base_url_path('login'));
                 exit();
             }
         }
@@ -237,7 +227,7 @@ class AuthHelper {
                 echo json_encode(['success' => false, 'error' => 'forbidden', 'message' => 'Acceso denegado al módulo solicitado.']);
                 exit();
             } else {
-                header("Location: " . BASE_URL . "?error=access_denied");
+                header('Location: ' . base_url_path('?error=access_denied'));
                 exit();
             }
         }

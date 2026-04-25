@@ -9,7 +9,10 @@ class ProductService
     {
         try {
             $db = Database::getInstance();
-            $productos = $db->obtenerProductosCatalogoFiltrado(self::normalizarFiltros($query, true));
+            $productos = array_map(
+                [self::class, 'normalizarProductoCatalogo'],
+                $db->obtenerProductosCatalogoFiltrado(self::normalizarFiltros($query, true))
+            );
             $data = array_map([self::class, 'formatearProductoCatalogo'], $productos);
 
             return [
@@ -40,11 +43,32 @@ class ProductService
                 'categorias_list' => $stmtCats->fetchAll(PDO::FETCH_ASSOC),
                 'oficios_list' => $stmtOficios->fetchAll(PDO::FETCH_ASSOC),
                 'materias_list' => $stmtMaterias->fetchAll(PDO::FETCH_ASSOC),
-                'productos' => $db->obtenerProductosCatalogoFiltrado($filtros),
+                'productos' => array_map(
+                    [self::class, 'normalizarProductoCatalogo'],
+                    $db->obtenerProductosCatalogoFiltrado($filtros)
+                ),
             ];
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    private static function normalizarProductoCatalogo(array $producto): array
+    {
+        $producto['id_stand'] = isset($producto['id_stand']) && is_numeric($producto['id_stand'])
+            ? (int) $producto['id_stand']
+            : (isset($producto['id_productor']) && is_numeric($producto['id_productor']) ? (int) $producto['id_productor'] : 0);
+
+        $producto['img_stand'] = self::normalizarRutaRaw((string) ($producto['img_stand'] ?? ''));
+
+        $primeraImagen = self::normalizarRutaRaw((string) ($producto['primera_imagen'] ?? ''));
+        if ($primeraImagen === '') {
+            $primeraImagen = 'images/default.webp';
+        }
+
+        $producto['primera_imagen'] = $primeraImagen;
+
+        return $producto;
     }
 
     private static function normalizarFiltros(array $query, bool $castNumbers): array
@@ -74,22 +98,41 @@ class ProductService
 
     private static function formatearProductoCatalogo(array $producto): array
     {
-        $baseUrl = defined('BASE_URL') ? BASE_URL : '/viva/';
+        $producto = self::normalizarProductoCatalogo($producto);
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '/viva';
 
         return [
             'id_producto' => (int) ($producto['id_producto'] ?? 0),
             'nom_producto' => $producto['nom_producto'] ?? '',
             'precio_producto' => (float) ($producto['precio_producto'] ?? 0),
             'id_productor' => (int) ($producto['id_productor'] ?? 0),
+            'id_stand' => (int) ($producto['id_stand'] ?? 0),
             'nom_stand' => $producto['nom_stand'] ?? 'Stand artesanal',
-            'img_stand' => !empty($producto['img_stand'])
-                ? $baseUrl . $producto['img_stand']
-                : $baseUrl . 'images/profiles/default.webp',
-            'imagen_producto' => !empty($producto['primera_imagen'])
-                ? $baseUrl . $producto['primera_imagen']
-                : $baseUrl . 'images/default_product.jpg',
-            'url_producto' => $baseUrl . 'producto?id=' . ($producto['id_producto'] ?? ''),
-            'url_stand' => $baseUrl . 'stand/' . ($producto['id_productor'] ?? ''),
+            'img_stand' => $producto['img_stand'] !== ''
+                ? $producto['img_stand']
+                : 'images/profiles/default.webp',
+            'primera_imagen' => (string) ($producto['primera_imagen'] ?? 'images/default.webp'),
+            'imagen_producto' => (string) ($producto['primera_imagen'] ?? 'images/default.webp'),
+            'url_producto' => self::construirUrl($baseUrl, 'producto?id=' . ($producto['id_producto'] ?? '')),
+            'url_stand' => self::construirUrl($baseUrl, 'stand?id=' . ($producto['id_stand'] ?? $producto['id_productor'] ?? '')),
         ];
+    }
+
+    private static function construirUrl(string $baseUrl, string $path): string
+    {
+        if ($path === '') {
+            return $baseUrl;
+        }
+
+        if (preg_match('#^https?://#i', $path) === 1) {
+            return $path;
+        }
+
+        return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+    }
+
+    private static function normalizarRutaRaw(string $path): string
+    {
+        return trim($path);
     }
 }

@@ -33,7 +33,11 @@ class ProductDetailService
             }
 
             $producto = self::normalizarProducto($producto);
-            self::incrementarVista($db, $idProducto);
+            $vistasActualizadas = self::incrementarVista($db, $idProducto);
+
+            if ($vistasActualizadas !== null) {
+                $producto['vistas'] = $vistasActualizadas;
+            }
 
             $data['producto'] = $producto;
             $data['resenas'] = self::obtenerResenas($db, $idProducto);
@@ -51,19 +55,43 @@ class ProductDetailService
 
     private static function normalizarProducto(array $producto): array
     {
-        $imagenes = json_decode($producto['imagenes'] ?? '[]', true);
-        $producto['imagenes'] = is_array($imagenes) ? $imagenes : [];
-        $producto['imagen_principal'] = !empty($producto['imagenes'][0]['url'])
-            ? $producto['imagenes'][0]['url']
-            : 'images/default_product.png';
+        $producto['id_productor'] = isset($producto['id_productor']) && is_numeric($producto['id_productor'])
+            ? (int) $producto['id_productor']
+            : null;
+        $producto['id_stand'] = isset($producto['id_stand']) && is_numeric($producto['id_stand'])
+            ? (int) $producto['id_stand']
+            : ($producto['id_productor'] ?? null);
+
+        $producto['img_stand'] = self::normalizarRutaImagen($producto['img_stand'] ?? null);
+        $producto['portada_stand'] = self::normalizarRutaImagen($producto['portada_stand'] ?? null);
+        $producto['foto_user'] = self::normalizarRutaImagen($producto['foto_user'] ?? null);
+        $producto['imagenes'] = self::normalizarImagenes($producto['imagenes'] ?? []);
+
+        $primeraImagen = self::normalizarRutaImagen($producto['primera_imagen'] ?? $producto['imagen_principal'] ?? null);
+        if ($primeraImagen === '') {
+            $primeraImagen = $producto['imagenes'][0]['url'] ?? 'images/default.webp';
+        }
+
+        $producto['primera_imagen'] = $primeraImagen;
+        $producto['imagen_principal'] = $primeraImagen;
 
         return $producto;
     }
 
-    private static function incrementarVista(Database $db, int $idProducto): void
+    private static function incrementarVista(Database $db, int $idProducto): ?int
     {
         try {
-            $db->ejecutar('incrementarVistasProducto', [':id_producto' => $idProducto]);
+            $stmt = $db->ejecutar('incrementarVistasProducto', [':id_producto' => $idProducto]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            if (!isset($row['resultado']) || filter_var($row['resultado'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) !== true) {
+                return null;
+            }
+
+            $stmtVistas = $db->ejecutar('obtenerVistasProducto', [':id_producto' => $idProducto]);
+            $vistasRow = $stmtVistas->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            return isset($vistasRow['vistas']) ? (int) $vistasRow['vistas'] : null;
         } catch (Exception $e) {
             throw $e;
         }
@@ -106,9 +134,80 @@ class ProductDetailService
                 return (int) ($productoRelacionado['id_producto'] ?? 0) !== $idProducto;
             });
 
-            return array_slice(array_values($relacionados), 0, 4);
+            $relacionados = array_map([self::class, 'normalizarProductoCatalogoRelacionado'], array_values($relacionados));
+
+            return array_slice($relacionados, 0, 4);
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    private static function normalizarProductoCatalogoRelacionado(array $producto): array
+    {
+        $primeraImagen = self::normalizarRutaImagen($producto['primera_imagen'] ?? null);
+
+        if ($primeraImagen === '') {
+            $primeraImagen = 'images/default.webp';
+        }
+
+        $producto['id_stand'] = isset($producto['id_stand']) && is_numeric($producto['id_stand'])
+            ? (int) $producto['id_stand']
+            : (isset($producto['id_productor']) && is_numeric($producto['id_productor']) ? (int) $producto['id_productor'] : 0);
+        $producto['img_stand'] = self::normalizarRutaImagen($producto['img_stand'] ?? null);
+        $producto['primera_imagen'] = $primeraImagen;
+
+        return $producto;
+    }
+
+    private static function normalizarImagenes(mixed $imagenes): array
+    {
+        if (is_string($imagenes)) {
+            $decoded = json_decode($imagenes, true);
+            $imagenes = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+        }
+
+        if (!is_array($imagenes)) {
+            return [];
+        }
+
+        $normalizadas = [];
+
+        foreach ($imagenes as $imagen) {
+            if (is_string($imagen)) {
+                $url = self::normalizarRutaImagen($imagen);
+                if ($url !== '') {
+                    $normalizadas[] = ['url' => $url];
+                }
+                continue;
+            }
+
+            if (!is_array($imagen)) {
+                continue;
+            }
+
+            $url = self::normalizarRutaImagen($imagen['url'] ?? $imagen['url_imagen'] ?? $imagen['src'] ?? null);
+            if ($url === '') {
+                continue;
+            }
+
+            $imagen['url'] = $url;
+            $normalizadas[] = $imagen;
+        }
+
+        return array_values($normalizadas);
+    }
+
+    private static function normalizarRutaImagen(mixed $path): string
+    {
+        if (!is_string($path)) {
+            return '';
+        }
+
+        $path = trim($path);
+        if ($path === '') {
+            return '';
+        }
+
+        return $path;
     }
 }

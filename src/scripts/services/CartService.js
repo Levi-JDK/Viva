@@ -8,7 +8,13 @@ export class CartService {
     static REDIS_FLUSH_ACTION = 'flush_to_postgres';
 
     static getEndpoint() {
-        return (window.BASE_URL || '/') + 'carrito';
+        if (typeof window.buildAppUrl === 'function') {
+            return window.buildAppUrl('api/carrito');
+        }
+
+        const baseUrl = String(window.BASE_URL || '');
+        const normalizedBaseUrl = baseUrl === '/' ? '' : baseUrl.replace(/\/+$/, '');
+        return `${normalizedBaseUrl}/api/carrito`;
     }
 
     static async request(accion, payload = {}) {

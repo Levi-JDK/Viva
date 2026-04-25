@@ -7,6 +7,19 @@ class CartService
 {
     private const REDIS_CART_META_UPDATED_AT = '__updated_at';
     private const REDIS_CART_META_DIRTY = '__dirty';
+    private const SUPPORTED_ACTIONS = ['agregar', 'actualizar', 'eliminar', 'limpiar'];
+    private const ACTION_ALIASES = [
+        'add' => 'agregar',
+        'agregar' => 'agregar',
+        'update' => 'actualizar',
+        'actualizar' => 'actualizar',
+        'set' => 'actualizar',
+        'remove' => 'eliminar',
+        'delete' => 'eliminar',
+        'eliminar' => 'eliminar',
+        'clear' => 'limpiar',
+        'limpiar' => 'limpiar',
+    ];
 
     public static function gestionarItemsCarrito(int $userId, string $accion, $productoId = null, $cantidad = null): array
     {
@@ -88,10 +101,24 @@ class CartService
             ];
         }
 
-        self::gestionarItemsCarrito($userId, 'limpiar');
+        $db = Database::getInstance();
 
-        foreach ($snapshot as $productoId => $cantidad) {
-            self::gestionarItemsCarrito($userId, 'agregar', (int) $productoId, (int) $cantidad);
+        try {
+            $db->connection->beginTransaction();
+
+            self::gestionarItemsCarrito($userId, 'limpiar');
+
+            foreach ($snapshot as $productoId => $cantidad) {
+                self::gestionarItemsCarrito($userId, 'agregar', (int) $productoId, (int) $cantidad);
+            }
+
+            $db->connection->commit();
+        } catch (Throwable $exception) {
+            if ($db->connection->inTransaction()) {
+                $db->connection->rollBack();
+            }
+
+            throw $exception;
         }
 
         $redis->del([$hashKey]);
@@ -156,19 +183,28 @@ class CartService
 
     private static function normalizeAction(array $accion, int $indice): array
     {
-        $nombreAccion = (string) ($accion['accion'] ?? '');
+        $nombreAccion = self::normalizeActionName(
+            $accion['accion']
+                ?? $accion['action']
+                ?? $accion['type']
+                ?? null,
+            $indice
+        );
 
-        if (!in_array($nombreAccion, ['agregar', 'actualizar', 'eliminar', 'limpiar'], true)) {
-            throw new InvalidArgumentException('Acción de carrito inválida en posición ' . $indice . '.');
-        }
+        $productoId = self::normalizeNullableInt(
+            $accion['id_producto']
+                ?? $accion['idProducto']
+                ?? $accion['product_id']
+                ?? $accion['id']
+                ?? null
+        );
 
-        $productoId = array_key_exists('id_producto', $accion) && $accion['id_producto'] !== null
-            ? (int) $accion['id_producto']
-            : null;
-
-        $cantidad = array_key_exists('cantidad', $accion) && $accion['cantidad'] !== null
-            ? (int) $accion['cantidad']
-            : null;
+        $cantidad = self::normalizeNullableInt(
+            $accion['cantidad']
+                ?? $accion['qty']
+                ?? $accion['quantity']
+                ?? null
+        );
 
         if ($nombreAccion !== 'limpiar' && ($productoId === null || $productoId <= 0)) {
             throw new InvalidArgumentException('id_producto inválido en posición ' . $indice . '.');
@@ -183,6 +219,36 @@ class CartService
             'id_producto' => $productoId,
             'cantidad' => $cantidad,
         ];
+    }
+
+    private static function normalizeActionName(mixed $value, int $indice): string
+    {
+        $action = strtolower(trim((string) $value));
+
+        if ($action === '' || !isset(self::ACTION_ALIASES[$action])) {
+            throw new InvalidArgumentException('Acción de carrito inválida en posición ' . $indice . '.');
+        }
+
+        $normalized = self::ACTION_ALIASES[$action];
+
+        if (!in_array($normalized, self::SUPPORTED_ACTIONS, true)) {
+            throw new InvalidArgumentException('Acción de carrito inválida en posición ' . $indice . '.');
+        }
+
+        return $normalized;
+    }
+
+    private static function normalizeNullableInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_numeric($value)) {
+            throw new InvalidArgumentException('Valor numérico inválido en acción de carrito.');
+        }
+
+        return (int) $value;
     }
 
     private static function applyRedisCartAction(array &$snapshot, array $accion): void

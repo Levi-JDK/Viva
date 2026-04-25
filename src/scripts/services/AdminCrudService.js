@@ -1,6 +1,6 @@
 export class AdminCrudService {
     static async readEntity(entidad) {
-        const response = await fetch(`${BASE_URL}admin?ajax=1&accion=read&entidad=${encodeURIComponent(entidad)}&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=read&entidad=${encodeURIComponent(entidad)}&_=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to read CRUD entity');
         return response.json();
     }
@@ -20,7 +20,7 @@ export class AdminCrudService {
             payload.append(key, value ?? '');
         }
 
-        const response = await fetch(`${BASE_URL}admin`, {
+        const response = await fetch(`${BASE_URL}/admin`, {
             method: 'POST',
             headers: hasFile ? {} : { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: hasFile ? payload : payload.toString()

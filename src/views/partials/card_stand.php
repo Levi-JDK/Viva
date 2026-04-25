@@ -61,6 +61,9 @@ if (!isset($stand) || empty($stand)) {
     echo '<div class="text-red-500 p-4 border border-red-300 rounded">Error: No se proporcionaron datos del stand</div>';
     return;
 }
+
+$stand_cover_url = !empty($stand['portada_stand']) ? base_url_path($stand['portada_stand']) : 'NULL';
+$stand_logo_url = !empty($stand['img_stand']) ? base_url_path($stand['img_stand']) : base_url_path('images/profiles/default.webp');
 ?>
 
 <!-- Componente: Tarjeta de Stand -->
@@ -68,7 +71,7 @@ if (!isset($stand) || empty($stand)) {
     <!-- Imagen de Portada (con relación de aspecto adecuada) -->
     <div class="h-40 bg-gradient-to-r from-tierra-claro to-beige-suave relative overflow-hidden">
         <?php if (!empty($stand['portada_stand'])): ?>
-            <img src="<?= BASE_URL . $stand['portada_stand'] ?>" 
+            <img src="<?= $stand_cover_url ?>" 
                  alt="Portada de <?= htmlspecialchars($stand['nom_stand'] ?? 'Stand') ?>"
                  class="w-full h-full object-cover">
         <?php endif; ?>
@@ -79,7 +82,7 @@ if (!isset($stand) || empty($stand)) {
         <!-- Logo (superpuesto sobre la portada) -->
         <div class="flex justify-center -mt-12 mb-4">
             <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg overflow-hidden">
-                <img src="<?= !empty($stand['img_stand']) ? BASE_URL . $stand['img_stand'] : BASE_URL . 'images/profiles/default.webp' ?>" 
+                <img src="<?= $stand_logo_url ?>" 
                      alt="<?= htmlspecialchars($stand['nom_stand'] ?? 'Stand') ?>"
                      class="w-full h-full rounded-full object-cover">
             </div>

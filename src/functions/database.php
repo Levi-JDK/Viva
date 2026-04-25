@@ -100,7 +100,14 @@ class Database {
         ");
 
         $this->statements['incrementarVistasProducto'] = $this->connection->prepare("
-            SELECT id_producto, vistas FROM fun_u_vista_producto(:id_producto)
+            SELECT fun_u_vista_producto(:id_producto) AS resultado
+        ");
+
+        $this->statements['obtenerVistasProducto'] = $this->connection->prepare("
+            SELECT vistas
+            FROM tab_productos
+            WHERE id_producto = :id_producto AND is_deleted = FALSE
+            LIMIT 1
         ");
 
         $this->statements['obtenerProductoPorId'] = $this->connection->prepare("
@@ -176,6 +183,7 @@ class Database {
                 p.nom_producto,
                 p.precio_producto,
                 p.descripcion_producto,
+                s.id_stand,
                 s.nom_stand,
                 s.img_stand,
                 (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
@@ -224,6 +232,7 @@ class Database {
                 p.nom_producto,
                 p.precio_producto,
                 p.descripcion_producto,
+                s.id_stand,
                 s.nom_stand,
                 s.img_stand,
                 (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
@@ -238,7 +247,7 @@ class Database {
             SELECT id_producto, nom_producto, precio_producto, descripcion_producto, stock_productor, 
                    is_active, id_categoria, nom_categoria, id_color, nom_color, id_oficio, nom_oficio, 
                    id_materia, nom_materia, id_productor, nom_productor, id_stand, nom_stand, img_stand, 
-                   slogan_stand, descripcion_stand, portada_stand, ubicacion, imagenes 
+                   slogan_stand, descripcion_stand, portada_stand, ubicacion, imagenes, foto_user
             FROM fun_obtener_detalle_producto(:id_producto)
         ");
 
@@ -338,8 +347,8 @@ class Database {
 
         $this->statements['obtenerFavoritosUsuario'] = $this->connection->prepare("
             SELECT 
-                p.id_producto, p.nom_producto, p.precio_producto, p.descripcion_producto, 
-                s.nom_stand, s.img_stand, 
+                p.id_producto, p.id_productor, p.nom_producto, p.precio_producto, p.descripcion_producto, 
+                s.id_stand, s.nom_stand, s.img_stand, 
                 (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
             FROM tab_favoritos f
             INNER JOIN tab_productos p ON f.id_producto = p.id_producto
@@ -607,6 +616,7 @@ class Database {
                 p.nom_producto,
                 p.precio_producto,
                 p.descripcion_producto,
+                s.id_stand,
                 s.nom_stand,
                 s.img_stand,
                 (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen

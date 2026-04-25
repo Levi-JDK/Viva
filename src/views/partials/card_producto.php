@@ -61,7 +61,7 @@
 $show_price = $show_price ?? true;
 // IMPORTANTE: NO usar ?? aquí — $product_url debe recalcularse en cada iteración del foreach.
 // Usar ?? cachearía el URL del primer producto para todas las tarjetas siguientes.
-$product_url = BASE_URL . 'producto?id=' . ($product['id_producto'] ?? '');
+$product_url = base_url_path('producto?id=' . ($product['id_producto'] ?? ''));
 
 // Verificar que $product exista
 if (!isset($product) || empty($product)) {
@@ -69,14 +69,16 @@ if (!isset($product) || empty($product)) {
     return;
 }
 
-// Obtener primera imagen o usar placeholder
-$product_image = !empty($product['primera_imagen']) ? BASE_URL . $product['primera_imagen'] : BASE_URL . 'images/default_product.jpg';
-$stand_logo = !empty($product['img_stand']) ? BASE_URL . $product['img_stand'] : BASE_URL . 'images/default.jpg';
+// Obtener primera imagen estandarizada o usar placeholder
+$product_image_path = $product['primera_imagen'] ?? $product['imagen_principal'] ?? null;
+$product_image = !empty($product_image_path)
+    ? '/var/www/html/viva/' . ltrim($product_image_path, '/')
+    : '/var/www/html/viva/images/default.webp';
+$stand_logo = !empty($product['img_stand']) ? base_url_path($product['img_stand']) : base_url_path('images/default.webp');
 ?>
 
 <!-- Componente: Tarjeta de Producto -->
 <div class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col group h-full relative">
-
     <!-- Imagen del Producto — es el link principal -->
     <a href="<?= htmlspecialchars($product_url) ?>" class="block relative group/img">
         <div class="h-64 bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">

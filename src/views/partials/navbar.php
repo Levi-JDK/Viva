@@ -34,9 +34,9 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between gap-4 lg:gap-8">
                 <!-- Logo -->
-                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 group min-w-max">
+                <a href="<?= base_url_path() ?>" class="flex items-center space-x-3 group min-w-max">
                     <div class="aspect-square w-8 sm:w-9 md:w-10 lg:w-11 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center group-hover:shadow-md transition-all">
-                        <img src="<?= BASE_URL ?>images/Logo.png" alt="VIVA" class="w-full h-full object-cover">
+                        <img src="<?= base_url_path('images/Logo.png') ?>" alt="VIVA" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-tierra-oscuro group-hover:text-tierra-medio transition-colors">VIVA</h1>
@@ -45,7 +45,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 </a>
                 
                 <!-- Search Bar - Hidden on mobile, shown on md+ -->
-                <form action="<?= BASE_URL ?>catalogo" method="GET" class="hidden md:flex flex-1 max-w-2xl">
+                <form action="<?= base_url_path('catalogo') ?>" method="GET" class="hidden md:flex flex-1 max-w-2xl">
                     <div class="relative w-full">
                         <input 
                             type="text" 
@@ -65,7 +65,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 <nav class="hidden lg:flex items-center space-x-8">
                     <?php if (!empty($navbar_menus)): ?>
                         <?php foreach ($navbar_menus as $nmenu): ?>
-                            <a href="<?= BASE_URL . htmlspecialchars($nmenu['url_menu']) ?>" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">
+                            <a href="<?= base_url_path(htmlspecialchars($nmenu['url_menu'])) ?>" class="nav-item text-gray-700 hover:text-naranja-artesanal font-medium">
                                 <?= htmlspecialchars($nmenu['nom_menu']) ?>
                             </a>
                         <?php endforeach; ?>
@@ -80,7 +80,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                             <div class="relative user-menu group">
                                 <button id="userMenuBtn" data-action="toggle-user-menu" class="flex items-center space-x-2 hover:opacity-80 transition-opacity focus:outline-none">
                                     <div class="w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-transparent group-hover:border-naranja-artesanal transition-all">
-                                        <img src="<?= BASE_URL . ($foto_usuario ?? 'images/profiles/default.webp') ?>?v=<?= time() ?>" 
+                                        <img src="<?= base_url_path($foto_usuario ?? 'images/profiles/default.webp') ?>?v=<?= time() ?>" 
                                              alt="<?= htmlspecialchars($nombre_usuario ?? 'Usuario') ?>" 
                                              class="w-full h-full object-cover">
                                     </div>
@@ -99,7 +99,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                             <?php foreach ($dropdown_menus as $menu): ?>
                                                 <?php if (in_array($menu['id_menu'], [4, 5, 6, 7])): ?>
                                                     <li>
-                                                        <a href="<?= BASE_URL . htmlspecialchars($menu['url_menu']) ?>" class="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-naranja-artesanal transition-colors">
+                                                        <a href="<?= base_url_path($menu['url_menu']) ?>" class="flex items-center px-5 py-3 text-sm text-gray-700 hover:bg-orange-50 hover:text-naranja-artesanal transition-colors">
                                                             <i class="<?= htmlspecialchars($menu['icono_menu']) ?> w-6 text-center"></i>
                                                             <span class="ml-2"><?= htmlspecialchars($menu['nom_menu']) ?></span>
                                                         </a>
@@ -107,7 +107,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                                 <?php else: ?>
                                                     <li class="px-2 space-y-1 mt-1 mb-1">
                                                         <?php $menu_color = ($menu['id_menu'] == 9) ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-orange-50 text-naranja-artesanal hover:bg-orange-100'; ?>
-                                                        <a href="<?= BASE_URL . htmlspecialchars($menu['url_menu']) ?>" class="flex items-center justify-between px-4 py-2 text-sm <?= $menu_color ?> font-semibold transition-colors rounded-lg group-menu-item">
+                                                        <a href="<?= base_url_path($menu['url_menu']) ?>" class="flex items-center justify-between px-4 py-2 text-sm <?= $menu_color ?> font-semibold transition-colors rounded-lg group-menu-item">
                                                             <div class="flex items-center">
                                                                 <i class="<?= htmlspecialchars($menu['icono_menu']) ?> w-6 text-center"></i>
                                                                 <span class="ml-2"><?= htmlspecialchars($menu['nom_menu']) ?></span>
@@ -122,7 +122,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                                         <li class="border-t border-gray-100 my-1"></li>
 
                                         <li>
-                                            <a href="<?= BASE_URL ?>logout" class="flex items-center px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-xl">
+                                            <a href="<?= base_url_path('logout') ?>" class="flex items-center px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-xl">
                                                 <i class="fas fa-sign-out-alt w-6 text-center"></i>
                                                 <span class="ml-2">Cerrar Sesión</span>
                                             </a>
@@ -132,7 +132,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                             </div>
                         <?php else: ?>
                             <?php
-                                $login_url = BASE_URL . 'login';
+                                $login_url = base_url_path('login');
                                 $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
                                     . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
                                 // Solo añadir redirect si no estamos ya en la página de login
@@ -165,7 +165,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
             </div>
 
             <!-- Mobile Search -->
-            <form action="<?= BASE_URL ?>catalogo" method="GET" class="md:hidden mt-4">
+            <form action="<?= base_url_path('catalogo') ?>" method="GET" class="md:hidden mt-4">
                 <div class="relative">
                     <input 
                         type="text" 
@@ -183,7 +183,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 <nav class="flex flex-col space-y-3">
                     <?php if (!empty($navbar_menus)): ?>
                         <?php foreach ($navbar_menus as $nmenu): ?>
-                            <a href="<?= BASE_URL . htmlspecialchars($nmenu['url_menu']) ?>" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-naranja-artesanal rounded-lg font-medium transition-colors">
+                            <a href="<?= base_url_path($nmenu['url_menu']) ?>" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-naranja-artesanal rounded-lg font-medium transition-colors">
                                 <?= htmlspecialchars($nmenu['nom_menu']) ?>
                             </a>
                         <?php endforeach; ?>
