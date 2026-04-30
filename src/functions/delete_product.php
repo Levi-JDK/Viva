@@ -42,8 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("No eres un productor válido.");
         }
 
-        $conn->beginTransaction();
-
         // Eliminar lógicamente el producto (Soft Delete) verificando que el productor sea el dueño
         // Al marcar is_deleted = TRUE también marcamos is_active = FALSE, pero preservamos el stock histórico del producto
         $stmt = $db->ejecutar('eliminarProductoLogicamente', [
@@ -55,13 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("El producto no existe o no tienes permisos para eliminarlo.");
         }
 
-        $conn->commit();
         echo json_encode(['success' => true, 'message' => 'Producto eliminado correctamente.']);
 
     } catch (Exception $e) {
-        if (isset($conn)) {
-            $conn->rollBack();
-        }
         throw $e;
     }
 } else {

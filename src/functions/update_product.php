@@ -90,8 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("El producto debe tener al menos una imagen.");
         }
 
-        $conn->beginTransaction();
-
         // 1. Actualizar producto usando PostgreSQL function call via centralized statement
         $stmtUpdate = $db->ejecutar('actualizarProducto', [
             ':id_producto'  => $id_producto,
@@ -166,14 +164,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        $conn->commit();
         echo json_encode(['success' => true, 'message' => 'Producto actualizado exitosamente.']);
 
     }
     catch (Throwable $e) {
-        if (isset($conn) && $conn->inTransaction()) {
-            $conn->rollBack();
-        }
         throw $e;
     }
 } else {

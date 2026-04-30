@@ -80,8 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // --- FIN VALIDACIONES, EJECUTAR INSERCIÓN ---
 
-        $conn->beginTransaction();
-
         // 1. Insertar producto
         $stmt = $db->ejecutar('registrarProducto', [
             ':id_productor'       => $id_productor,
@@ -131,14 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        $conn->commit();
         echo json_encode(['success' => true, 'message' => 'Producto publicado exitosamente.']);
 
     }
     catch (Exception $e) {
-        if (isset($conn) && $conn->inTransaction()) {
-            $conn->rollBack();
-        }
         throw $e;
     }
 }
