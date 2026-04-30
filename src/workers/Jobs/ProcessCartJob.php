@@ -54,19 +54,19 @@ class ProcessCartJob {
         }
 
         $key = (string) $payload['session_key'];
-        $data = $redis->hGetAll($key);
+        $accionesJson = $payload['acciones_json'] ?? null;
 
-        if (empty($data)) {
-            return null;
+        if (!is_string($accionesJson) || trim($accionesJson) === '') {
+            throw new RuntimeException('Mensaje de cola de carrito sin acciones_json.');
         }
 
-        if (!isset($data['acciones_json'])) {
-            throw new RuntimeException('Hash de sesión sin acciones_json.');
-        }
-
-        $acciones = json_decode($data['acciones_json'], true);
+        $acciones = json_decode($accionesJson, true);
         if (!is_array($acciones)) {
-            throw new RuntimeException('acciones_json inválido en Redis.');
+            throw new RuntimeException('acciones_json inválido en mensaje de cola.');
+        }
+
+        if (isset($payload['actions_hash']) && hash('sha256', $accionesJson) !== (string) $payload['actions_hash']) {
+            throw new RuntimeException('Hash de acciones_json no coincide con el mensaje de cola.');
         }
 
         return new self((int) $payload['user_id'], $acciones, $key);

@@ -28,4 +28,100 @@ class VendorService
             'bancos' => $db->ejecutar('obtenerBancos')->fetchAll(PDO::FETCH_ASSOC),
         ];
     }
+
+    public static function registrarVendedor(int $userId, array $data): array
+    {
+        $tipoDocumento = filter_var($data['tipo_documento'] ?? null, FILTER_VALIDATE_INT);
+        $numeroDocumento = trim((string) ($data['numero_documento'] ?? ''));
+        $direccion = trim((string) ($data['direccion'] ?? ''));
+        $departamento = filter_var($data['departamento'] ?? null, FILTER_VALIDATE_INT);
+        $ciudad = filter_var($data['ciudad'] ?? null, FILTER_VALIDATE_INT);
+        $grupoArtesanal = filter_var($data['grupo_artesanal'] ?? null, FILTER_VALIDATE_INT);
+        $banco = filter_var($data['banco'] ?? null, FILTER_VALIDATE_INT);
+        $tipoCuenta = trim((string) ($data['tipo_cuenta'] ?? ''));
+        $tiposCuentaPermitidos = [
+            'Ahorros' => 1,
+            'Corriente' => 2,
+        ];
+        $numeroCuenta = trim((string) ($data['numero_cuenta'] ?? ''));
+
+        if (
+            !$tipoDocumento ||
+            !$departamento ||
+            !$ciudad ||
+            !$grupoArtesanal ||
+            !$banco ||
+            $direccion === ''
+        ) {
+            return [
+                'success' => false,
+                'message' => 'Completá todos los campos obligatorios.',
+            ];
+        }
+
+        if (!preg_match('/^\d{10}$/', $numeroDocumento)) {
+            return [
+                'success' => false,
+                'message' => 'El número de documento debe tener exactamente 10 dígitos.',
+            ];
+        }
+
+        if (!preg_match('/^\d{1,12}$/', $numeroCuenta)) {
+            return [
+                'success' => false,
+                'message' => 'El número de cuenta debe contener solo números y hasta 12 dígitos.',
+            ];
+        }
+
+        if (!array_key_exists($tipoCuenta, $tiposCuentaPermitidos)) {
+            return [
+                'success' => false,
+                'message' => 'El tipo de cuenta seleccionado no es válido.',
+            ];
+        }
+
+        $tipoCuentaDb = $tiposCuentaPermitidos[$tipoCuenta];
+
+        if (empty($data['acepta_terminos']) || empty($data['acepta_tratamiento_datos'])) {
+            return [
+                'success' => false,
+                'message' => 'Debés aceptar los términos y el tratamiento de datos para continuar.',
+            ];
+        }
+
+        $db = Database::getInstance();
+
+        if ((bool) $db->ejecutar('validarProductor', [':id_user' => $userId])->fetchColumn()) {
+            return [
+                'success' => false,
+                'message' => 'Ya tenés un registro de vendedor activo.',
+            ];
+        }
+
+        $registrado = (bool) $db->ejecutar('crearProductor', [
+            ':tipo_doc' => $tipoDocumento,
+            ':id_prod' => $numeroDocumento,
+            ':id_user' => $userId,
+            ':dir' => $direccion,
+            ':pais' => 1,
+            ':dpto' => $departamento,
+            ':ciudad' => $ciudad,
+            ':grupo' => $grupoArtesanal,
+            ':banco' => $banco,
+            ':cuenta' => $numeroCuenta,
+            ':tipo_cuenta' => $tipoCuentaDb,
+        ])->fetchColumn();
+
+        if (!$registrado) {
+            return [
+                'success' => false,
+                'message' => 'No se pudo completar el registro. Verificá los datos ingresados.',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Registro de vendedor completado correctamente.',
+        ];
+    }
 }

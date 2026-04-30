@@ -1,3 +1,5 @@
+import { buildCartAction } from '../domain/CartDomain.js';
+
 /**
  * CartService.js - Service Layer
  * Responsible ONLY for HTTP requests to the cart API.
@@ -6,6 +8,8 @@
 export class CartService {
     static REDIS_SYNC_ACTION = 'redis_update';
     static REDIS_FLUSH_ACTION = 'flush_to_postgres';
+    static debounceTimers = new Map();
+    static syncInFlight = false;
 
     static getEndpoint() {
         if (typeof window.buildAppUrl === 'function') {
@@ -74,12 +78,7 @@ export class CartService {
     }
 
     static buildAction(accion, id_producto = null, cantidad = null, client_ts = Date.now()) {
-        return {
-            accion,
-            id_producto,
-            cantidad,
-            client_ts
-        };
+        return buildCartAction(accion, id_producto, cantidad, client_ts);
     }
 
     static async sendPendingActions(actions) {
@@ -87,14 +86,59 @@ export class CartService {
             return { success: true, mode: 'noop' };
         }
 
-        const payload = this.buildPendingPayload(actions);
-        const response = await this.postJson(payload);
+        this.syncInFlight = true;
 
-        if (response.success !== true) {
-            throw new Error(response.message || 'Redis cart update rechazado.');
+        try {
+            const payload = this.buildPendingPayload(actions);
+            const response = await this.postJson(payload);
+
+            if (response.success !== true) {
+                throw new Error(response.message || 'Redis cart update rechazado.');
+            }
+
+            return response;
+        } finally {
+            this.syncInFlight = false;
         }
+    }
 
-        return response;
+    /**
+     * Debounces Redis cart writes so rapid UI updates collapse into one request.
+     * The caller supplies a snapshot builder to avoid sending stale actions.
+     */
+    static sendPendingActionsDebounced(getActions, delayMs = 500) {
+        return new Promise((resolve, reject) => {
+            const key = 'cart-pending-actions';
+            const currentTimer = this.debounceTimers.get(key);
+
+            if (currentTimer) {
+                window.clearTimeout(currentTimer);
+            }
+
+            const timer = window.setTimeout(async () => {
+                this.debounceTimers.delete(key);
+
+                try {
+                    const actions = typeof getActions === 'function' ? getActions() : [];
+                    const response = await this.sendPendingActions(actions);
+                    resolve({ response, actions });
+                } catch (error) {
+                    reject(error);
+                }
+            }, delayMs);
+
+            this.debounceTimers.set(key, timer);
+        });
+    }
+
+    static cancelPendingActionsDebounce() {
+        const key = 'cart-pending-actions';
+        const currentTimer = this.debounceTimers.get(key);
+
+        if (currentTimer) {
+            window.clearTimeout(currentTimer);
+            this.debounceTimers.delete(key);
+        }
     }
 
     static sendPendingActionsKeepalive(actions) {
@@ -106,6 +150,10 @@ export class CartService {
     }
 
     static flushToPostgresKeepalive(forceSync = false, actions = []) {
+        if (this.syncInFlight) {
+            return { ok: false, mode: 'sync-in-flight' };
+        }
+
         return this.sendKeepalive(this.buildFlushPayload(forceSync, actions));
     }
 

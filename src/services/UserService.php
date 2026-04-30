@@ -5,6 +5,28 @@ require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 
 class UserService
 {
+    public static function guardarDireccionEnvio(int $userId, int $idDepartamento, int $idCiudad, string $direccion, ?string $barrio = null): void
+    {
+        $db = Database::getInstance();
+        $stmtUsuario = $db->ejecutar('obtenerUsuarioPorId', [':id' => $userId]);
+        $usuario = $stmtUsuario->fetch(PDO::FETCH_ASSOC);
+
+        if (!$usuario) {
+            throw new RuntimeException('Usuario no encontrado.');
+        }
+
+        $db->ejecutar('guardarCliente', [
+            ':id_user' => $userId,
+            ':id_client' => (string) $userId,
+            ':nom' => trim(($usuario['nom_user'] ?? '') . ' ' . ($usuario['ape_user'] ?? '')),
+            ':mail' => $usuario['mail_user'] ?? '',
+            ':dpto' => $idDepartamento,
+            ':ciudad' => $idCiudad,
+            ':dir' => $direccion,
+            ':barrio' => $barrio,
+        ]);
+    }
+
     public static function actualizarPerfil(int $userId, string $nombre, string $apellido): void
     {
         $db = Database::getInstance();

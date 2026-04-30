@@ -7,6 +7,8 @@ class CartService
 {
     private const REDIS_CART_META_UPDATED_AT = '__updated_at';
     private const REDIS_CART_META_DIRTY = '__dirty';
+    private const REDIS_CART_META_ACTIONS = '__acciones_json';
+    private const QUEUE_CARRITO = 'viva:cola:carrito';
     private const SUPPORTED_ACTIONS = ['agregar', 'actualizar', 'eliminar', 'limpiar'];
     private const ACTION_ALIASES = [
         'add' => 'agregar',
@@ -51,18 +53,25 @@ class CartService
         $redis = RedisConfig::getConnection();
         $hashKey = self::getRedisCartHashKey($userId);
         $timestamp = date('Y-m-d H:i:s');
-        $snapshot = self::readRedisCartSnapshot($redis, $hashKey);
+
+        $snapshot = self::readRedisCartSnapshot($redis, $hashKey, $userId);
+
+        $normalizedActions = [];
 
         foreach ($acciones as $indice => $accion) {
-            self::applyRedisCartAction($snapshot, self::normalizeAction($accion, $indice));
+            $normalizedAction = self::normalizeAction($accion, $indice);
+            self::applyRedisCartAction($snapshot, $normalizedAction);
+            $normalizedActions[] = $normalizedAction;
         }
 
-        self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp);
+        self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp, self::buildSnapshotActions($snapshot));
+        self::pushCartQueueJob($redis, $userId, $hashKey, $normalizedActions, $timestamp);
 
         return [
             'success' => true,
             'message' => 'Carrito consolidado en Redis',
             'hash_key' => $hashKey,
+            'acciones' => $acciones,
             'items_count' => count($snapshot),
             'updated_at' => $timestamp,
         ];
@@ -77,7 +86,18 @@ class CartService
         $redis = RedisConfig::getConnection();
         $hashKey = self::getRedisCartHashKey($userId);
         $timestamp = date('Y-m-d H:i:s');
-        $snapshot = self::readRedisCartSnapshot($redis, $hashKey);
+
+        if (!$redis->exists($hashKey)) {
+            return [
+                'success' => true,
+                'message' => 'No hay cambios pendientes en Redis',
+                'force_sync' => $forceSync,
+                'flushed' => false,
+                'items_count' => 0,
+            ];
+        }
+
+        $snapshot = self::readRedisCartSnapshot($redis, $hashKey, $userId);
 
         if ($acciones !== null) {
             if (!array_is_list($acciones)) {
@@ -91,7 +111,7 @@ class CartService
             self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp);
         }
 
-        if (!$redis->exists($hashKey)) {
+        if (empty($snapshot)) {
             return [
                 'success' => true,
                 'message' => 'No hay cambios pendientes en Redis',
@@ -138,11 +158,25 @@ class CartService
         return RedisConfig::getPrefix() . 'carrito:user:' . $userId;
     }
 
-    private static function readRedisCartSnapshot($redis, string $hashKey): array
+    private static function readRedisCartSnapshot($redis, string $hashKey, int $userId = null): array
     {
         $rawHash = $redis->hgetall($hashKey);
 
         if (!is_array($rawHash) || empty($rawHash)) {
+            if ($userId !== null) {
+                $dbItems = self::gestionarItemsCarrito($userId, 'obtener');
+                $snapshot = [];
+                // Extract items array if response is wrapped, otherwise iterate directly
+                $items = $dbItems['items'] ?? $dbItems;
+                if (is_array($items)) {
+                    foreach ($items as $item) {
+                        if (is_array($item) && isset($item['id_producto'], $item['cantidad'])) {
+                            $snapshot[$item['id_producto']] = (int) $item['cantidad'];
+                        }
+                    }
+                }
+                return $snapshot;
+            }
             return [];
         }
 
@@ -168,17 +202,63 @@ class CartService
         return $snapshot;
     }
 
-    private static function writeRedisCartSnapshot($redis, string $hashKey, array $snapshot, string $timestamp): void
+    private static function writeRedisCartSnapshot($redis, string $hashKey, array $snapshot, string $timestamp, array $actions = []): void
     {
         $redis->del([$hashKey]);
         $redis->hset($hashKey, self::REDIS_CART_META_DIRTY, '1');
         $redis->hset($hashKey, self::REDIS_CART_META_UPDATED_AT, $timestamp);
+
+        if (!empty($actions)) {
+            $redis->hset($hashKey, self::REDIS_CART_META_ACTIONS, json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
 
         foreach ($snapshot as $productoId => $cantidad) {
             $redis->hset($hashKey, (string) $productoId, (string) $cantidad);
         }
 
         $redis->expire($hashKey, 86400);
+    }
+
+    private static function buildSnapshotActions(array $snapshot): array
+    {
+        $actions = [[
+            'accion' => 'limpiar',
+            'id_producto' => null,
+            'cantidad' => null,
+        ]];
+
+        foreach ($snapshot as $productoId => $cantidad) {
+            $actions[] = [
+                'accion' => 'agregar',
+                'id_producto' => (int) $productoId,
+                'cantidad' => (int) $cantidad,
+            ];
+        }
+
+        return $actions;
+    }
+
+    private static function pushCartQueueJob($redis, int $userId, string $hashKey, array $actions, string $timestamp): void
+    {
+        $encodedActions = json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if ($encodedActions === false) {
+            throw new RuntimeException('No se pudo serializar las acciones del job de carrito Redis.');
+        }
+
+        $payload = json_encode([
+            'user_id' => $userId,
+            'session_key' => $hashKey,
+            'actions_hash' => hash('sha256', $encodedActions),
+            'acciones_json' => $encodedActions,
+            'queued_at' => $timestamp,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if ($payload === false) {
+            throw new RuntimeException('No se pudo serializar el job de carrito Redis.');
+        }
+
+        $redis->lpush(self::QUEUE_CARRITO, $payload);
     }
 
     private static function normalizeAction(array $accion, int $indice): array

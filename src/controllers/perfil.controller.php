@@ -41,7 +41,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax']) || isset($_GET
         }
     }
 
-    echo json_encode(['clase' => 'mensaje-error', 'mensaje' => 'Acción no reconocida.']);
+    if ($accion === 'save_shipping_address') {
+        $idDepartamento = filter_input(INPUT_POST, 'id_departamento', FILTER_VALIDATE_INT);
+        $idCiudad = filter_input(INPUT_POST, 'id_ciudad', FILTER_VALIDATE_INT);
+        $direccion = trim($_POST['dir_envio'] ?? '');
+        $barrio = trim($_POST['barrio_envio'] ?? '');
+
+        if (!$idDepartamento || !$idCiudad || mb_strlen($direccion) < 5) {
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Completa todos los campos obligatorios (departamento, ciudad y dirección).',
+            ]);
+            exit;
+        }
+
+        try {
+            UserService::guardarDireccionEnvio(
+                (int) $id_usuario,
+                (int) $idDepartamento,
+                (int) $idCiudad,
+                $direccion,
+                $barrio !== '' ? $barrio : null
+            );
+
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'Dirección de envío guardada correctamente.',
+            ]);
+            exit;
+        } catch (RuntimeException $e) {
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => $e->getMessage(),
+            ]);
+            exit;
+        } catch (PDOException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    echo json_encode(['exito' => false, 'mensaje' => 'Acción no reconocida.']);
     exit;
 }
 

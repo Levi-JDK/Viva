@@ -143,8 +143,8 @@ require_once __DIR__ . '/partials/base_head.php';
                 <!-- Category Cards (Dynamic) -->
                 <?php 
                 if (!empty($categorias_destacadas)) {
-                    // Tomamos un máximo de 8 para no romper el grid ideal
-                    $categorias_mostrar = array_slice($categorias_destacadas, 0, 8);
+                    // Tomamos un máximo de 4 para mantener el control desde la vista
+                    $categorias_mostrar = array_slice($categorias_destacadas, 0, 4);
                     foreach ($categorias_mostrar as $cat): 
                         // Usar la imagen de la BD, o la default si está vacía
                         $img_src = !empty($cat['img_cat']) 

@@ -61,6 +61,7 @@ require_once __DIR__ . '/partials/base_head.php';
                 </div>
 
                 <form id="form-envio" class="space-y-4" novalidate method="post">
+                    <input type="hidden" name="accion" value="save_shipping_address">
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Departamento -->

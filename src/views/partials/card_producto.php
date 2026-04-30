@@ -75,6 +75,7 @@ $product_image = !empty($product_image_path)
     ? base_url_path($product_image_path)
     : '/var/www/html/viva/images/default.webp';
 $stand_logo = !empty($product['img_stand']) ? base_url_path($product['img_stand']) : base_url_path('images/default.webp');
+$cart_price = (int)($product['precio_producto'] ?? 0);
 ?>
 
 <!-- Componente: Tarjeta de Producto -->
@@ -130,7 +131,12 @@ $stand_logo = !empty($product['img_stand']) ? base_url_path($product['img_stand'
                     </span>
                     <!-- Botón Agregar al Carrito -->
                     <button
-                        data-action="cart-add" data-id="<?= (int)($product['id_producto'] ?? 0) ?>" data-qty="1"
+                        data-action="cart-add"
+                        data-id="<?= (int)($product['id_producto'] ?? 0) ?>"
+                        data-qty="1"
+                        data-name="<?= htmlspecialchars((string)($product['nom_producto'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                        data-price="<?= $cart_price ?>"
+                        data-image="<?= htmlspecialchars((string)$product_image, ENT_QUOTES, 'UTF-8') ?>"
                         class="btn-agregar-carrito bg-naranja-artesanal text-white px-4 py-2 rounded-lg text-sm font-medium
                                hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1.5">
                         <i class="fas fa-shopping-cart text-xs"></i>

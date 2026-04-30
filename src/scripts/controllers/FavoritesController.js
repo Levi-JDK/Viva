@@ -184,7 +184,7 @@ class FavoritesController {
                         
                         <div class="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                             <span class="text-lg font-bold text-tierra-oscuro truncate">${precioFormat}</span>
-                            <button data-action="cart-add" data-id="${fav.id_producto}" data-qty="1" class="bg-naranja-artesanal text-white px-3 py-1.5 rounded-lg text-sm hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1.5 font-medium shadow-sm flex-shrink-0">
+                            <button data-action="cart-add" data-id="${fav.id_producto}" data-qty="1" data-name="${this.escapeHtml(fav.nom_producto)}" data-price="${Number(fav.precio_producto || 0)}" data-image="${imgUrl}" class="bg-naranja-artesanal text-white px-3 py-1.5 rounded-lg text-sm hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1.5 font-medium shadow-sm flex-shrink-0">
                                 <i class="fas fa-shopping-cart text-xs pointer-events-none"></i>
                                 Agregar
                             </button>

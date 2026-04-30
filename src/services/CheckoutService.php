@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/CartService.php';
 
 class CheckoutService
 {
@@ -64,6 +65,7 @@ class CheckoutService
     public static function obtenerDatosCheckout(int $idUser): array
     {
         $db = Database::getInstance();
+        self::flushRedisCartBeforeCheckout($idUser);
         $carrito = self::obtenerCarrito($db, $idUser);
 
         if (($carrito['exito'] ?? false) !== true || empty($carrito['carrito'])) {
@@ -85,6 +87,16 @@ class CheckoutService
             'epayco_public_key' => $epaycoPublicKey,
             'referencia_pago' => 'VIVA-' . time() . '-' . $idUser,
         ];
+    }
+
+    /**
+     * Synchronously persists any dirty Redis cart snapshot before checkout render.
+     * RedisConfig enforces fail-fast .env validation; checkout must not continue
+     * with stale PostgreSQL cart state when Redis is misconfigured/unavailable.
+     */
+    private static function flushRedisCartBeforeCheckout(int $idUser): void
+    {
+        CartService::flushToPostgres($idUser, true);
     }
 
     private static function validarReferenciaEpayco(string $refPayco): ?array

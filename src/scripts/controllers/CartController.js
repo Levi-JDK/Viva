@@ -1,5 +1,6 @@
 import { CartService } from '../services/CartService.js';
 import { cartStore } from '../domain/CartStore.js';
+import { sanitizeCartProductId, sanitizeCartQuantity } from '../domain/CartDomain.js';
 
 /**
  * CartController.js - UI/Controller Layer
@@ -9,7 +10,7 @@ class CartController {
     constructor() {
         this.flushListenersBound = false;
         this.syncDebounceMs = 500;
-        this.syncDebounceId = null;
+        this.syncInFlight = false;
     }
 
     async init() {
@@ -56,7 +57,7 @@ class CartController {
         try {
             const data = await CartService.getCart();
             if (data && data.exito) {
-                cartStore.setState(data.carrito, data.resumen);
+                cartStore.mergeServerStatePreservingPending(data.carrito, data.resumen);
                 this.renderCart();
             }
         } catch (error) {
@@ -65,12 +66,16 @@ class CartController {
     }
 
     addItem(btn) {
-        const id_producto = btn.dataset.id;
-        let cantidad = parseInt(btn.dataset.qty);
-        if (!cantidad || isNaN(cantidad)) {
-            const qtyInput = document.getElementById('qty-input')
-                           || btn.closest('.flex')?.querySelector('input[type="number"]');
-            cantidad = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+        this.handleCartAdd(btn?.dataset || {}, btn);
+    }
+
+    handleCartAdd(data = {}, target) {
+        const btn = target instanceof HTMLElement ? target : null;
+        const id_producto = sanitizeCartProductId(data.id ?? btn?.dataset?.id);
+        const cantidad = this.resolveCartQuantity(data, btn);
+
+        if (!btn || id_producto === null) {
+            return;
         }
 
         if (!window.USER_IS_LOGGED_IN) {
@@ -78,7 +83,6 @@ class CartController {
             return;
         }
 
-        // Optimistic UI
         const iconoOriginal = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check text-xs"></i> ¡Listo!';
         btn.disabled = true;
@@ -107,7 +111,8 @@ class CartController {
     }
 
     removeItem(btn) {
-        const id_producto = btn.dataset.id;
+        const id_producto = sanitizeCartProductId(btn.dataset.id);
+        if (id_producto === null) return;
 
         this.applyOptimisticRemove(id_producto);
         this.enqueuePendingAction('eliminar', id_producto, null);
@@ -116,10 +121,10 @@ class CartController {
     }
 
     updateQuantity(btn) {
-        const id_producto = btn.dataset.id;
-        const nueva_cantidad = parseInt(btn.dataset.qty);
-        
-        if (nueva_cantidad < 1) return;
+        const id_producto = sanitizeCartProductId(btn.dataset.id);
+        const nueva_cantidad = sanitizeCartQuantity(btn.dataset.qty, 0);
+
+        if (id_producto === null || nueva_cantidad < 1) return;
 
         this.applyOptimisticUpdate(id_producto, nueva_cantidad);
         this.enqueuePendingAction('actualizar', id_producto, nueva_cantidad);
@@ -156,12 +161,6 @@ class CartController {
     bindFlushListeners() {
         if (this.flushListenersBound) return;
 
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-                this.flushToPostgresOnClose();
-            }
-        });
-
         window.addEventListener('beforeunload', () => {
             this.flushToPostgresOnClose();
         });
@@ -174,33 +173,40 @@ class CartController {
             return;
         }
 
-        if (this.syncDebounceId) {
-            clearTimeout(this.syncDebounceId);
-        }
+        CartService.sendPendingActionsDebounced(
+            () => cartStore.getPendingActions(),
+            this.syncDebounceMs
+        ).then(result => {
+            const syncedActions = result?.response?.acciones || result?.actions || [];
 
-        this.syncDebounceId = window.setTimeout(() => {
-            this.syncDebounceId = null;
-            this.flushPendingActions();
-        }, this.syncDebounceMs);
+            if (syncedActions.length > 0) {
+                cartStore.clearSyncedPendingActions(syncedActions);
+                cartStore.markSynced();
+            }
+        }).catch(error => {
+            console.error('[CartController] Debounced sync failed:', error);
+        });
     }
 
     async flushPendingActions() {
-        if (!window.USER_IS_LOGGED_IN || !cartStore.hasPendingActions() || cartStore.getState().isFlushing) {
+        if (!window.USER_IS_LOGGED_IN || !cartStore.hasPendingActions() || this.syncInFlight || cartStore.getState().isFlushing) {
             return false;
         }
 
         const pendingActions = cartStore.getPendingActions();
+        this.syncInFlight = true;
         cartStore.setFlushing(true);
 
         try {
             await CartService.sendPendingActions(pendingActions);
-            cartStore.clearPendingActions();
+            cartStore.clearSyncedPendingActions(pendingActions);
             cartStore.markSynced();
             return true;
         } catch (error) {
             console.error('[CartController] Debounced sync failed:', error);
             return false;
         } finally {
+            this.syncInFlight = false;
             cartStore.setFlushing(false);
         }
     }
@@ -234,10 +240,11 @@ class CartController {
             return false;
         }
 
-        if (this.syncDebounceId) {
-            clearTimeout(this.syncDebounceId);
-            this.syncDebounceId = null;
+        if (CartService.syncInFlight) {
+            return false;
         }
+
+        CartService.cancelPendingActionsDebounce();
 
         const pendingActions = cartStore.getPendingActions();
         const result = CartService.flushToPostgresKeepalive(false, pendingActions);
@@ -272,87 +279,81 @@ class CartController {
         cartStore.enqueuePendingAction(action);
     }
 
-    applyOptimisticAdd(btn, idProducto, cantidad) {
-        const { items } = cartStore.getState();
-        const nextItems = items.map(item => ({ ...item }));
-        const existingItem = nextItems.find(item => Number(item.id_producto) === Number(idProducto));
-
-        if (existingItem) {
-            existingItem.cantidad += cantidad;
-            existingItem.subtotal = Number(existingItem.precio_unitario || 0) * existingItem.cantidad;
-        } else {
-            nextItems.push(this.buildOptimisticItem(btn, idProducto, cantidad));
+    resolveCartQuantity(data = {}, target) {
+        const explicitQty = sanitizeCartQuantity(data.qty ?? target?.dataset?.qty, 0);
+        if (explicitQty >= 1) {
+            return explicitQty;
         }
 
-        this.commitOptimisticItems(nextItems);
+        const selector = String(data.qtyTarget || target?.dataset?.qtyTarget || '').trim();
+        const scopedInput = this.findScopedQuantityInput(target, selector)
+            || this.findScopedQuantityInput(target, 'input[type="number"]');
+
+        return sanitizeCartQuantity(scopedInput?.value, 1);
+    }
+
+    findScopedQuantityInput(target, selector) {
+        if (!(target instanceof HTMLElement) || !selector) {
+            return null;
+        }
+
+        let current = target.parentElement;
+        let depth = 0;
+
+        while (current && depth < 6) {
+            const candidate = current.querySelector(selector);
+            if (candidate) {
+                return candidate;
+            }
+
+            current = current.parentElement;
+            depth += 1;
+        }
+
+        return null;
+    }
+
+    applyOptimisticAdd(btn, idProducto, cantidad) {
+        cartStore.addItemOptimistic(this.buildOptimisticItem(btn, idProducto, cantidad));
+        this.updateBadge(cartStore.getTotalItems());
     }
 
     applyOptimisticRemove(idProducto) {
-        const { items } = cartStore.getState();
-        const nextItems = items
-            .filter(item => Number(item.id_producto) !== Number(idProducto))
-            .map(item => ({ ...item }));
-
-        this.commitOptimisticItems(nextItems);
+        cartStore.removeItemOptimistic(idProducto);
+        this.updateBadge(cartStore.getTotalItems());
     }
 
     applyOptimisticUpdate(idProducto, cantidad) {
-        const { items } = cartStore.getState();
-        const nextItems = items.map(item => {
-            if (Number(item.id_producto) !== Number(idProducto)) {
-                return { ...item };
-            }
-
-            const precioUnitario = Number(item.precio_unitario || 0);
-
-            return {
-                ...item,
-                cantidad,
-                subtotal: precioUnitario * cantidad
-            };
-        });
-
-        this.commitOptimisticItems(nextItems);
+        cartStore.updateItemQuantityOptimistic(idProducto, cantidad);
+        this.updateBadge(cartStore.getTotalItems());
     }
 
     applyOptimisticClear() {
-        this.commitOptimisticItems([]);
-    }
-
-    commitOptimisticItems(items) {
-        const resumen = this.buildResumen(items);
-        cartStore.setState(items, resumen);
-        this.updateBadge(resumen.total_items);
-    }
-
-    buildResumen(items) {
-        return items.reduce((acc, item) => {
-            const cantidad = Number(item.cantidad || 0);
-            const subtotal = Number(item.subtotal || 0);
-
-            acc.total_items += cantidad;
-            acc.total_precio += subtotal;
-
-            return acc;
-        }, { total_items: 0, total_precio: 0 });
+        cartStore.clearItemsOptimistic();
+        this.updateBadge(cartStore.getTotalItems());
     }
 
     buildOptimisticItem(btn, idProducto, cantidad) {
         const productCard = btn.closest('.product-card');
         const detailView = document.getElementById('mainImage');
+        const nameFromDataset = btn.dataset.name?.trim();
+        const priceFromDataset = btn.dataset.price;
+        const imageFromDataset = btn.dataset.image?.trim();
         const nameFromCard = productCard?.querySelector('h3')?.textContent?.trim();
-        const nameFromDetail = document.querySelector('h1')?.textContent?.trim();
-        const priceText = productCard?.querySelector('.text-2xl.font-bold')?.textContent
+        const nameFromDetail = document.querySelector('h1.text-3xl')?.textContent?.trim();
+        const priceText = priceFromDataset
+            || productCard?.querySelector('.text-2xl.font-bold')?.textContent
             || document.querySelector('[data-product-price]')?.textContent
             || '';
-        const imageSrc = productCard?.querySelector('img')?.getAttribute('src')
+        const imageSrc = imageFromDataset
+            || productCard?.querySelector('img')?.getAttribute('src')
             || detailView?.getAttribute('src')
             || 'images/default_product.jpg';
         const precioUnitario = this.parsePrice(priceText);
 
         return {
             id_producto: Number(idProducto),
-            nom_producto: nameFromCard || nameFromDetail || 'Producto agregado',
+            nom_producto: nameFromDataset || nameFromCard || nameFromDetail || 'Producto agregado',
             precio_unitario: precioUnitario,
             cantidad,
             subtotal: precioUnitario * cantidad,

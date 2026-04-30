@@ -176,19 +176,80 @@ class Worker {
         }
 
         for ($intento = 1; $intento <= $this->maxRetries; $intento++) {
+            $idempotency = null;
+
             try {
+                $idempotency = $this->claimCartJob($payload);
+
+                if ($idempotency === null) {
+                    $this->log("[!] Job de carrito duplicado omitido user_id: $userId");
+                    return;
+                }
+
                 $job->handle($this->pdo);
+                $this->markCartJobProcessed($idempotency);
                 $this->redis->del($job->getSessionKey());
                 $this->log("[✓] Carrito user_id $userId procesado correctamente");
                 
                 return;
                 
             } catch (PDOException $e) {
+                if ($idempotency !== null) {
+                    $this->releaseCartJobClaim($idempotency);
+                }
+
+                throw $e;
+            } catch (Exception $e) {
+                if ($idempotency !== null) {
+                    $this->releaseCartJobClaim($idempotency);
+                }
+
                 throw $e;
             }
         }
 
         $this->moverADLQ('carrito', $userId, $payload);
+    }
+
+    /**
+     * Redis check-and-set idempotency guard for cart queue jobs.
+     * Prevents duplicate queue messages from executing fun_carrito twice.
+     */
+    private function claimCartJob(array $payload): ?string {
+        $sessionKey = (string) ($payload['session_key'] ?? '');
+        $actionsHash = (string) ($payload['actions_hash'] ?? '');
+
+        if ($sessionKey === '' || $actionsHash === '') {
+            throw new InvalidArgumentException('Mensaje de carrito sin idempotency key.');
+        }
+
+        $prefix = RedisConfig::getPrefix();
+        $jobHash = hash('sha256', $sessionKey . '|' . $actionsHash);
+        $idempotencyKey = $prefix . 'cart_job:processed:' . $jobHash;
+        $processingKey = $prefix . 'cart_job:processing:' . $jobHash;
+
+        if ($this->redis->exists($idempotencyKey)) {
+            return null;
+        }
+
+        $claimed = $this->redis->set($processingKey, '1', 'EX', 120, 'NX');
+
+        if ($claimed !== true && $claimed !== 'OK') {
+            return null;
+        }
+
+        return $idempotencyKey . '|' . $processingKey;
+    }
+
+    private function markCartJobProcessed(string $idempotency): void {
+        [$idempotencyKey, $processingKey] = explode('|', $idempotency, 2);
+        $this->redis->setex($idempotencyKey, 86400, '1');
+        $this->redis->del([$processingKey]);
+    }
+
+    private function releaseCartJobClaim(string $idempotency): void {
+        [, $processingKey] = explode('|', $idempotency, 2);
+        $this->redis->del([$processingKey]);
     }
     
     /**

@@ -160,7 +160,7 @@ export class CatalogController {
                                 $${precio}
                             </span>
                             <button class="bg-naranja-artesanal text-white px-4 py-2 rounded-lg
-                                           text-sm font-medium hover:bg-tierra-oscuro transition-colors" data-action="cart-add" data-id="${p.id_producto}" data-qty="1" onclick="event.preventDefault();">
+                                           text-sm font-medium hover:bg-tierra-oscuro transition-colors" data-action="cart-add" data-id="${p.id_producto}" data-qty="1" data-name="${this.escapeHtml(p.nom_producto)}" data-price="${Number(p.precio_producto || 0)}" data-image="${productImage}" onclick="event.preventDefault();">
                                 <i class="fas fa-shopping-cart mr-1"></i>Comprar
                             </button>
                         </div>

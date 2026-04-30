@@ -147,7 +147,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                 </div>
                             </div>
 
-                            <div class="text-3xl font-bold text-naranja-artesanal mb-6">
+                            <div class="text-3xl font-bold text-naranja-artesanal mb-6" data-product-price>
                                 $<?= number_format($producto['precio_producto'], 0, ',', '.') ?>
                             </div>
 
@@ -172,6 +172,8 @@ require_once __DIR__ . '/partials/base_head.php';
                             </div>
                         </div>
 
+                        <?php $cartPrice = (int)($producto['precio_producto'] ?? 0); ?>
+
                         <!-- Actions -->
                         <div class="border-t border-gray-100 pt-6">
                             <div class="flex gap-4">
@@ -183,7 +185,12 @@ require_once __DIR__ . '/partials/base_head.php';
                                         <button data-action="increase-stock" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <button data-action="cart-add" data-id="<?= (int)$producto['id_producto'] ?>"
+                                <button data-action="cart-add"
+                                        data-id="<?= (int)$producto['id_producto'] ?>"
+                                        data-qty-target="#qty-input"
+                                        data-name="<?= htmlspecialchars((string)($producto['nom_producto'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                        data-price="<?= $cartPrice ?>"
+                                        data-image="<?= htmlspecialchars((string)($imagenPrincipalPublicUrl ?? $firstThumbnailPublicUrl ?? 'images/default_product.jpg'), ENT_QUOTES, 'UTF-8') ?>"
                                         <?= !$producto['stock_productor'] ? 'disabled' : '' ?>
                                         class="flex-1 bg-tierra-oscuro text-white font-bold rounded-full hover:bg-opacity-90 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fas fa-shopping-cart"></i>

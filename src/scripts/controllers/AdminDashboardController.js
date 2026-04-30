@@ -1,9 +1,23 @@
 import { AdminDashboardService } from '../services/AdminDashboardService.js';
 import { AdminService } from '../services/AdminService.js';
 import { AdminCrudService } from '../services/AdminCrudService.js';
+import { eventRouter } from '../utils/EventRouter.js';
 
 export class AdminDashboardController {
     init() {
+        eventRouter.register('select-crud-entity', this.selectCrudEntity.bind(this));
+        eventRouter.register('open-crud-modal', (event) => {
+            event.preventDefault();
+            this.openCrudModal();
+        });
+        eventRouter.register('close-crud-modal', (event) => {
+            event.preventDefault();
+            this.closeCrudModal();
+        });
+        eventRouter.register('submit-crud-form', this.submitCrudForm.bind(this));
+        eventRouter.register('edit-crud-record', this.handleEditCrudRecord.bind(this));
+        eventRouter.register('delete-crud-record', this.handleDeleteCrudRecord.bind(this));
+
         // Expose global methods for inline HTML calls (legacy support)
         window.showPanel = this.showPanel.bind(this);
         window.toggleSidebar = this.toggleSidebar.bind(this);
@@ -205,7 +219,7 @@ export class AdminDashboardController {
         if (this.crudDropdownArrow) this.crudDropdownArrow.style.transform = '';
     }
 
-    async selectCrudEntity(btn) {
+    async selectCrudEntity(event, btn) {
         this.crudCurrentEntity = btn.dataset.entity || btn.dataset.value || null;
         if (!this.crudCurrentEntity) return;
 
@@ -235,9 +249,11 @@ export class AdminDashboardController {
 
         try {
             const result = await AdminCrudService.readEntity(this.crudCurrentEntity);
-            if (result.success) {
-                this.crudSchemaCols = result.data.columnas || [];
-                this.renderCrudTable(this.crudSchemaCols, result.data.filas || []);
+            const payload = result.success ? result.data : result;
+
+            if (payload && Array.isArray(payload.columnas)) {
+                this.crudSchemaCols = payload.columnas || [];
+                this.renderCrudTable(this.crudSchemaCols, payload.filas || []);
                 return;
             }
 
@@ -479,7 +495,9 @@ export class AdminDashboardController {
         }
     }
 
-    handleEditCrudRecord(btn) {
+    handleEditCrudRecord(event, btn) {
+        event?.preventDefault();
+
         const row = this.parseCrudRow(btn);
         if (!row) {
             if (typeof showToast !== 'undefined') showToast('No se pudo abrir el registro', 'error');
@@ -520,7 +538,9 @@ export class AdminDashboardController {
         }, 300);
     }
 
-    async handleDeleteCrudRecord(btn) {
+    async handleDeleteCrudRecord(event, btn) {
+        event?.preventDefault();
+
         const row = this.parseCrudRow(btn);
         if (!row || !this.crudCurrentEntity) {
             if (typeof showToast !== 'undefined') showToast('No se pudo eliminar el registro', 'error');

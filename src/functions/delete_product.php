@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->beginTransaction();
 
         // Eliminar lógicamente el producto (Soft Delete) verificando que el productor sea el dueño
-        // Al marcar is_deleted = TRUE, también marcamos is_active = FALSE y stock_productor = 0 por seguridad y restricciones
+        // Al marcar is_deleted = TRUE también marcamos is_active = FALSE, pero preservamos el stock histórico del producto
         $stmt = $db->ejecutar('eliminarProductoLogicamente', [
             ':id_producto'  => $id_producto,
             ':id_productor' => $id_productor

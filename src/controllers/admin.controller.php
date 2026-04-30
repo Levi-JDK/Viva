@@ -126,6 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             exit;
         }
 
+        if ($accion === 'read') {
+            echo json_encode($db->gestionarCRUDAdmin('read', $entidad));
+            exit;
+        }
+
         if ($accion === 'toggle_user') {
             $id_user = (int) ($_REQUEST['id_user'] ?? 0);
             $is_active = $_REQUEST['is_active'] ?? 'true';
