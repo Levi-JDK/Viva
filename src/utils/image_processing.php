@@ -185,7 +185,9 @@ function generateVariants($source, $config = null) {
         foreach ($variants as $name => $variant) {
             $maxWidth = isset($variant['w']) ? (int) $variant['w'] : 0;
             $maxHeight = isset($variant['h']) ? (int) $variant['h'] : 0;
-            $destination = $directory . DIRECTORY_SEPARATOR . $baseName . '_' . $name . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.webp';
+            // Nombres predecibles: basename.webp (full), basename_thumb.webp, basename_medium.webp
+            $suffix = ($name === 'full') ? '' : '_' . $name;
+            $destination = $directory . DIRECTORY_SEPARATOR . $baseName . $suffix . '.webp';
 
             if ($maxWidth <= 0) {
                 throw new RuntimeException('Invalid image variant width: ' . $name);
@@ -217,5 +219,21 @@ function cleanupGeneratedVariants(array $paths) {
             unlink($path);
         }
     }
+}
+
+/**
+ * Obtiene la URL de una variante a partir de la URL base (full).
+ * 
+ * @param string $baseUrl URL base de la imagen full (ej: images/products/prod_123.webp)
+ * @param string $variant Nombre de la variante: 'thumb', 'medium', 'full'
+ * @return string URL de la variante solicitada
+ */
+function getImageVariant(string $baseUrl, string $variant = 'full'): string {
+    if ($variant === 'full') {
+        return $baseUrl;
+    }
+    
+    // Insertar el sufijo antes de .webp
+    return str_replace('.webp', '_' . $variant . '.webp', $baseUrl);
 }
 ?>

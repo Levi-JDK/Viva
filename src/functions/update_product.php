@@ -151,9 +151,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception($result['message']);
             }
 
-            $uploaded_paths = $result['paths'] ?? [];
-            if (empty($uploaded_paths) && !empty($result['path'])) {
+            // Solo guardar la imagen principal (full), no las variantes (thumb, medium)
+            $uploaded_paths = [];
+            if (!empty($result['path'])) {
                 $uploaded_paths = [$result['path']];
+            } elseif (!empty($result['paths'])) {
+                $uploaded_paths = $result['paths'];
             }
         }
 

@@ -34,7 +34,7 @@
                                         <!-- Image Container -->
                                         <div class="relative h-56 overflow-hidden bg-gray-100">
                                             <?php if (!empty($producto['imagen'])): ?>
-                                                <img src="<?= BASE_URL . $producto['imagen'] ?>" 
+                                                <img src="<?= BASE_URL . getImageVariant($producto['imagen'], 'thumb') ?>" 
                                                      alt="<?= htmlspecialchars($producto['nom_producto']) ?>" 
                                                      loading="lazy"
                                                      class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500">

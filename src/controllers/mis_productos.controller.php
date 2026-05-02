@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../services/MyProductsService.php';
+require_once ROOT_PATH . 'src/utils/image_processing.php';
 
 $userData = AuthHelper::protectRoute();
 $id_user = $userData->id_user;

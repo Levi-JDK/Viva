@@ -73,7 +73,8 @@ function cargar_datos_navbar(): void
             $GLOBALS['navbar_menus'] = array_filter($all_menus, fn($m) => in_array($m['id_menu'], [1, 2, 3]));
             $dropdown_raw = array_filter($all_menus, fn($m) => !in_array($m['id_menu'], [1, 2, 3]));
 
-            // Adaptar la URL de "Mi Stand" (ID 11) de forma dinámica para que apunte al stand público
+            // Adaptar la URL de "Mi Stand" (ID 11) de forma dinámica
+            // Si tiene stand → página pública, si no → formulario de creación
             $GLOBALS['dropdown_menus'] = array_map(function($m) use ($db, $id_user) {
                 if ($m['id_menu'] == 11) {
                     try {
@@ -81,6 +82,8 @@ function cargar_datos_navbar(): void
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
                         if ($row && isset($row['id_stand'])) {
                             $m['url_menu'] = 'stand?id=' . $row['id_stand'];
+                        } else {
+                            $m['url_menu'] = 'mis_productos?view=stand';
                         }
                     } catch (Exception $e) {
                         throw $e;

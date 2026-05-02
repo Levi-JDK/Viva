@@ -119,6 +119,11 @@ class VendorService
             ];
         }
 
+        // Asignar menús de vendedor y revocar "Vender en VIVA"
+        $db->ejecutar('asignarMenuUsuario', [':id_user' => $userId, ':id_menu' => 10]); // Mis Productos
+        $db->ejecutar('asignarMenuUsuario', [':id_user' => $userId, ':id_menu' => 11]); // Mi Stand
+        $db->ejecutar('revocarMenuUsuario', [':id_user' => $userId, ':id_menu' => 9]);  // Vender en VIVA
+
         return [
             'success' => true,
             'message' => 'Registro de vendedor completado correctamente.',

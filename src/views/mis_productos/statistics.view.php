@@ -73,7 +73,7 @@
                                          <li class="flex items-center justify-between pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                                              <div class="flex items-center space-x-3 min-w-0">
                                                  <div class="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                                                     <img src="<?= BASE_URL . ($producto['imagen'] ?? 'images/default_product.png') ?>" alt="<?= htmlspecialchars($producto['nom_producto'] ?? '') ?>" class="w-full h-full object-cover">
+                                                      <img src="<?= BASE_URL . (getImageVariant($producto['imagen'], 'thumb') ?? 'images/default_product.png') ?>" alt="<?= htmlspecialchars($producto['nom_producto'] ?? '') ?>" class="w-full h-full object-cover">
                                                  </div>
                                                  <div class="min-w-0">
                                                      <p class="text-sm font-semibold text-gray-800 truncate"><?= htmlspecialchars($producto['nom_producto'] ?? 'Producto') ?></p>
