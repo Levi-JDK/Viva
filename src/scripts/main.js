@@ -23,6 +23,7 @@ import { landingController } from './controllers/LandingController.js';
 import { passwordRecoveryController } from './controllers/PasswordRecoveryController.js';
 import { profileController } from './controllers/ProfileController.js';
 import { vendorRegistrationController } from './controllers/VendorRegistrationController.js';
+import { trackingController } from './controllers/TrackingController.js';
 
 import { Toast } from './ui/Toast.js';
 
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     passwordRecoveryController.init();
     profileController.init();
     vendorRegistrationController.init();
+    trackingController.init();
 });
 
 // Registramos las acciones en el EventRouter
@@ -113,6 +115,13 @@ eventRouter.register('pass-input', (e, el) => passwordRecoveryController.handleP
 eventRouter.register('pass-keydown', (e, el) => passwordRecoveryController.handlePassKeydown(e, el));
 
 eventRouter.register('departamento-change', (e, el) => locationController.handleDepartamentoChange(el));
+eventRouter.register('tracking-copy', (e, btn) => trackingController.copyTrackingNumber(btn));
+eventRouter.register('tracking-retry', (e) => { e.preventDefault(); trackingController.retry(); });
+eventRouter.register('tracking-open-modal', (e) => { e.preventDefault(); trackingController.openModal(); });
+eventRouter.register('tracking-close-modal', (e) => { e.preventDefault(); trackingController.closeModal(); });
+eventRouter.register('tracking-confirm', (e) => { e.preventDefault(); trackingController.openConfirmModal(); });
+eventRouter.register('tracking-close-confirm-modal', (e) => { e.preventDefault(); trackingController.closeConfirmModal(); });
+eventRouter.register('tracking-submit-confirm', (e, btn) => { e.preventDefault(); trackingController.submitConfirm(btn); });
 
 eventRouter.register('change-main-image', (e, btn) => {
     e.preventDefault();

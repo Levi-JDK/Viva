@@ -313,6 +313,28 @@ return [
             :ids_producto::INTEGER[],
             :cantidades::INTEGER[]
         )",
+    'actualizarGuiaFactura' => "
+        UPDATE tab_enc_fact
+        SET num_guia = :num_guia
+        WHERE id_factura = :id_factura
+    ",
+    'obtenerGuiaPorFactura' => "
+        SELECT f.num_guia
+        FROM tab_enc_fact f
+        JOIN tab_clientes c ON f.id_client = c.id_client
+        WHERE f.id_factura = :id_factura AND c.id_user = :id_user
+        LIMIT 1
+    ",
+    'obtenerClienteConDireccion' => "
+        SELECT
+            c.id_client, c.nro_doc, c.nom_client, c.mail_client, c.tel_client, c.id_tipo_doc,
+            c.id_departamento, c.id_ciudad, c.dir_envio, c.barrio_envio,
+            u.mail_user
+        FROM tab_clientes c
+        JOIN tab_users u ON c.id_user = u.id_user
+        WHERE c.id_user = :id_user AND c.is_deleted = FALSE
+        LIMIT 1
+    ",
     'obtenerUltimoIdProducto' => "
         SELECT MAX(id_producto) FROM tab_productos
     ",
@@ -344,6 +366,7 @@ return [
     'obtenerFacturaPorId' => "
         SELECT 
             f.id_factura, f.fec_factura, f.val_hora_fact, f.val_tot_fact, f.epayco_estado,
+            f.num_guia,
             f.epayco_ref, f.epayco_txn_id, f.dir_envio, p.nom_pago,
             dep.nom_departamento, ciu.nom_ciudad
         FROM tab_enc_fact f

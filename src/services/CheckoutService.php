@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../functions/database.php';
 require_once __DIR__ . '/CartService.php';
+require_once __DIR__ . '/PuntoEnvioService.php';
 
 class CheckoutService
 {
@@ -169,7 +170,11 @@ class CheckoutService
             return;
         }
 
-        self::facturarCarrito($db, (int) $idUserPago, $transaccion, $datosFactura, $carrito['carrito']);
+        $idFactura = self::facturarCarrito($db, (int) $idUserPago, $transaccion, $datosFactura, $carrito['carrito']);
+
+        if ($idFactura !== null) {
+            self::crearEnvioPuntoEnvio($db, $idFactura, (int) $idUserPago, $transaccion, $datosFactura);
+        }
     }
 
     private static function actualizarClienteEpayco(Database $db, int $idUserPago, array $transaccion): void
@@ -241,7 +246,7 @@ class CheckoutService
         }
     }
 
-    private static function facturarCarrito(Database $db, int $idUserPago, array $transaccion, array $datosFactura, array $itemsCarrito): void
+    private static function facturarCarrito(Database $db, int $idUserPago, array $transaccion, array $datosFactura, array $itemsCarrito): ?int
     {
         $idsProd = [];
         $cantidades = [];
@@ -275,7 +280,7 @@ class CheckoutService
             if (!$idFactura) {
                 error_log('[CheckoutResponse] fun_facturar devolvio NULL');
 
-                return;
+                return null;
             }
 
             $db->ejecutar('gestionarCarrito', [
@@ -284,10 +289,129 @@ class CheckoutService
                 ':id_producto' => null,
                 ':cantidad' => null,
             ]);
+
+            return (int) $idFactura;
         } catch (PDOException $e) {
             throw $e;
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    private static function crearEnvioPuntoEnvio(Database $db, int $idFactura, int $idUserPago, array $transaccion, array $datosFactura): void
+    {
+        try {
+            $cliente = $db->ejecutar('obtenerClienteConDireccion', [':id_user' => $idUserPago])->fetch(PDO::FETCH_ASSOC);
+
+            if (!$cliente) {
+                throw new RuntimeException('No se encontraron datos del cliente para factura=' . $idFactura);
+            }
+
+            $sender = self::getOrCreatePuntoEnvioPerson([
+                'nombre' => 'VIVA Marketplace',
+                'tipo_documento' => 'NIT',
+                'documento' => self::getRequiredEnv('VIVA_NIT'),
+                'email' => self::getRequiredEnv('MAIL_FROM_ADDRESS'),
+                'telefono' => $_ENV['VIVA_PHONE'] ?? '',
+                'direccion' => self::getRequiredEnv('VIVA_ADDRESS'),
+                'id_departamento' => 2,
+                'id_ciudad' => 1,
+            ]);
+
+            $recipientDoc = trim((string) ($cliente['nro_doc'] ?? ''));
+            if ($recipientDoc === '') {
+                throw new RuntimeException('Cliente sin nro_doc para factura=' . $idFactura);
+            }
+
+            $recipient = self::getOrCreatePuntoEnvioPerson([
+                'nombre' => $cliente['nom_client'] ?? '',
+                'tipo_documento' => self::mapTipoDocumento($cliente['id_tipo_doc'] ?? null),
+                'documento' => $recipientDoc,
+                'email' => $cliente['mail_client'] ?? '',
+                'telefono' => $transaccion['x_customer_phone'] ?? $cliente['tel_client'] ?? '',
+                'direccion' => $datosFactura['dir_envio_fact'] ?? $cliente['dir_envio'] ?? '',
+                'id_departamento' => $datosFactura['id_dpto_fact'] ?? $cliente['id_departamento'] ?? null,
+                'id_ciudad' => $datosFactura['id_ciudad_fact'] ?? $cliente['id_ciudad'] ?? null,
+            ]);
+
+            $senderId = self::extractPuntoEnvioId($sender, ['id_person', 'id', 'person_id']);
+            $recipientId = self::extractPuntoEnvioId($recipient, ['id_person', 'id', 'person_id']);
+
+            if ($senderId === null || $recipientId === null) {
+                throw new RuntimeException('PuntoEnvio no retornó IDs de remitente/destinatario.');
+            }
+
+            $package = PuntoEnvioService::createPackage([
+                'id_remitente' => $senderId,
+                'id_destinatario' => $recipientId,
+                'id_orden_ecommerce' => $idFactura,
+                'origin_state_id' => '2',
+                'origin_city_id' => '1',
+                'origin_street' => self::getRequiredEnv('VIVA_ADDRESS'),
+                'id_departamento' => $datosFactura['id_dpto_fact'],
+                'id_ciudad' => $datosFactura['id_ciudad_fact'],
+                'direccion_destino' => $datosFactura['dir_envio_fact'],
+            ]);
+
+            $numGuia = self::extractPuntoEnvioId($package, ['id_package', 'num_guia', 'id_envio', 'id']);
+            if ($numGuia === null) {
+                throw new RuntimeException('PuntoEnvio no retornó id_package.');
+            }
+
+            $db->ejecutar('actualizarGuiaFactura', [
+                ':num_guia' => (string) $numGuia,
+                ':id_factura' => $idFactura,
+            ]);
+        } catch (Throwable $e) {
+            error_log('[PuntoEnvio-Checkout] Failed to create package for factura=' . $idFactura . ': ' . $e->getMessage());
+        }
+    }
+
+    private static function getOrCreatePuntoEnvioPerson(array $personData): ?array
+    {
+        $personId = trim((string) ($personData['documento'] ?? $personData['id'] ?? ''));
+        if ($personId === '') {
+            return null;
+        }
+
+        $existingPerson = PuntoEnvioService::getPerson($personId);
+        if ($existingPerson !== null) {
+            return $existingPerson;
+        }
+
+        $createdPerson = PuntoEnvioService::createPerson($personData);
+        if ($createdPerson !== null) {
+            return $createdPerson;
+        }
+
+        return PuntoEnvioService::getPerson($personId);
+    }
+
+    private static function mapTipoDocumento($idTipoDoc): string
+    {
+        return [1 => 'CC', 2 => 'NIT', 3 => 'CE', 4 => 'PP'][(int) $idTipoDoc] ?? 'CC';
+    }
+
+    private static function extractPuntoEnvioId(?array $response, array $keys): ?string
+    {
+        if (!$response) {
+            return null;
+        }
+
+        foreach ($keys as $key) {
+            if (isset($response[$key]) && (string) $response[$key] !== '') {
+                return (string) $response[$key];
+            }
+        }
+
+        if (isset($response['data']) && is_array($response['data'])) {
+            foreach ($keys as $key) {
+                if (isset($response['data'][$key]) && (string) $response['data'][$key] !== '') {
+                    return (string) $response['data'][$key];
+                }
+            }
+        }
+
+        return null;
     }
 }
