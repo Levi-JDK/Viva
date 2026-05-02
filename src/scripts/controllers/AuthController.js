@@ -306,7 +306,7 @@ export class AuthController {
         window.requestAnimationFrame(() => {
             window.requestAnimationFrame(() => {
                 [shell, panel, overlay].forEach((element) => {
-                    element?.classList.add(...this.entryTransitionClasses);
+                    element?.classList.add(...this.entryTransitionClasses, 'translate-x-0');
                     element?.classList.remove(startClass, 'opacity-0');
                 });
             });
