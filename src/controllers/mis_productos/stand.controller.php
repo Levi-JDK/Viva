@@ -7,7 +7,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         echo json_encode(MyProductsService::guardarStand((int) ($id_user ?? 0), $_POST, $_FILES));
     } catch (Exception $e) {
-        throw $e;
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], JSON_UNESCAPED_UNICODE);
     }
     
     exit;

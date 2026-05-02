@@ -32,6 +32,10 @@ export class AdminService {
     static async updateStand(formData) {
         const response = await fetch(BASE_URL + '/mis_productos?view=stand', {
             method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: formData
         });
         return response.json();

@@ -94,14 +94,19 @@ class MyProductsService
         $descripcionStand = self::normalizarTexto($post['descripcion_stand'] ?? null);
 
         if ($idStand) {
+            // Si no se subió imagen nueva, mantener la existente
+            $standActual = self::obtenerStand((int) $idProductor);
+            $imgStand = $imagenes['img_stand'] ?? $standActual['img_stand'] ?? null;
+            $portadaStand = $imagenes['portada_stand'] ?? $standActual['portada_stand'] ?? null;
+
             $stmt = $db->ejecutar('actualizarStand', [
                 ':id_productor' => $idProductor,
                 ':id_stand' => $idStand,
                 ':nom_stand' => $nomStand,
                 ':slogan_stand' => $sloganStand,
                 ':descripcion_stand' => $descripcionStand,
-                ':img_stand' => $imagenes['img_stand'],
-                ':portada_stand' => $imagenes['portada_stand'],
+                ':img_stand' => $imgStand,
+                ':portada_stand' => $portadaStand,
             ]);
 
             return self::normalizarRespuestaStand($stmt->fetchColumn(), 'Stand actualizado correctamente');
@@ -186,8 +191,22 @@ class MyProductsService
 
     private static function subirImagenStand(?array $archivo, string $targetDir, string $prefix): ?string
     {
-        if (!$archivo || ($archivo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        if (!$archivo) {
             return null;
+        }
+
+        $error = $archivo['error'] ?? UPLOAD_ERR_NO_FILE;
+
+        if ($error === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            throw new RuntimeException('La imagen supera el tamaño máximo permitido (5MB).');
+        }
+
+        if ($error !== UPLOAD_ERR_OK) {
+            throw new RuntimeException('Error al subir la imagen (código ' . $error . ').');
         }
 
         $resultado = handleImageUpload($archivo, $targetDir, $prefix, 'images/stands/');
