@@ -3,6 +3,10 @@ export class ApiService {
         try {
             const response = await fetch(url, {
                 method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             });
             

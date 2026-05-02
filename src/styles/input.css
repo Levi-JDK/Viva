@@ -67,6 +67,13 @@
         box-shadow: 0 0 0 3px rgba(205, 133, 63, 0.1);
     }
 
+    .form-container {
+        @apply bg-white rounded-2xl;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+    }
+
     /* Scroll personalizado para el contenedor del formulario del vendedor */
     .form-container::-webkit-scrollbar {
         width: 0.375rem;
@@ -81,6 +88,46 @@
         background: theme('colors.tierra-medio');
         border-radius: 10px;
     }
+
+    /* --- Componentes de Autenticación (Login/Registro) --- */
+    .auth-container {
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.212);
+    }
+
+    /* --- Pasos del formulario multi-step --- */
+    .form-step {
+        display: none;
+        animation: fadeSlideIn 0.3s ease forwards;
+    }
+
+    .form-step.active {
+        display: block;
+    }
+
+    .progress-line {
+        @apply absolute top-4 left-0 right-0 h-0.5;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+
+    .progress-line-fill {
+        @apply h-full;
+        background: linear-gradient(90deg, theme('colors.tierra-medio'), theme('colors.tierra-oscuro'));
+        @apply transition-all duration-500 ease-in-out;
+    }
+
+    .step-indicator.active {
+        background: linear-gradient(135deg, theme('colors.tierra-medio'), theme('colors.tierra-oscuro'));
+        @apply text-white scale-110;
+        box-shadow: 0 4px 12px rgba(205, 133, 63, 0.4);
+    }
+
+    .step-indicator.completed {
+        background: linear-gradient(135deg, #10b981, #059669);
+        @apply text-white;
+    }
+
 }
 
 /* -----------------------------------------------------------------
@@ -92,6 +139,16 @@
     /* Botón Primario (antes en web.css) */
     .btn-primary {
         @apply bg-gradient-to-r from-naranja-artesanal to-tierra-oscuro text-white font-medium py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, theme('colors.tierra-medio'), theme('colors.tierra-oscuro'));
+        @apply transition-all duration-300 ease-in-out;
+    }
+
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, theme('colors.tierra-oscuro'), #5D4037);
+        @apply -translate-y-0.5 shadow-xl;
     }
 
     /* Cards con efecto hover sutil */
@@ -153,6 +210,19 @@
         to {
             opacity: 1;
             transform: translateY(0);
+        }
+    }
+
+    @keyframes show {
+        0%,
+        49.99% {
+            opacity: 0;
+            z-index: 1;
+        }
+        50%,
+        100% {
+            opacity: 1;
+            z-index: 5;
         }
     }
 
@@ -587,20 +657,8 @@
 }
 
 /* ================================================================
-   UTILIDADES DE TRANSFORM
+   UTILIDADES DE TRANSFORM CUSTOM
    ================================================================ */
-
-.-translate-x-full {
-    transform: translateX(-100%);
-}
-
-.translate-x-0 {
-    transform: translateX(0);
-}
-
-.translate-x-full {
-    transform: translateX(100%);
-}
 
 .-translate-y-1\/2 {
     transform: translateY(-50%);
@@ -615,72 +673,6 @@
 }
 
 /* ================================================================
-   ESTADOS DE TRANSICIÓN
-   ================================================================ */
-
-.transition-transform {
-    transition-property: transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
-}
-
-.transition-opacity {
-    transition-property: opacity;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
-}
-
-.transition-all {
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
-}
-
-/* ================================================================
-   ESTADOS DE OVERLAY
-   ================================================================ */
-
-.opacity-0 {
-    opacity: 0;
-}
-
-.opacity-100 {
-    opacity: 1;
-}
-
-.pointer-events-none {
-    pointer-events: none;
-}
-
-.pointer-events-auto {
-    pointer-events: auto;
-}
-
-/* ================================================================
-   Z-INDEXES
-   ================================================================ */
-
-.z-10 {
-    z-index: 10;
-}
-
-.z-20 {
-    z-index: 20;
-}
-
-.z-30 {
-    z-index: 30;
-}
-
-.z-40 {
-    z-index: 40;
-}
-
-.z-50 {
-    z-index: 50;
-}
-
-/* ================================================================
    SECCIONES DE CONTENIDO DEL PERFIL
    ================================================================ */
 
@@ -692,9 +684,4 @@
 /* Solo la sección activa se muestra */
 .content-section.active {
     display: block;
-}
-
-/* Utilidad hidden de Tailwind */
-.hidden {
-    display: none;
 }

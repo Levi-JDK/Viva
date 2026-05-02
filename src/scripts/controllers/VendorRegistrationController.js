@@ -11,6 +11,17 @@ export class VendorRegistrationController {
 
     async handleSubmit(e) {
         e.preventDefault();
+
+        const validation = this.validateAllSteps();
+        if (!validation.valid) {
+            if (validation.step !== this.currentStep) {
+                this.currentStep = validation.step;
+                this.updateSteps();
+            }
+
+            Toast.show(validation.errors[0], 'error');
+            return;
+        }
         
         const form = e.target;
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -43,7 +54,90 @@ export class VendorRegistrationController {
             }
         }
     }
+
+    validateStep(stepNumber) {
+        const step = document.querySelector(`.form-step[data-step="${stepNumber}"]`);
+        const errors = [];
+
+        if (!step) {
+            return { valid: true, errors };
+        }
+
+        const fields = step.querySelectorAll('input, select, textarea');
+
+        fields.forEach(field => {
+            const value = field.value.trim();
+            const label = this.getFieldLabel(field);
+
+            if (field.type === 'checkbox') {
+                if (field.required && !field.checked) {
+                    errors.push(this.getCheckboxError(field));
+                }
+                return;
+            }
+
+            if (field.tagName === 'SELECT') {
+                if (field.required && value === '') {
+                    errors.push(`Debes seleccionar una opción para ${label}`);
+                }
+                return;
+            }
+
+            if (field.required && value === '') {
+                errors.push(`El campo ${label} es obligatorio`);
+                return;
+            }
+
+            if (field.name === 'numero_documento' && !/^\d{10}$/.test(value)) {
+                errors.push('El número de documento debe tener exactamente 10 dígitos');
+                return;
+            }
+
+            if (field.name === 'numero_cuenta' && !/^\d+$/.test(value)) {
+                errors.push('El número de cuenta solo puede contener números');
+            }
+        });
+
+        return { valid: errors.length === 0, errors };
+    }
+
+    validateAllSteps() {
+        for (let stepNumber = 1; stepNumber <= 3; stepNumber++) {
+            const validation = this.validateStep(stepNumber);
+
+            if (!validation.valid) {
+                return { ...validation, step: stepNumber };
+            }
+        }
+
+        return { valid: true, errors: [], step: null };
+    }
+
+    getFieldLabel(field) {
+        const container = field.closest('div') || field.parentElement;
+        const label = container?.querySelector('label');
+        const rawText = label?.textContent || field.name || 'requerido';
+
+        return rawText.replace('*', '').replace(/\s+/g, ' ').trim().toLowerCase();
+    }
+
+    getCheckboxError(field) {
+        const messages = {
+            acepta_terminos: 'Debes aceptar los términos y condiciones',
+            acepta_tratamiento_datos: 'Debes autorizar el tratamiento de datos'
+        };
+
+        return messages[field.name] || `El campo ${this.getFieldLabel(field)} es obligatorio`;
+    }
+
     nextStep(e) {
+        const validation = this.validateStep(this.currentStep);
+
+        if (!validation.valid) {
+            Toast.show(validation.errors[0], 'error');
+            return;
+        }
+
         if (this.currentStep < 3) {
             this.currentStep++;
             this.updateSteps();

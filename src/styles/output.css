@@ -459,6 +459,15 @@ input:focus,
   box-shadow: 0 0 0 3px rgba(205, 133, 63, 0.1);
 }
 
+.form-container {
+  border-radius: 1rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
 /* Scroll personalizado para el contenedor del formulario del vendedor */
 
 .form-container::-webkit-scrollbar {
@@ -473,6 +482,53 @@ input:focus,
 .form-container::-webkit-scrollbar-thumb {
   background: #CD853F;
   border-radius: 10px;
+}
+
+/* --- Componentes de Autenticación (Login/Registro) --- */
+
+/* --- Pasos del formulario multi-step --- */
+
+.form-step {
+  display: none;
+  animation: fadeSlideIn 0.3s ease forwards;
+}
+
+.form-step.active {
+  display: block;
+}
+
+.progress-line {
+  position: absolute;
+  top: 1rem;
+  left: 0px;
+  right: 0px;
+  height: 0.125rem;
+  background: #e5e7eb;
+  z-index: 0;
+}
+
+.progress-line-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #CD853F, #8B4513);
+  transition-property: all;
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-indicator.active {
+  background: linear-gradient(135deg, #CD853F, #8B4513);
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+  box-shadow: 0 4px 12px rgba(205, 133, 63, 0.4);
+}
+
+.step-indicator.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
 *, ::before, ::after {
@@ -665,10 +721,26 @@ input:focus,
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  transition-duration: 150ms;
 }
 
 .btn-primary:hover {
+  --tw-translate-y: -0.125rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.btn-gradient {
+  background: linear-gradient(135deg, #CD853F, #8B4513);
+  transition-property: all;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(135deg, #8B4513, #5D4037);
   --tw-translate-y: -0.125rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -746,6 +818,20 @@ input:focus,
   }
 }
 
+@keyframes show {
+  0%,
+        49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+
+  50%,
+        100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
 /* Animación de rebote para íconos */
 
 @keyframes bounce {
@@ -772,10 +858,6 @@ input:focus,
 }
 
 #sidebar.cart-sidebar.open {
-  transform: translateX(0);
-}
-
-.cart-sidebar.open {
   transform: translateX(0);
 }
 
@@ -4339,20 +4421,8 @@ input:focus,
 }
 
 /* ================================================================
-   UTILIDADES DE TRANSFORM
+   UTILIDADES DE TRANSFORM CUSTOM
    ================================================================ */
-
-.-translate-x-full {
-  transform: translateX(-100%);
-}
-
-.translate-x-0 {
-  transform: translateX(0);
-}
-
-.translate-x-full {
-  transform: translateX(100%);
-}
 
 .-translate-y-1\/2 {
   transform: translateY(-50%);
@@ -4364,72 +4434,6 @@ input:focus,
 
 .translate-x-1\/4 {
   transform: translateX(25%);
-}
-
-/* ================================================================
-   ESTADOS DE TRANSICIÓN
-   ================================================================ */
-
-.transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-.transition-opacity {
-  transition-property: opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* ================================================================
-   ESTADOS DE OVERLAY
-   ================================================================ */
-
-.opacity-0 {
-  opacity: 0;
-}
-
-.opacity-100 {
-  opacity: 1;
-}
-
-.pointer-events-none {
-  pointer-events: none;
-}
-
-.pointer-events-auto {
-  pointer-events: auto;
-}
-
-/* ================================================================
-   Z-INDEXES
-   ================================================================ */
-
-.z-10 {
-  z-index: 10;
-}
-
-.z-20 {
-  z-index: 20;
-}
-
-.z-30 {
-  z-index: 30;
-}
-
-.z-40 {
-  z-index: 40;
-}
-
-.z-50 {
-  z-index: 50;
 }
 
 /* ================================================================
@@ -4446,12 +4450,6 @@ input:focus,
 
 .content-section.active {
   display: block;
-}
-
-/* Utilidad hidden de Tailwind */
-
-.hidden {
-  display: none;
 }
 
 .selection\:bg-amber-500\/30 *::-moz-selection {
