@@ -5,7 +5,8 @@
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center space-x-3 mb-4">
                         <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center">
-                            <img src="<?= base_url_path('images/Logo.png') ?>" alt="">
+                            <!-- object-cover llena el contenedor del logo sin deformarlo. -->
+                            <img src="<?= base_url_path('images/Logo_thumb.webp') ?>" alt="VIVA" class="w-full h-full object-cover" loading="lazy">
                         </div>
                         <div>
                             <h3 class="text-xl font-bold">VIVA</h3>

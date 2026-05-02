@@ -73,7 +73,9 @@ if (!isset($product) || empty($product)) {
 $product_image_path = $product['primera_imagen'] ?? $product['imagen_principal'] ?? null;
 $product_image = !empty($product_image_path)
     ? base_url_path($product_image_path)
-    : '/var/www/html/viva/images/default.webp';
+    : base_url_path('images/default.webp');
+$product_image_thumb = !empty($product_image_path) ? base_url_path(str_replace('_full_', '_thumb_', $product_image_path)) : $product_image;
+$product_image_medium = !empty($product_image_path) ? base_url_path(str_replace('_full_', '_medium_', $product_image_path)) : $product_image;
 $stand_logo = !empty($product['img_stand']) ? base_url_path($product['img_stand']) : base_url_path('images/default.webp');
 $cart_price = (int)($product['precio_producto'] ?? 0);
 ?>
@@ -82,9 +84,14 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
 <div class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col group h-full relative">
     <!-- Imagen del Producto — es el link principal -->
     <a href="<?= htmlspecialchars($product_url) ?>" class="block relative group/img">
-        <div class="h-64 bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">
+        <!-- sm:aspect-auto desactiva el ratio móvil en desktop para que no compita con h-48 y no desalineé la grilla. -->
+        <div class="aspect-[4/3] sm:aspect-auto sm:h-48 bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">
+            <!-- srcset permite elegir resolución adecuada; loading lazy evita descargar imágenes below-the-fold antes de tiempo. -->
             <img src="<?= $product_image ?>"
+                 srcset="<?= htmlspecialchars($product_image_thumb) ?> 320w, <?= htmlspecialchars($product_image_medium) ?> 640w, <?= htmlspecialchars($product_image) ?> 1024w"
+                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                  alt="<?= htmlspecialchars($product['nom_producto'] ?? 'Producto') ?>"
+                 loading="lazy"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
         </div>
@@ -109,10 +116,12 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
 
         <!-- Información del Stand (Productor) -->
         <div class="flex items-center gap-2 mb-3">
-            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-tierra-claro">
+            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-tierra-claro bg-white">
+                <!-- object-contain evita recortar logos rectangulares dentro del círculo; bg-white rellena el espacio sobrante. -->
                 <img src="<?= $stand_logo ?>"
                      alt="<?= htmlspecialchars($product['nom_stand'] ?? 'Stand') ?>"
-                     class="w-full h-full object-cover">
+                     loading="lazy"
+                     class="w-full h-full object-contain">
             </div>
             <span class="text-sm text-gray-600 truncate">
                 <?= htmlspecialchars($product['nom_stand'] ?? 'Stand artesanal') ?>

@@ -1,5 +1,33 @@
 export class ProfileController {
     init() {
+        this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+
+        // Deshabilitamos la restauración automática de scroll del navegador.
+        // Así no recuerda la posición de la página anterior ni scrollea al hash.
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        // Forzamos scroll arriba de todo, incluso si hay hash (#profile, #orders).
+        // El navegador scrollea automáticamente al hash DESPUÉS de cargar,
+        // así que usamos setTimeout para sobreescribir ese comportamiento.
+        if (window.innerWidth < 1024) {
+            const forceScrollTop = () => {
+                window.scrollTo(0, 0);
+                const mainContent = document.querySelector('main');
+                if (mainContent) {
+                    mainContent.scrollTop = 0;
+                }
+            };
+            forceScrollTop();
+            setTimeout(forceScrollTop, 0);
+            setTimeout(forceScrollTop, 50);
+        }
+
         this.handleHashChange();
         window.addEventListener('hashchange', () => this.handleHashChange());
     }
@@ -34,6 +62,30 @@ export class ProfileController {
                 item.classList.add('text-gray-600');
             }
         });
+
+        // En mobile el sidebar tapa el contenido; se cierra después de navegar.
+        if (window.innerWidth < 1024) {
+            this.closeSidebar();
+        }
+    }
+
+    goBackSafely() {
+        const baseUrl = window.BASE_URL || '/';
+        let referrerUrl = null;
+
+        try {
+            referrerUrl = document.referrer ? new URL(document.referrer) : null;
+        } catch (error) {
+            referrerUrl = null;
+        }
+
+        // Evita sacar al usuario de Viva si llegó desde un sitio externo.
+        if (referrerUrl && referrerUrl.origin === window.location.origin && window.history.length > 1) {
+            window.history.back();
+            return;
+        }
+
+        window.location.href = baseUrl;
     }
 
     toggleEdit() {
@@ -75,10 +127,85 @@ export class ProfileController {
 
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-            sidebar.classList.toggle('hidden');
-            sidebar.classList.toggle('fixed');
-            sidebar.classList.toggle('inset-0');
+        if (!sidebar) return;
+
+        const isClosed = !sidebar.classList.contains('open');
+
+        if (isClosed) {
+            this.openSidebar();
+        } else {
+            this.closeSidebar();
+        }
+    }
+
+    openSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('profileSidebarOverlay');
+        if (!sidebar) return;
+
+        sidebar.classList.add('open');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+        }
+        this.addSidebarHandlers(sidebar);
+    }
+
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('profileSidebarOverlay');
+        if (!sidebar) return;
+
+        sidebar.classList.remove('open');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
+
+        this.removeSidebarHandlers(sidebar);
+    }
+
+    addSidebarHandlers(sidebar) {
+        setTimeout(() => {
+            document.addEventListener('click', this.handleClickOutside);
+        }, 0);
+        sidebar.addEventListener('touchstart', this.handleTouchStart, { passive: true });
+        sidebar.addEventListener('touchend', this.handleTouchEnd, { passive: true });
+    }
+
+    removeSidebarHandlers(sidebar) {
+        document.removeEventListener('click', this.handleClickOutside);
+        sidebar.removeEventListener('touchstart', this.handleTouchStart);
+        sidebar.removeEventListener('touchend', this.handleTouchEnd);
+    }
+
+    handleClickOutside(e) {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('profileSidebarOverlay');
+        const toggleButton = e.target.closest('[data-event="click:toggleSidebar"], [data-action="toggleSidebar"]');
+
+        if (!sidebar || !sidebar.classList.contains('open')) return;
+        if (sidebar.contains(e.target) || toggleButton) return;
+        if (overlay && overlay.contains(e.target)) {
+            this.closeSidebar();
+            return;
+        }
+        if (!sidebar.contains(e.target)) {
+            this.closeSidebar();
+        }
+    }
+
+    handleTouchStart(e) {
+        const touch = e.changedTouches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+    }
+
+    handleTouchEnd(e) {
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - this.touchStartX;
+        const deltaY = touch.clientY - this.touchStartY;
+
+        if (deltaX < -50 && Math.abs(deltaY) < 50) {
+            this.closeSidebar();
         }
     }
 

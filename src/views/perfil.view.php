@@ -3,13 +3,47 @@ $page_title = "Mi Cuenta | VIVA - Artesanías Colombianas";
 $body_class = "bg-gray-50 font-sans antialiased";
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
+    <!-- CSS crítico para sidebar del perfil: Tailwind no compila correctamente lg:translate-x-0 -->
+    <style>
+        /* Sidebar: oculto en mobile, visible en desktop */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                z-index: 40; /* Por encima del header mobile (z-30) para que no tape el logo. */
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            #profileSidebarOverlay {
+                display: block;
+            }
+            #profileSidebarOverlay.hidden {
+                display: none;
+            }
+        }
+        @media (min-width: 1024px) {
+            #sidebar {
+                transform: translateX(0);
+                position: static;
+            }
+            #profileSidebarOverlay {
+                display: none !important;
+            }
+        }
+        /* Header mobile: visible solo en mobile */
+        @media (min-width: 1024px) {
+            #mobile-header {
+                display: none;
+            }
+        }
+    </style>
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-white shadow-xl h-full flex-shrink-0 flex flex-col z-20 hidden lg:flex border-r border-gray-100">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl h-full flex-shrink-0 flex flex-col z-20 transition-transform duration-300 ease-out border-r border-gray-100">
             <div class="p-6 border-b border-gray-100">
                 <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 group">
                      <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-all">
-                        <img src="<?= BASE_URL ?>images/Logo.png" alt="VIVA" class="w-full h-full object-contain rounded-xl">
+                        <img src="<?= BASE_URL ?>images/Logo_thumb.webp" alt="VIVA" class="w-full h-full object-contain rounded-xl">
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-tierra-oscuro">VIVA</h2>
@@ -65,17 +99,26 @@ require_once __DIR__ . '/partials/base_head.php';
                 </button>
             </div>
         </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="profileSidebarOverlay" class="fixed inset-0 bg-black/50 z-10 hidden" data-action="toggleSidebar"></div>
         
         <!-- Main Content Wrapper -->
         <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gray-50">
-            <!-- Header for Mobile / Top Bar -->
-             <header class="bg-white shadow-sm flex items-center justify-between px-6 py-4 z-10 lg:hidden">
+              <!-- Header for Mobile / Top Bar -->
+              <!-- Sticky para mantener visible la hamburguesa al scrollear en mobile. -->
+              <header id="mobile-header" class="sticky top-0 bg-white shadow-sm flex items-center justify-between px-6 py-4 z-30">
                 <div class="flex items-center">
                     <button class="text-gray-500 hover:text-gray-700 mr-4" data-event="click:toggleSidebar">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h2 class="text-xl font-bold text-gray-800">Mi Cuenta</h2>
                 </div>
+                <!-- Botón Volver solo en mobile; estilo naranja consistente con el login. -->
+                <button data-action="profile-go-back" class="bg-naranja-artesanal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-tierra-oscuro transition-colors flex items-center gap-1.5">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                    <span>Volver</span>
+                </button>
             </header>
 
             <!-- Main Content Area -->

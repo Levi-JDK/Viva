@@ -5,6 +5,15 @@ module.exports = {
         "./index.php"
     ],
     theme: {
+        // Breakpoints unificados: evitan puntos ciegos entre 375/640/768/1024/1280/1440.
+        screens: {
+            xs: '375px',
+            sm: '640px',
+            md: '768px',
+            lg: '1024px',
+            xl: '1280px',
+            '2xl': '1440px',
+        },
         extend: {
             colors: {
                 principal: '#b15b0a',

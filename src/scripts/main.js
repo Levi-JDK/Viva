@@ -99,6 +99,7 @@ eventRouter.register('save-profile', (e) => { e.preventDefault(); profileControl
 eventRouter.register('cancel-edit', (e) => { e.preventDefault(); profileController.cancelEdit(); });
 eventRouter.register('trigger-profile-upload', (e) => { e.preventDefault(); profileController.triggerProfileUpload(); });
 eventRouter.register('profile-upload-change', (e, el) => { profileController.handleProfileUpload(e, el); });
+eventRouter.register('profile-go-back', (e) => { e.preventDefault(); profileController.goBackSafely(); });
 
 eventRouter.register('next-step', (e) => { e.preventDefault(); vendorRegistrationController.nextStep(e); });
 eventRouter.register('prev-step', (e) => { e.preventDefault(); vendorRegistrationController.prevStep(e); });
@@ -171,4 +172,3 @@ eventRouter.register('search-productos-input', (e, el) => adminDashboardControll
 // Admin Dashboard: Menús panel
 eventRouter.register('menus-usuario-select', (e, el) => adminMenusController.onUserSelect(el));
 eventRouter.register('gestionar-menu', (e, btn) => { e.preventDefault(); adminDashboardController.handleGestionMenu(btn); });
-

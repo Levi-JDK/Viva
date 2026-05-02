@@ -63,48 +63,64 @@ if (!isset($stand) || empty($stand)) {
 }
 
 $stand_cover_url = !empty($stand['portada_stand']) ? base_url_path($stand['portada_stand']) : 'NULL';
+$stand_cover_thumb_url = !empty($stand['portada_stand']) ? base_url_path(str_replace('_full_', '_thumb_', $stand['portada_stand'])) : '';
+$stand_cover_medium_url = !empty($stand['portada_stand']) ? base_url_path(str_replace('_full_', '_medium_', $stand['portada_stand'])) : '';
 $stand_logo_url = !empty($stand['img_stand']) ? base_url_path($stand['img_stand']) : base_url_path('images/profiles/default.webp');
 ?>
 
 <!-- Componente: Tarjeta de Stand -->
-<div class="w-full bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-    <!-- Imagen de Portada (con relación de aspecto adecuada) -->
-    <div class="h-40 bg-gradient-to-r from-tierra-claro to-beige-suave relative overflow-hidden">
+<!-- h-full + flex-col permiten que el grid iguale alturas aunque algunos stands tengan slogan y otros no. -->
+<div class="w-full h-full bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+    <!-- aspect-[5/1] compacta el banner en mobile sin px; desktop conserva el formato panorámico. -->
+    <div class="aspect-[5/1] sm:aspect-[21/9] bg-gradient-to-r from-tierra-claro to-beige-suave relative overflow-hidden">
         <?php if (!empty($stand['portada_stand'])): ?>
+            <!-- srcset reduce descarga en mobile y aspect-ratio reserva espacio para evitar CLS. -->
             <img src="<?= $stand_cover_url ?>" 
+                 srcset="<?= htmlspecialchars($stand_cover_thumb_url) ?> 320w, <?= htmlspecialchars($stand_cover_medium_url) ?> 640w, <?= htmlspecialchars($stand_cover_url) ?> 1024w"
+                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                  alt="Portada de <?= htmlspecialchars($stand['nom_stand'] ?? 'Stand') ?>"
+                 loading="lazy"
                  class="w-full h-full object-cover">
         <?php endif; ?>
     </div>
     
     <!-- Contenido del Stand -->
-    <div class="relative px-6 pb-6">
+    <!-- Padding menor en mobile reduce scroll; desde sm se mantiene la respiración visual original. -->
+    <div class="relative px-4 pb-4 sm:px-6 sm:pb-6 flex-1 flex flex-col">
         <!-- Logo (superpuesto sobre la portada) -->
-        <div class="flex justify-center -mt-12 mb-4">
-            <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg overflow-hidden">
+        <!-- Logo compacto en mobile evita que la superposición domine la card; desktop mantiene el tamaño original. -->
+        <div class="flex justify-center -mt-8 sm:-mt-12 mb-2 sm:mb-4">
+            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-white rounded-full p-1 shadow-lg overflow-hidden">
+                <!-- Logo con dimensiones de contenedor conocidas; lazy evita coste inicial fuera del viewport. -->
                 <img src="<?= $stand_logo_url ?>" 
                      alt="<?= htmlspecialchars($stand['nom_stand'] ?? 'Stand') ?>"
+                     loading="lazy"
                      class="w-full h-full rounded-full object-cover">
             </div>
         </div>
         
-        <!-- Información del Stand -->
-        <div class="text-center">
-            <h3 class="text-xl font-bold text-tierra-oscuro mb-1">
+        <!-- Información del Stand: flex-1 permite que el botón se ancle abajo aunque falte slogan. -->
+        <div class="text-center flex-1 flex flex-col">
+            <!-- Título más chico en mobile mejora densidad sin perder jerarquía en desktop. -->
+            <h3 class="text-lg sm:text-xl font-bold text-tierra-oscuro mb-1">
                 <?= htmlspecialchars($stand['nom_stand'] ?? 'Sin nombre') ?>
             </h3>
             
             <?php if (!empty($stand['slogan_stand'])): ?>
-                <p class="text-sm text-naranja-artesanal font-medium mb-4">
+                <!-- El slogan se oculta en mobile porque aporta menos que el espacio vertical que consume. -->
+                <p class="hidden sm:block text-sm text-naranja-artesanal font-medium mb-2 sm:mb-4">
                     <?= htmlspecialchars($stand['slogan_stand']) ?>
                 </p>
             <?php endif; ?>
             
             <?php if ($show_link): ?>
-                <a href="<?= htmlspecialchars($stand_url) ?>" 
-                   class="inline-block bg-naranja-artesanal text-white px-6 py-2 rounded-full hover:bg-tierra-oscuro transition-colors font-medium text-sm">
-                    <i class="fas fa-store mr-2"></i>Ver Stand
-                </a>
+                <!-- mt-auto empuja el CTA al final de la card; pt-4 evita que quede pegado al texto. -->
+                <div class="mt-auto pt-4">
+                    <a href="<?= htmlspecialchars($stand_url) ?>" 
+                       class="inline-block bg-naranja-artesanal text-white px-4 py-1.5 sm:px-6 sm:py-2 rounded-full hover:bg-tierra-oscuro transition-colors font-medium text-xs sm:text-sm">
+                        <i class="fas fa-store mr-2"></i>Ver Stand
+                    </a>
+                </div>
             <?php endif; ?>
         </div>
     </div>

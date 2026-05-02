@@ -1,19 +1,23 @@
 <?php 
 $page_title = "VIVA | Artesanías Colombianas - Conecta con nuestras raíces";
+$page_description = "Descubre artesanías colombianas únicas, emprendimientos locales y productos hechos por comunidades artesanas en VIVA.";
 $body_class = "font-sans bg-white scroll-smooth";
-$extra_css = '<link rel="stylesheet" href="' . base_url_path('src/styles/responsive.css') . '">';
+// No cargamos responsive.css: los recursos inexistentes generan 404, ralentizan la página y ensucian la consola.
+$hero_image = !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : base_url_path('images/hero_full.webp');
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
     <!-- Prueba de GGA-->
     <!-- Header -->
     <?php require_once __DIR__ . '/partials/navbar.php'; ?>
+    <main>
     <!-- Hero Section -->
     <section id="inicio" class="relative min-h-screen flex items-center overflow-hidden">
         <!-- Hero Background -->
         <div class="absolute inset-0 z-0">
             <picture>
-                <source media="(max-width: 640px)" srcset="<?= !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : '' ?>">
-                <img src="<?= !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : '' ?>" 
+                <!-- Fallback visual: evita un hero vacío cuando el CMS no trae imagen configurada. -->
+                <source media="(max-width: 640px)" srcset="<?= $hero_image ?>">
+                <img src="<?= $hero_image ?>" 
                      alt="Artesanías Colombianas" 
                      class="w-full h-full object-cover">
             </picture>
@@ -22,7 +26,8 @@ require_once __DIR__ . '/partials/base_head.php';
 
         <div class="container mx-auto px-4 sm:px-8 md:px-16 lg:px-32 xl:px-40 flex items-center justify-start text-center md:text-left text-white relative z-10">
             <div class="w-full max-w-3xl fade-in">
-                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                <!-- text-balance distribuye mejor las líneas del título y evita líneas huérfanas. -->
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight text-balance">
                     <?php 
                         $rawTitle = $pmtros['landing_hero_titulo'] ?? 'Conecta con nuestro {mercado real}';
                         $safeTitle = htmlspecialchars($rawTitle);
@@ -203,7 +208,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Our Story Section -->
-    <section class="py-16 bg-white">
+    <section class="py-16 bg-white overflow-hidden">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div class="fade-in">
@@ -220,16 +225,17 @@ require_once __DIR__ . '/partials/base_head.php';
                 </div>
                 <div class="fade-in">
                     <div class="relative">
-                        <div class="w-full h-96 bg-gradient-to-br from-tierra-claro via-beige-suave to-verde-artesanal rounded-2xl overflow-hidden relative">
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="text-center">
-                                    <img src="<?= base_url_path('images/foot.jpeg') ?>" alt="">
-                                    <p class="text-tierra-oscuro font-medium">Artesanos trabajando</p>
-                                    <p class="text-sm text-gray-600">Preservando tradiciones ancestrales</p>
-                                </div>
+                        <!-- La imagen original es ~1.62:1 (843x520); usamos aspect-[16/10] para minimizar recortes. -->
+                        <div class="w-full aspect-[16/10] bg-gradient-to-br from-tierra-claro via-beige-suave to-verde-artesanal rounded-2xl overflow-hidden relative">
+                            <!-- Sin lazy: esta imagen está cerca del inicio y debe renderizarse inmediatamente. -->
+                            <img src="<?= base_url_path('images/foot_full.webp') ?>" alt="Artesanos trabajando" class="w-full h-full object-cover">
+                            <div class="absolute inset-x-0 bottom-0 bg-white/80 backdrop-blur-sm p-4 text-center">
+                                <p class="text-tierra-oscuro font-medium">Artesanos trabajando</p>
+                                <p class="text-sm text-gray-600">Preservando tradiciones ancestrales</p>
                             </div>
                         </div>
-                        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-br from-naranja-artesanal to-tierra-medio rounded-full flex items-center justify-center">
+                        <!-- El círculo queda fuera del flujo visual, pero no tapa ni oculta la imagen principal. -->
+                        <div class="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-24 h-24 bg-gradient-to-br from-naranja-artesanal to-tierra-medio rounded-full flex items-center justify-center">
                             <i class="fas fa-heart text-white text-2xl"></i>
                         </div>
                     </div>
@@ -247,10 +253,12 @@ require_once __DIR__ . '/partials/base_head.php';
             </div>
         </div>
     </section>
+    </main>
     <!-- Footer -->
     <?php require_once __DIR__ . '/partials/footer.php'; ?>
     <!-- Scroll to Top Button -->
-    <button id="scrollToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 invisible">
+    <!-- safe-area evita que el botón quede debajo del home indicator en iPhone. -->
+    <button id="scrollToTop" class="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-6 w-12 h-12 bg-gradient-to-r from-naranja-artesanal to-tierra-medio text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 opacity-0 invisible">
         <i class="fas fa-arrow-up"></i>
     </button>
     <!-- Drawer del Carrito -->
