@@ -8,7 +8,7 @@ require_once __DIR__ . "/partials/header.php";
 	<!-- Toast Container -->
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
+	<main class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias_full.webp');">
 		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,50rem)] min-h-[37.5rem] md:min-h-[34.375rem] transform-gpu will-change-transform" id="auth-shell" data-auth-shell>
 			
 			<!-- Overlay Panel (left side - desktop only) -->
@@ -45,7 +45,7 @@ require_once __DIR__ . "/partials/header.php";
 				</form>
 			</div>
 		</div>
-	</div>
+	</main>
 	<!-- <?php require_once 'partials/footer_login.php'; ?> -->
 
 	<script type="module" src="<?= BASE_URL ?>src/scripts/controllers/AuthController.js"></script>

@@ -7,8 +7,8 @@ require_once __DIR__ . "/partials/header.php";
 
 <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-<div class="flex-1 flex items-center justify-center py-16 px-4 bg-cover bg-center"
-     style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
+<main class="flex-1 flex items-center justify-center py-16 px-4 bg-cover bg-center"
+     style="background-image: url('<?= BASE_URL ?>images/artesanias_full.webp');">
 
     <div class="bg-fondo-claro rounded-2xl shadow-2xl w-full max-w-md p-8 md:p-10">
 
@@ -99,7 +99,7 @@ require_once __DIR__ . "/partials/header.php";
             </button>
         </div>
     </div>
-</div>
+</main>
 
 
 </body>

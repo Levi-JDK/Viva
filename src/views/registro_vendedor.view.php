@@ -7,7 +7,7 @@ require_once __DIR__ . '/partials/base_head.php';
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
     
     <!-- Wrapper do background -->
-    <div class="flex-1 w-full relative bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/background_registro_vender.webp');">
+    <main class="flex-1 w-full relative bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/background_registro_vender.webp');">
         <!-- Overlay oscuro para resaltar el texto blanco -->
         <div class="absolute inset-0 bg-black/40"></div>
         <!-- Contenedor Principal -->
@@ -323,7 +323,7 @@ require_once __DIR__ . '/partials/base_head.php';
             </p>
         </div>
     </div>
-    </div>
+    </main>
 
     
     </body>

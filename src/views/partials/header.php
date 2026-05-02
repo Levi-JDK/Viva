@@ -4,7 +4,7 @@
                 <!-- Logo -->
                 <a href="<?= base_url_path() ?>" class="flex items-center space-x-3 group">
                     <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-                        <img src="<?= base_url_path('images/Logo.png') ?>" alt="VIVA" class="w-full h-full object-contain rounded-xl">
+                        <img src="<?= base_url_path('images/Logo_thumb.webp') ?>" alt="VIVA" class="w-full h-full object-contain rounded-xl">
                     </div>
                     <div>
                         <h1 class="text-xl font-extrabold text-tierra-oscuro group-hover:text-tierra-medio transition-colors">VIVA</h1>

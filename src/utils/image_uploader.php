@@ -122,6 +122,7 @@ function processAndUploadImages($files, $target_dir, $prefix = 'img_', $web_path
     $webPathFolder = rtrim($web_path_folder, '/') . '/';
     $storedPaths = [];
     $relativePaths = [];
+    $uploadedResults = [];
 
     foreach ($filesToProcess as $index => $currentFile) {
         try {
@@ -132,52 +133,56 @@ function processAndUploadImages($files, $target_dir, $prefix = 'img_', $web_path
         }
 
         $tempFile = $targetDir . $baseName . '.' . $currentFile['extension'];
-        $finalFile = $targetDir . $baseName . '.webp';
 
         if (!move_uploaded_file($currentFile['tmp_name'], $tempFile)) {
             cleanupUploadedFiles($storedPaths);
             return ['success' => false, 'message' => 'Error al guardar la imagen ' . $currentFile['name']];
         }
 
-        if ($currentFile['extension'] === 'webp') {
-            $storedPaths[] = $tempFile;
-            $relativePaths[] = $webPathFolder . basename($tempFile);
-            continue;
-        }
-
-        $webpPath = convertToWebP($tempFile);
-        if ($webpPath === false || !file_exists($webpPath)) {
-            unlink($tempFile);
+        try {
+            $variants = generateVariants($tempFile);
+        } catch (Throwable $e) {
+            cleanupUploadedFiles([$tempFile]);
             cleanupUploadedFiles($storedPaths);
-            return ['success' => false, 'message' => 'No se pudo convertir a WebP la imagen ' . $currentFile['name']];
+            return ['success' => false, 'message' => 'No se pudieron generar variantes para la imagen ' . $currentFile['name']];
         }
 
-        if ($webpPath !== $finalFile && !rename($webpPath, $finalFile)) {
-            unlink($tempFile);
-            unlink($webpPath);
+        if ($variants === false || !isset($variants['thumb'], $variants['medium'], $variants['full'])) {
+            cleanupUploadedFiles([$tempFile]);
             cleanupUploadedFiles($storedPaths);
-            return ['success' => false, 'message' => 'No se pudo finalizar la conversión de la imagen ' . $currentFile['name']];
+            return ['success' => false, 'message' => 'No se pudieron generar variantes para la imagen ' . $currentFile['name']];
         }
 
-        unlink($tempFile);
+        cleanupUploadedFiles([$tempFile]);
 
-        $storedPaths[] = $finalFile;
-        $relativePaths[] = $webPathFolder . basename($finalFile);
+        $relativeVariants = [];
+        foreach ($variants as $variantName => $variantPath) {
+            $storedPaths[] = $variantPath;
+            $relativeVariants[$variantName] = $webPathFolder . basename($variantPath);
+        }
+
+        $primaryPath = $relativeVariants['full'];
+        $relativePaths[] = $primaryPath;
+        $uploadedResults[] = [
+            'path' => $primaryPath,
+            'paths' => array_values($relativeVariants),
+            'variants' => $relativeVariants,
+            'filename' => basename($variants['thumb']),
+            'filenames' => array_map('basename', array_values($variants))
+        ];
     }
 
-    if (count($relativePaths) === 1) {
-        return [
+    if (count($uploadedResults) === 1) {
+        return array_merge([
             'success' => true,
-            'path' => $relativePaths[0],
-            'paths' => $relativePaths,
-            'filename' => basename($storedPaths[0]),
-            'filenames' => [basename($storedPaths[0])]
-        ];
+        ], $uploadedResults[0]);
     }
 
     return [
         'success' => true,
         'paths' => $relativePaths,
+        'images' => $uploadedResults,
+        'variants' => array_column($uploadedResults, 'variants'),
         'filenames' => array_map('basename', $storedPaths)
     ];
 }

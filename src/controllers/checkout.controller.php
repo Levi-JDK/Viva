@@ -2,7 +2,9 @@
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../services/CheckoutService.php';
 
-if (isset($_GET['ref_payco'])) {
+$routePath = request_relative_path(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
+
+if ($routePath === '/checkout/respuesta') {
     $respuestaPago = CheckoutService::procesarRespuestaPago($_GET['ref_payco'] ?? null);
     $transaccion = $respuestaPago['transaccion'];
     $error = $respuestaPago['error'];

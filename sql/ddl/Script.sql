@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS tab_pmtros
     val_actfact    DECIMAL(12,0) NOT NULL CHECK (val_actfact >= val_inifact AND val_actfact <= val_finfact), -- Número actual
     val_observa    TEXT,                                                -- Observación impresa en factura
     visitas        INTEGER       NOT NULL DEFAULT 0,                    -- Visitas a la plataforma
-    foto_hero           VARCHAR,
+    foto_hero           VARCHAR       DEFAULT 'images/hero.jpeg',
 
     landing_hero_titulo VARCHAR       NOT NULL DEFAULT 'Conecta con nuestro {mercado real}',
     landing_hero_subtitulo VARCHAR    NOT NULL DEFAULT 'Conoce los productos de naturaleza autoctona y artesanal de Colombia.',

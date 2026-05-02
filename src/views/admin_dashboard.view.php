@@ -67,7 +67,7 @@ $accesos = [
         <div class="h-20 flex items-center px-8 border-b border-white/[0.05]">
             <a href="<?= BASE_URL ?>admin_dashboard" class="flex items-center gap-4 no-underline group hover:-translate-y-0.5 transition-transform">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-all duration-300">
-                    <img src="<?= BASE_URL ?>images/Logo.png"
+                    <img src="<?= BASE_URL ?>images/Logo_thumb.webp"
                          alt="VIVA"
                          class="w-full h-full object-cover rounded-xl"
                          onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='inline'">

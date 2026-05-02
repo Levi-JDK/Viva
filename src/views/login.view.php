@@ -1,5 +1,6 @@
 <?php 
 $page_title = "VIVA | Iniciar Sesión - Artesanías Colombianas";
+$page_description = "Inicia sesión en VIVA para comprar artesanías colombianas y gestionar tu cuenta.";
 $body_class = "flex flex-col min-h-screen overflow-x-hidden font-sans text-oscuro bg-fondo-claro";
 $extra_css = '<link rel="prefetch" href="' . (defined('BASE_URL') ? BASE_URL : '/') . 'registro">';
 require_once __DIR__ . '/partials/base_head.php'; 
@@ -8,7 +9,7 @@ require_once __DIR__ . "/partials/header.php";
 	<!-- Toast Container -->
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-	<div class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias.png');">
+	<main class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias_full.webp');">
 		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,50rem)] min-h-[37.5rem] md:min-h-[34.375rem] transform-gpu will-change-transform" id="auth-shell" data-auth-shell>
 			
 			<!-- Login Form (left side) -->
@@ -45,7 +46,7 @@ require_once __DIR__ . "/partials/header.php";
 				<a href="<?= BASE_URL ?>registro" class="ghost rounded-full border border-white bg-transparent text-white text-xs font-bold py-3 px-10 uppercase tracking-wider transition-transform transform hover:bg-white/10 hover:-translate-y-0.5 active:scale-95 focus:outline-none cursor-pointer inline-block">Registrarse</a>
 			</div>
 		</div>
-	</div>
+	</main>
 	<!-- <?php require_once 'partials/footer_login.php'; ?> -->
 
 	<script type="module" src="<?= BASE_URL ?>src/scripts/controllers/AuthController.js"></script>

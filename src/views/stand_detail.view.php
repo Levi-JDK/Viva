@@ -1,5 +1,6 @@
 <?php 
 $page_title = htmlspecialchars($stand['nom_stand'] ?? 'Stand') . " | VIVA";
+$page_description = "Conoce el stand " . ($stand['nom_stand'] ?? 'artesanal') . " en VIVA y explora sus artesanías colombianas.";
 $body_class = "bg-gray-50 font-sans antialiased";
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
@@ -8,6 +9,7 @@ require_once __DIR__ . '/partials/base_head.php';
     <?php require_once __DIR__ . '/partials/navbar.php'; ?>
 
     <!-- Stand Hero Section -->
+    <main>
     <div class="relative">
         <!-- Cover Image -->
         <div class="h-64 md:h-80 bg-gradient-to-r from-tierra-claro to-beige-suave overflow-hidden">
@@ -116,6 +118,7 @@ require_once __DIR__ . '/partials/base_head.php';
             </div>
         </div>
     </div>
+    </main>
     <!-- Drawer del Carrito -->
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
     </body>

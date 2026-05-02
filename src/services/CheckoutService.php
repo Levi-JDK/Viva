@@ -76,7 +76,6 @@ class CheckoutService
 
         $departamentos = $db->ejecutar('obtenerDepartamentos')->fetchAll(PDO::FETCH_ASSOC);
         $clienteEnvio = self::obtenerDireccionCliente($db, $idUser);
-        $epaycoPublicKey = self::getRequiredEnv('EPAYCO_PUBLIC_KEY');
 
         return [
             'carrito_items' => $carrito['carrito'],
@@ -84,7 +83,7 @@ class CheckoutService
             'departamentos' => $departamentos,
             'cliente_envio' => $clienteEnvio,
             'direccion_guardada' => !empty($clienteEnvio),
-            'epayco_public_key' => $epaycoPublicKey,
+            'epayco_public_key' => self::getRequiredEnv('EPAYCO_PUBLIC_KEY'),
             'referencia_pago' => 'VIVA-' . time() . '-' . $idUser,
         ];
     }

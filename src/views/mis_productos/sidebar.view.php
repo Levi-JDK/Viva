@@ -5,7 +5,7 @@
             <div class="h-20 flex items-center justify-start border-b border-white/10 pl-8">
                 <a href="<?= BASE_URL ?>" class="flex items-center space-x-2 group">
                     <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center bg-opacity-20 backdrop-blur-sm group-hover:bg-opacity-30 transition-all">
-                        <img src="<?= BASE_URL ?>images/Logo.png" alt="VIVA" class="w-8 h-8 object-contain rounded-lg">
+                        <img src="<?= BASE_URL ?>images/Logo_thumb.webp" alt="VIVA" class="w-8 h-8 object-contain rounded-lg">
                     </div>
                     <div>
                         <h1 class="text-2xl font-bold tracking-wider">VIVA</h1>

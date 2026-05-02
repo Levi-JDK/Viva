@@ -13,7 +13,7 @@ require_once __DIR__ . '/partials/base_head.php';
         <!-- Hero Section -->
         <section class="relative bg-black text-white py-20 px-4">
             <!-- Background Image overlay -->
-            <div class="absolute inset-0 opacity-20 bg-cover bg-center" style="background-image: url('<?= BASE_URL ?>images/default_stands.jpg');"></div>
+            <div class="absolute inset-0 opacity-20 bg-cover bg-center" style="background-image: url('<?= BASE_URL ?>images/default_stands_full.webp');"></div>
             
             <div class="relative container mx-auto text-center z-10 max-w-3xl">
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">

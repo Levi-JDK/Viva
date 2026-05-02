@@ -36,7 +36,7 @@ if (isset($_GET['error']) && $_GET['error'] === 'access_denied') {
                 <!-- Logo -->
                 <a href="<?= base_url_path() ?>" class="flex items-center space-x-3 group min-w-max">
                     <div class="aspect-square w-8 sm:w-9 md:w-10 lg:w-11 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-lg flex items-center justify-center group-hover:shadow-md transition-all">
-                        <img src="<?= base_url_path('images/Logo.png') ?>" alt="VIVA" class="w-full h-full object-cover">
+                        <img src="<?= base_url_path('images/Logo_thumb.webp') ?>" alt="VIVA" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <h1 class="text-xl font-bold text-tierra-oscuro group-hover:text-tierra-medio transition-colors">VIVA</h1>
