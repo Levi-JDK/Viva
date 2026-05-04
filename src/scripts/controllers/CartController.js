@@ -283,30 +283,18 @@ class CartController {
     }
 
     buildOptimisticItem(btn, idProducto, cantidad) {
-        const productCard = btn.closest('.product-card');
-        const detailView = document.getElementById('mainImage');
         const nameFromDataset = btn.dataset.name?.trim();
         const priceFromDataset = btn.dataset.price;
         const imageFromDataset = btn.dataset.image?.trim();
-        const nameFromCard = productCard?.querySelector('h3')?.textContent?.trim();
-        const nameFromDetail = document.querySelector('h1.text-3xl')?.textContent?.trim();
-        const priceText = priceFromDataset
-            || productCard?.querySelector('.text-2xl.font-bold')?.textContent
-            || document.querySelector('[data-product-price]')?.textContent
-            || '';
-        const imageSrc = imageFromDataset
-            || productCard?.querySelector('img')?.getAttribute('src')
-            || detailView?.getAttribute('src')
-            || 'images/default_product.jpg';
-        const precioUnitario = this.parsePrice(priceText);
+        const precioUnitario = this.parsePrice(priceFromDataset);
 
         return {
             id_producto: Number(idProducto),
-            nom_producto: nameFromDataset || nameFromCard || nameFromDetail || 'Producto agregado',
+            nom_producto: nameFromDataset || 'Producto agregado',
             precio_unitario: precioUnitario,
             cantidad,
             subtotal: precioUnitario * cantidad,
-            imagen: this.normalizeImagePath(imageSrc)
+            imagen: this.normalizeImagePath(imageFromDataset || 'images/default_product.jpg')
         };
     }
 
