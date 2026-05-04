@@ -5,9 +5,6 @@ require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 
 class CartService
 {
-    private const REDIS_CART_META_UPDATED_AT = '__updated_at';
-    private const REDIS_CART_META_DIRTY = '__dirty';
-    private const REDIS_CART_META_ACTIONS = '__acciones_json';
     private const QUEUE_CARRITO = 'viva:cola:carrito';
     private const SUPPORTED_ACTIONS = ['agregar', 'actualizar', 'eliminar', 'limpiar'];
     private const ACTION_ALIASES = [
@@ -64,8 +61,8 @@ class CartService
             $normalizedActions[] = $normalizedAction;
         }
 
-        self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp, self::buildSnapshotActions($snapshot));
-        self::pushCartQueueJob($redis, $userId, $hashKey, $normalizedActions, $timestamp);
+        self::writeRedisCartSnapshot($redis, $hashKey, $snapshot);
+        self::pushCartQueueJob($redis, $userId, $normalizedActions, $timestamp);
 
         return [
             'success' => true,
@@ -108,7 +105,7 @@ class CartService
                 self::applyRedisCartAction($snapshot, self::normalizeAction($accion, $indice));
             }
 
-            self::writeRedisCartSnapshot($redis, $hashKey, $snapshot, $timestamp);
+            self::writeRedisCartSnapshot($redis, $hashKey, $snapshot);
         }
 
         if (empty($snapshot)) {
@@ -202,15 +199,9 @@ class CartService
         return $snapshot;
     }
 
-    private static function writeRedisCartSnapshot($redis, string $hashKey, array $snapshot, string $timestamp, array $actions = []): void
+    private static function writeRedisCartSnapshot($redis, string $hashKey, array $snapshot): void
     {
         $redis->del([$hashKey]);
-        $redis->hset($hashKey, self::REDIS_CART_META_DIRTY, '1');
-        $redis->hset($hashKey, self::REDIS_CART_META_UPDATED_AT, $timestamp);
-
-        if (!empty($actions)) {
-            $redis->hset($hashKey, self::REDIS_CART_META_ACTIONS, json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        }
 
         foreach ($snapshot as $productoId => $cantidad) {
             $redis->hset($hashKey, (string) $productoId, (string) $cantidad);
@@ -219,38 +210,11 @@ class CartService
         $redis->expire($hashKey, 86400);
     }
 
-    private static function buildSnapshotActions(array $snapshot): array
+    private static function pushCartQueueJob($redis, int $userId, array $actions, string $timestamp): void
     {
-        $actions = [[
-            'accion' => 'limpiar',
-            'id_producto' => null,
-            'cantidad' => null,
-        ]];
-
-        foreach ($snapshot as $productoId => $cantidad) {
-            $actions[] = [
-                'accion' => 'agregar',
-                'id_producto' => (int) $productoId,
-                'cantidad' => (int) $cantidad,
-            ];
-        }
-
-        return $actions;
-    }
-
-    private static function pushCartQueueJob($redis, int $userId, string $hashKey, array $actions, string $timestamp): void
-    {
-        $encodedActions = json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-        if ($encodedActions === false) {
-            throw new RuntimeException('No se pudo serializar las acciones del job de carrito Redis.');
-        }
-
         $payload = json_encode([
             'user_id' => $userId,
-            'session_key' => $hashKey,
-            'actions_hash' => hash('sha256', $encodedActions),
-            'acciones_json' => $encodedActions,
+            'acciones_json' => json_encode($actions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'queued_at' => $timestamp,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 

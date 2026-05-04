@@ -4,20 +4,16 @@
  * Se ejecuta desde el Worker
  */
 
-use Predis\Client as Redis;
-
 class ProcessCartJob {
     private int $userId;
     private array $acciones;
-    private string $sessionKey;
     
-    public function __construct(int $userId, array $acciones, string $sessionKey) {
+    public function __construct(int $userId, array $acciones) {
         $this->userId = $userId;
         $this->acciones = $acciones;
-        $this->sessionKey = $sessionKey;
     }
     
-    public function handle(PDO $pdo): bool {
+    public function handle(): bool {
         $db = Database::getInstance();
         
         foreach ($this->acciones as $accionItem) {
@@ -44,16 +40,11 @@ class ProcessCartJob {
         return true;
     }
 
-    public function getSessionKey(): string {
-        return $this->sessionKey;
-    }
-    
-    public static function fromRedis(Redis $redis, array $payload): ?self {
-        if (empty($payload['user_id']) || empty($payload['session_key'])) {
+    public static function fromRedis(array $payload): ?self {
+        if (empty($payload['user_id'])) {
             throw new InvalidArgumentException('Mensaje de cola de carrito inválido.');
         }
 
-        $key = (string) $payload['session_key'];
         $accionesJson = $payload['acciones_json'] ?? null;
 
         if (!is_string($accionesJson) || trim($accionesJson) === '') {
@@ -65,10 +56,6 @@ class ProcessCartJob {
             throw new RuntimeException('acciones_json inválido en mensaje de cola.');
         }
 
-        if (isset($payload['actions_hash']) && hash('sha256', $accionesJson) !== (string) $payload['actions_hash']) {
-            throw new RuntimeException('Hash de acciones_json no coincide con el mensaje de cola.');
-        }
-
-        return new self((int) $payload['user_id'], $acciones, $key);
+        return new self((int) $payload['user_id'], $acciones);
     }
 }

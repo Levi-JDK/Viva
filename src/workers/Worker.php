@@ -8,16 +8,14 @@
  */
 
 require_once __DIR__ . '/../functions/database.php';
-require_once __DIR__ . '/../functions/mail_service.php';
+require_once __DIR__ . '/../services/RegisterService.php';
 require_once __DIR__ . '/Config/RedisConfig.php';
-require_once __DIR__ . '/Jobs/RegisterUserJob.php';
 require_once __DIR__ . '/Jobs/ProcessCartJob.php';
 
 use Predis\Client as Redis;
 
 class Worker {
     private Redis $redis;
-    private PDO $pdo;
     
     // Configuración de reintentos
     private int $maxRetries = 3;
@@ -30,51 +28,8 @@ class Worker {
     
     public function __construct() {
         $this->redis = RedisConfig::getConnection();
-        $this->pdo = $this->connectPostgres();
         
         $this->log("[*] Worker inicializado");
-    }
-    
-    private function connectPostgres(): PDO {
-        // Cargar variables de entorno estáticamente si no están en $_ENV
-        if (!isset($_ENV['DB_HOST'])) {
-            $envPath = dirname(__DIR__, 2) . '/.env';
-            if (file_exists($envPath)) {
-                $envVars = parse_ini_file($envPath);
-                foreach ($envVars as $k => $v) {
-                    $_ENV[$k] = $v;
-                }
-            }
-        }
-        
-        if (empty($_ENV['DB_HOST']) || empty($_ENV['DB_NAME']) || empty($_ENV['DB_USERNAME']) || empty($_ENV['DB_PASSWORD'])) {
-            throw new Exception("Error de configuración: Faltan credenciales de base de datos en el entorno (.env). Fail fast.");
-        }
-
-        $host = $_ENV['DB_HOST'];
-        $dbname = $_ENV['DB_NAME'];
-        $user = $_ENV['DB_USERNAME'];
-        $pass = $_ENV['DB_PASSWORD'];
-        
-        try {
-            // Eliminar apóstrofes de la variable de entorno de BD si las tiene ('db_viva' -> db_viva)
-            $dbname = trim($dbname, "'\"");
-            $user = trim($user, "'\"");
-            $pass = trim($pass, "'\"");
-            
-            return new PDO(
-                "pgsql:host=$host;dbname=$dbname",
-                $user,
-                $pass,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
-            );
-        } catch (PDOException $e) {
-            $this->log("[ERROR] No se pudo conectar a PostgreSQL: " . $e->getMessage());
-            throw $e;
-        }
     }
     
     /**
@@ -146,8 +101,12 @@ class Worker {
                 
                 return;
                 
-            } catch (PDOException $e) {
-                throw $e;
+            } catch (\Throwable $e) {
+                $this->log("[!] Intento $intento fallido para usuario $userId: " . $e->getMessage());
+
+                if ($intento < $this->maxRetries) {
+                    sleep($this->backoff[$intento] ?? 1);
+                }
             }
         }
         
@@ -168,88 +127,25 @@ class Worker {
         $userId = (int) ($payload['user_id'] ?? 0);
         $this->log("[*] Procesando carrito user_id: $userId");
 
-        $job = ProcessCartJob::fromRedis($this->redis, $payload);
-
-        if ($job === null) {
-            $this->log("[!] No se encontraron datos de sesión para carrito user_id: $userId");
-            return;
-        }
+        $job = ProcessCartJob::fromRedis($payload);
 
         for ($intento = 1; $intento <= $this->maxRetries; $intento++) {
-            $idempotency = null;
-
             try {
-                $idempotency = $this->claimCartJob($payload);
-
-                if ($idempotency === null) {
-                    $this->log("[!] Job de carrito duplicado omitido user_id: $userId");
-                    return;
-                }
-
-                $job->handle($this->pdo);
-                $this->markCartJobProcessed($idempotency);
-                $this->redis->del($job->getSessionKey());
+                $job->handle();
                 $this->log("[✓] Carrito user_id $userId procesado correctamente");
                 
                 return;
                 
-            } catch (PDOException $e) {
-                if ($idempotency !== null) {
-                    $this->releaseCartJobClaim($idempotency);
-                }
+            } catch (\Throwable $e) {
+                $this->log("[!] Intento $intento fallido para carrito user_id $userId: " . $e->getMessage());
 
-                throw $e;
-            } catch (Exception $e) {
-                if ($idempotency !== null) {
-                    $this->releaseCartJobClaim($idempotency);
+                if ($intento < $this->maxRetries) {
+                    sleep($this->backoff[$intento] ?? 1);
                 }
-
-                throw $e;
             }
         }
 
         $this->moverADLQ('carrito', $userId, $payload);
-    }
-
-    /**
-     * Redis check-and-set idempotency guard for cart queue jobs.
-     * Prevents duplicate queue messages from executing fun_carrito twice.
-     */
-    private function claimCartJob(array $payload): ?string {
-        $sessionKey = (string) ($payload['session_key'] ?? '');
-        $actionsHash = (string) ($payload['actions_hash'] ?? '');
-
-        if ($sessionKey === '' || $actionsHash === '') {
-            throw new InvalidArgumentException('Mensaje de carrito sin idempotency key.');
-        }
-
-        $prefix = RedisConfig::getPrefix();
-        $jobHash = hash('sha256', $sessionKey . '|' . $actionsHash);
-        $idempotencyKey = $prefix . 'cart_job:processed:' . $jobHash;
-        $processingKey = $prefix . 'cart_job:processing:' . $jobHash;
-
-        if ($this->redis->exists($idempotencyKey)) {
-            return null;
-        }
-
-        $claimed = $this->redis->set($processingKey, '1', 'EX', 120, 'NX');
-
-        if ($claimed !== true && $claimed !== 'OK') {
-            return null;
-        }
-
-        return $idempotencyKey . '|' . $processingKey;
-    }
-
-    private function markCartJobProcessed(string $idempotency): void {
-        [$idempotencyKey, $processingKey] = explode('|', $idempotency, 2);
-        $this->redis->setex($idempotencyKey, 86400, '1');
-        $this->redis->del([$processingKey]);
-    }
-
-    private function releaseCartJobClaim(string $idempotency): void {
-        [, $processingKey] = explode('|', $idempotency, 2);
-        $this->redis->del([$processingKey]);
     }
     
     /**
@@ -257,32 +153,13 @@ class Worker {
      */
     private function ejecutarInsertUsuario(array $userData): void {
         $db = Database::getInstance();
-        $stmt = $db->ejecutar('crearUsuario', [
-            ':email' => $userData['email'],
-            ':contrasena' => $userData['password'],
-            ':nombre' => $userData['nombre'],
-            ':apellido' => $userData['apellido']
-        ]);
-        
-        $result = $stmt->fetch();
-        $this->log("[*] Resultado: " . json_encode($result));
-
-        $this->enviarCorreoBienvenidaRegistro($userData);
-    }
-
-    private function enviarCorreoBienvenidaRegistro(array $userData): void {
-        $nombreCompleto = trim(($userData['nombre'] ?? '') . ' ' . ($userData['apellido'] ?? ''));
-
-        try {
-            $mail = MailService::getInstance();
-            if ($mail->sendWelcomeEmail($userData['email'], $nombreCompleto)) {
-                $this->log("[✓] Email de bienvenida enviado a " . $userData['email']);
-            } else {
-                $this->log("[!] Error enviando email: " . $mail->getLastError());
-            }
-        } catch (Exception $e) {
-            throw $e;
-        }
+        \RegisterService::registrarUsuarioEnBaseDatos(
+            $db,
+            $userData['nombre'],
+            $userData['apellido'],
+            $userData['email'],
+            $userData['password']
+        );
     }
     
     /**
