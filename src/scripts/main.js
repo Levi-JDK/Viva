@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Registramos las acciones en el EventRouter
 eventRouter.register('cart-toggle', (e) => { if(e) e.preventDefault(); cartController.toggleCart(); });
 eventRouter.register('cart-add', (e, btn) => cartController.handleCartAdd(btn?.dataset || {}, btn));
-eventRouter.register('add-cart', (e, btn) => cartController.handleCartAdd(btn?.dataset || {}, btn));
 eventRouter.register('cart-remove', (e, btn) => cartController.removeItem(btn));
 eventRouter.register('cart-update', (e, btn) => cartController.updateQuantity(btn));
 eventRouter.register('cart-clear', (e) => { if(e) e.preventDefault(); cartController.clearCartPrompt(); });

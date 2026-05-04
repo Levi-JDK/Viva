@@ -11,8 +11,7 @@ class CartStore {
                 items: [],
                 resumen: { total_items: 0, total_precio: 0 },
                 pendingActions: [],
-                lastSyncedAt: null,
-                isFlushing: false
+                lastSyncedAt: null
             };
             CartStore.instance = this;
         }
@@ -165,18 +164,8 @@ class CartStore {
         ].join('|');
     }
 
-    restorePendingActions(actions) {
-        this.state.pendingActions = Array.isArray(actions)
-            ? actions.map(action => ({ ...action }))
-            : [];
-    }
-
     hasPendingActions() {
         return this.state.pendingActions.length > 0;
-    }
-
-    setFlushing(isFlushing) {
-        this.state.isFlushing = Boolean(isFlushing);
     }
 
     markSynced() {

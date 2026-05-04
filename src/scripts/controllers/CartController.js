@@ -65,10 +65,6 @@ class CartController {
         }
     }
 
-    addItem(btn) {
-        this.handleCartAdd(btn?.dataset || {}, btn);
-    }
-
     handleCartAdd(data = {}, target) {
         const btn = target instanceof HTMLElement ? target : null;
         const id_producto = sanitizeCartProductId(data.id ?? btn?.dataset?.id);
@@ -186,53 +182,6 @@ class CartController {
         }).catch(error => {
             console.error('[CartController] Debounced sync failed:', error);
         });
-    }
-
-    async flushPendingActions() {
-        if (!window.USER_IS_LOGGED_IN || !cartStore.hasPendingActions() || this.syncInFlight || cartStore.getState().isFlushing) {
-            return false;
-        }
-
-        const pendingActions = cartStore.getPendingActions();
-        this.syncInFlight = true;
-        cartStore.setFlushing(true);
-
-        try {
-            await CartService.sendPendingActions(pendingActions);
-            cartStore.clearSyncedPendingActions(pendingActions);
-            cartStore.markSynced();
-            return true;
-        } catch (error) {
-            console.error('[CartController] Debounced sync failed:', error);
-            return false;
-        } finally {
-            this.syncInFlight = false;
-            cartStore.setFlushing(false);
-        }
-    }
-
-    flushPendingActionsKeepalive() {
-        if (!window.USER_IS_LOGGED_IN || !cartStore.hasPendingActions()) {
-            return false;
-        }
-
-        const pendingActions = cartStore.getPendingActions();
-        const result = CartService.sendPendingActionsKeepalive(pendingActions);
-
-        if (!result.ok) {
-            return false;
-        }
-
-        cartStore.clearPendingActions();
-        cartStore.markSynced();
-
-        if (result.promise) {
-            result.promise.catch(error => {
-                console.error('[CartController] Keepalive redis sync failed:', error);
-            });
-        }
-
-        return true;
     }
 
     flushToPostgresOnClose() {

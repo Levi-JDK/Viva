@@ -384,15 +384,6 @@ return [
         JOIN tab_productos prod ON d.id_producto = prod.id_producto
         WHERE d.id_factura = :id_factura
     ",
-    'registrarCarritoItem' => "
-        SELECT fun_c_carrito_item(:usuario_id, :producto_id, :cantidad, :precio)
-    ",
-    'cambiarEstadoCarrito' => "
-        UPDATE carrito SET status = :status WHERE id = :id
-    ",
-    'registrarCarrito' => "
-        SELECT fun_c_carrito(:id_user, :items, :total)
-    ",
     'contarUsuarios' => "
         SELECT COUNT(*) FROM tab_users WHERE is_deleted = FALSE
     ",
