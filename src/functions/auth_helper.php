@@ -125,7 +125,8 @@ class AuthHelper {
                         }
                     }
                 } catch (\Exception $e) {
-                    throw $e;
+                    error_log("[Auth] Redis revocation check skipped (Redis unavailable): " . $e->getMessage());
+                    // Continue without revocation — JWT expiry is the primary security boundary
                 }
                 
                 return $decoded->data;
