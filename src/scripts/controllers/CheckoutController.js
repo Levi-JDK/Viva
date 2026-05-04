@@ -3,19 +3,7 @@ import { CartService } from '../services/CartService.js';
 
 export class CheckoutController {
     init() {
-        const btnPagar = document.getElementById('btn-pagar');
-
-        if (!btnPagar) {
-            return;
-        }
-
-        btnPagar.addEventListener('click', async () => {
-            if (btnPagar.disabled) {
-                return;
-            }
-
-            await this.handlePagar(btnPagar);
-        });
+        // Payment action is handled through EventRouter via data-action="checkout-pay".
     }
 
     async handlePagar(btnPagar) {
@@ -50,7 +38,7 @@ export class CheckoutController {
     }
 
     async forceCheckoutSync(pendingActions = []) {
-        return await CartService.flushToPostgres(true, pendingActions);
+        return CartService.flushToPostgres(true, pendingActions);
     }
 
     setLoadingState(btnPagar, loading) {

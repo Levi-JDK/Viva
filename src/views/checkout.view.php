@@ -159,7 +159,7 @@ require_once __DIR__ . '/partials/base_head.php';
                     Completa y guarda la dirección de envío para continuar.
                 </div>
 
-                <button id="btn-pagar"
+                <button id="btn-pagar" data-action="checkout-pay"
                     <?= !$direccion_guardada ? 'disabled' : '' ?>
                     class="w-full font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-lg
                         <?= $direccion_guardada 

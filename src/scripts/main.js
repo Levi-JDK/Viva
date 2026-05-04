@@ -62,6 +62,16 @@ eventRouter.register('cart-clear', (e) => { if(e) e.preventDefault(); cartContro
 eventRouter.register('cart-clear-cancel', (e) => { if(e) e.preventDefault(); cartController.cancelClearCart(); });
 eventRouter.register('cart-clear-confirm', (e) => { if(e) e.preventDefault(); cartController.executeClearCart(); });
 
+eventRouter.register('checkout-pay', (e, btn) => {
+    if(e) e.preventDefault();
+
+    if (btn.disabled) {
+        return;
+    }
+
+    checkoutController.handlePagar(btn);
+});
+
 eventRouter.register('fav-toggle', (e, btn) => favoritesController.toggleFavorite(btn, e));
 
 // Additional UI interactions extracted from spaghetti files
