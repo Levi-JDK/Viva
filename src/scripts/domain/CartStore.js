@@ -20,7 +20,7 @@ class CartStore {
     }
 
     getState() {
-        return this.state;
+        return structuredClone(this.state);
     }
 
     setState(items, resumen) {
