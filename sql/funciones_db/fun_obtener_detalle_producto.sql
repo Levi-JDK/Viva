@@ -1,5 +1,5 @@
 -- Function to get full product details including stand info and images
-CREATE OR REPLACE FUNCTION fun_obtener_detalle_producto(p_id_producto DECIMAL)
+CREATE OR REPLACE FUNCTION fun_obtener_detalle_producto(p_id_producto tab_productos.id_producto%TYPE)
 RETURNS TABLE (
     id_producto DECIMAL,
     nom_producto VARCHAR,

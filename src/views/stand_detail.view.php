@@ -14,7 +14,7 @@ require_once __DIR__ . '/partials/base_head.php';
         <!-- Cover Image -->
         <div class="h-64 md:h-80 bg-gradient-to-r from-tierra-claro to-beige-suave overflow-hidden">
             <?php if (!empty($stand['portada_stand'])): ?>
-                <img src="<?= BASE_URL . $stand['portada_stand'] ?>" 
+                <img src="<?= htmlspecialchars(BASE_URL . $stand['portada_stand'], ENT_QUOTES, 'UTF-8') ?>" 
                      alt="Portada de <?= htmlspecialchars($stand['nom_stand']) ?>"
                      class="w-full h-full object-cover">
             <?php endif; ?>
@@ -28,7 +28,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <!-- Logo -->
                         <div class="flex-shrink-0">
                             <div class="w-32 h-32 md:w-40 md:h-40 bg-white rounded-full p-2 shadow-lg overflow-hidden border-4 border-white">
-                                <img src="<?= !empty($stand['img_stand']) ? BASE_URL . $stand['img_stand'] : BASE_URL . 'images/default.jpg' ?>" 
+                                <img src="<?= htmlspecialchars(!empty($stand['img_stand']) ? BASE_URL . $stand['img_stand'] : BASE_URL . 'images/default.jpg', ENT_QUOTES, 'UTF-8') ?>" 
                                      alt="<?= htmlspecialchars($stand['nom_stand']) ?>"
                                      class="w-full h-full rounded-full object-cover">
                             </div>

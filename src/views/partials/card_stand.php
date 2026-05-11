@@ -71,8 +71,8 @@ $stand_logo_url = !empty($stand['img_stand']) ? base_url_path($stand['img_stand'
 <!-- Componente: Tarjeta de Stand -->
 <!-- h-full + flex-col permiten que el grid iguale alturas aunque algunos stands tengan slogan y otros no. -->
 <div class="w-full h-full bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
-    <!-- aspect-[5/1] compacta el banner en mobile sin px; desktop conserva el formato panorámico. -->
-    <div class="aspect-[5/1] sm:aspect-[21/9] bg-gradient-to-r from-tierra-claro to-beige-suave relative overflow-hidden">
+    <!-- aspect-[3/2] evita banners aplastados en mobile; desktop conserva el formato panorámico. -->
+    <div class="aspect-[3/2] sm:aspect-[21/9] bg-gradient-to-r from-tierra-claro to-beige-suave relative overflow-hidden">
         <?php if (!empty($stand['portada_stand'])): ?>
             <!-- srcset reduce descarga en mobile y aspect-ratio reserva espacio para evitar CLS. -->
             <img src="<?= $stand_cover_url ?>" 

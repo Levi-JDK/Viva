@@ -1,7 +1,7 @@
 -- Genera un nuevo OTP de 6 dígitos para recuperación de contraseña.
 -- Invalida tokens anteriores del mismo usuario antes de insertar.
 CREATE OR REPLACE FUNCTION fun_c_reset_token(
-    p_mail_user VARCHAR,
+    p_mail_user tab_users.mail_user%TYPE,
     p_minutos   INTEGER DEFAULT 15
 ) RETURNS VARCHAR AS $$
 DECLARE

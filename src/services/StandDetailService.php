@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 
 class StandDetailService
 {
@@ -15,7 +16,7 @@ class StandDetailService
         ];
 
         if (!$idStand) {
-            $data['redirect'] = BASE_URL . 'test-stands';
+            $data['redirect'] = BASE_URL . 'stands';
 
             return $data;
         }
@@ -25,7 +26,7 @@ class StandDetailService
         $stand = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$stand) {
-            $data['redirect'] = BASE_URL . 'test-stands';
+            $data['redirect'] = BASE_URL . 'stands';
 
             return $data;
         }
@@ -43,6 +44,7 @@ class StandDetailService
             $data['promedio_estrellas_stand'] = round((float) ($promedioRow['promedio'] ?? 0), 1);
             $data['total_resenas_stand'] = (int) ($promedioRow['total_resenas'] ?? 0);
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'stand_detail.obtenerProductosStand');
             throw $e;
         }
 

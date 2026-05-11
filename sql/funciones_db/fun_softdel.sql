@@ -259,21 +259,6 @@ BEGIN
   END IF;
 END; $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION fun_softdel_tab_transportadoras(
-  p_id tab_transportadoras.id_transportador%TYPE,
-  p_deleted tab_transportadoras.is_deleted%TYPE
-) RETURNS BOOLEAN AS $$
-DECLARE w_id tab_transportadoras.id_transportador%TYPE;
-BEGIN
-  SELECT id_transportador INTO w_id FROM tab_transportadoras WHERE id_transportador = p_id;
-  IF NOT FOUND THEN
-    RAISE NOTICE 'No existe transportador %', p_id;
-    RETURN FALSE;
-  ELSE
-    UPDATE tab_transportadoras SET is_deleted = p_deleted WHERE id_transportador = p_id;
-    RETURN TRUE;
-  END IF;
-END; $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION fun_softdel_tab_formas_pago(
   p_id tab_formas_pago.id_pago%TYPE,
@@ -291,21 +276,7 @@ BEGIN
   END IF;
 END; $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION fun_softdel_tab_transito(
-  p_id tab_transito.id_entrada%TYPE,
-  p_deleted tab_transito.is_deleted%TYPE
-) RETURNS BOOLEAN AS $$
-DECLARE w_id tab_transito.id_entrada%TYPE;
-BEGIN
-  SELECT id_entrada INTO w_id FROM tab_transito WHERE id_entrada = p_id;
-  IF NOT FOUND THEN
-    RAISE NOTICE 'No existe transito %', p_id;
-    RETURN FALSE;
-  ELSE
-    UPDATE tab_transito SET is_deleted = p_deleted WHERE id_entrada = p_id;
-    RETURN TRUE;
-  END IF;
-END; $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION fun_softdel_tab_enc_fact(
   p_id tab_enc_fact.id_factura%TYPE,
@@ -323,21 +294,7 @@ BEGIN
   END IF;
 END; $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION fun_softdel_tab_envios(
-  p_id tab_envios.id_envio%TYPE,
-  p_deleted tab_envios.is_deleted%TYPE
-) RETURNS BOOLEAN AS $$
-DECLARE w_id tab_envios.id_envio%TYPE;
-BEGIN
-  SELECT id_envio INTO w_id FROM tab_envios WHERE id_envio = p_id;
-  IF NOT FOUND THEN
-    RAISE NOTICE 'No existe envio %', p_id;
-    RETURN FALSE;
-  ELSE
-    UPDATE tab_envios SET is_deleted = p_deleted WHERE id_envio = p_id;
-    RETURN TRUE;
-  END IF;
-END; $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION fun_softdel_tab_kardex(
   p_id tab_kardex.id_kardex%TYPE,

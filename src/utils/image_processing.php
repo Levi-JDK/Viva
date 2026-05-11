@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../functions/error_handler.php';
+
 if (!defined('IMAGE_VARIANTS')) {
     define('IMAGE_VARIANTS', [
         'thumb' => ['w' => 300, 'h' => 300],
@@ -207,6 +209,7 @@ function generateVariants($source, $config = null) {
         }
     } catch (Throwable $e) {
         cleanupGeneratedVariants($createdFiles);
+        ErrorHandler::handle($e, 'image_processing.generateVariants');
         throw $e;
     }
 

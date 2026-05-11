@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION fun_obtener_navegacion_usuario(p_id_user INTEGER)
+CREATE OR REPLACE FUNCTION fun_obtener_navegacion_usuario(p_id_user tab_users.id_user%TYPE)
 RETURNS TABLE (
     id_menu INT,
     nom_menu VARCHAR,

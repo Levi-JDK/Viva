@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../services/CartService.php';
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -65,5 +66,7 @@ try {
     echo json_encode(CartService::gestionarItemsCarrito((int) $id_user, $accion, $id_producto, $cantidad));
 
 } catch (Exception $e) {
-    throw $e;
+    $resp = ErrorHandler::jsonResponse($e, 'carrito.gestionarItems');
+    echo json_encode($resp);
+    exit;
 }

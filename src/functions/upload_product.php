@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../utils/image_uploader.php';
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/error_handler.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -136,7 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
     catch (Exception $e) {
-        throw $e;
+        $resp = ErrorHandler::jsonResponse($e, 'upload_product');
+        echo json_encode($resp);
+        exit;
     }
 }
 else {

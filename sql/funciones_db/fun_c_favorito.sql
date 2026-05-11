@@ -1,8 +1,8 @@
 -- Función para agregar un producto a favoritos
 -- Si el producto ya estaba antes (incluso si tuvo borrado lógico), se reactiva
 CREATE OR REPLACE FUNCTION fun_c_favorito(
-    p_id_user INTEGER,
-    p_id_producto DECIMAL(12,0)
+    p_id_user     tab_users.id_user%TYPE,
+    p_id_producto tab_productos.id_producto%TYPE
 )
 RETURNS BOOLEAN AS $$
 BEGIN

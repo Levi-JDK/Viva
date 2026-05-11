@@ -1,6 +1,8 @@
 <?php
 $page_title = "Finalizar Compra | VIVA";
 $body_class = "bg-gray-50 font-sans antialiased min-h-screen flex flex-col";
+$billing_name = trim((string) ($cliente['nom_client'] ?? $userData->nombre ?? '')) ?: 'Cliente VIVA';
+$billing_email = trim((string) ($cliente['mail_client'] ?? $userData->email ?? ''));
 require_once __DIR__ . '/partials/base_head.php';
 ?>
 
@@ -205,8 +207,8 @@ var data = {
     // ePayco rechaza "localhost" en su validador de URL, usamos 127.0.0.1 como fallback
     response:     "<?= str_replace('localhost', '127.0.0.1', base_url_path('checkout/respuesta')) ?>",
     confirmation: "<?= str_replace('localhost', '127.0.0.1', base_url_path('api/epayco_webhook')) ?>",
-    name_billing: "<?= $_SESSION['nom_user'] ?? 'Cliente VIVA' ?>",
-    email_billing:"<?= $_SESSION['mail_user'] ?? '' ?>"
+    name_billing: <?= json_encode($billing_name, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+    email_billing: <?= json_encode($billing_email, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
 };
 
 window.VIVA_CHECKOUT_EPAYCO = { handler, data };

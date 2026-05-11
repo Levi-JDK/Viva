@@ -29,18 +29,11 @@ class RegisterService
                 'clase' => 'mensaje-error',
             ];
         }
-
-        try {
-            $db = Database::getInstance();
-        } catch (Exception $e) {
-            throw $e;
-        }
-
         $hash = password_hash($contrasena, PASSWORD_ARGON2ID);
-
         try {
             return self::registrarUsuarioEnRedis($nombre, $apellido, $email, $hash);
         } catch (Exception $redisEx) {
+            ErrorHandler::handle($redisEx, 'register.registrarUsuario');
             throw $redisEx;
         }
     }
@@ -79,8 +72,6 @@ class RegisterService
         $redis->setnx($prefix . 'contador:usuarios', 900000000);
         $idWorker = $redis->incr($prefix . 'contador:usuarios');
         $lockKey = $prefix . 'lock:email:' . $email;
-
-        // Primero: guardar datos del usuario y pushear a cola
         $pipe = $redis->pipeline();
         $pipe->setex($lockKey, 3600, '1');
         $pipe->hset($prefix . 'user:' . $idWorker, 'nombre', $nombre, 'apellido', $apellido, 'email', $email, 'password', $hash, 'created_at', date('Y-m-d H:i:s'));
@@ -108,24 +99,28 @@ class RegisterService
         ];
     }
 
-    private static function registrarUsuarioEnBaseDatos(Database $db, string $nombre, string $apellido, string $email, string $hash): array
+    public static function registrarUsuarioEnBaseDatos(Database $db, string $nombre, string $apellido, string $email, string $hash): array
     {
         $stmtCheck = $db->ejecutar('validarEmail', [':email' => $email]);
-        $existeEmail = $stmtCheck->fetchColumn();
+        $isEmailValid = $stmtCheck->fetchColumn();
 
-        if ($existeEmail) {
+        if (!$isEmailValid) {
             return [
                 'mensaje' => 'El correo ya está registrado.',
                 'clase' => 'mensaje-error',
             ];
         }
 
-        $db->ejecutar('crearUsuario', [
+        $stmtCreate = $db->ejecutar('crearUsuario', [
             ':email' => $email,
             ':contrasena' => $hash,
             ':nombre' => $nombre,
             ':apellido' => $apellido,
         ]);
+        $creado = $stmtCreate->fetchColumn();
+        if (!$creado) {
+            throw new Exception("Error interno al crear el usuario en la base de datos.");
+        }
 
         self::enviarCorreoBienvenida($email, $nombre . ' ' . $apellido);
 
@@ -141,6 +136,7 @@ class RegisterService
             $mail = MailService::getInstance();
             $mail->sendWelcomeEmail($email, $nombreCompleto);
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'register.enviarCorreoBienvenida');
             throw $e;
         }
     }

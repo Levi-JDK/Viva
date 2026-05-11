@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../services/MyProductsService.php';
+require_once __DIR__ . '/../../functions/error_handler.php';
 
 try {
     $id_prod_edit = isset($_GET['id']) && is_numeric($_GET['id']) ? (int) $_GET['id'] : null;
@@ -16,6 +17,7 @@ try {
     $materias = $formulario['materias'];
     $producto_editar = $formulario['producto_editar'];
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'mis_productos.form_add_product.obtenerDatosFormulario');
     throw $e;
 }
 

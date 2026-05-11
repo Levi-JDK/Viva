@@ -18,7 +18,9 @@
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
+AuthHelper::checkAccess(6);
 
 try {
     // Nota: El vendor/autoload.php y el Dotenv::createImmutable ya se cargaron globalmente en index.php
@@ -92,5 +94,7 @@ try {
     echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']);
 
 } catch (Exception $e) {
-    throw $e;
+    $resp = ErrorHandler::jsonResponse($e, 'favoritos.gestionar');
+    echo json_encode($resp);
+    exit;
 }

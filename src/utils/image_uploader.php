@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/image_processing.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 
 function cleanupUploadedFiles(array $paths)
 {
@@ -129,6 +130,7 @@ function processAndUploadImages($files, $target_dir, $prefix = 'img_', $web_path
             $baseName = $prefix . time() . '_' . $index . '_' . bin2hex(random_bytes(4));
         } catch (Exception $e) {
             cleanupUploadedFiles($storedPaths);
+            ErrorHandler::handle($e, 'image_uploader.processAndUploadImages');
             throw $e;
         }
 
@@ -153,7 +155,11 @@ function processAndUploadImages($files, $target_dir, $prefix = 'img_', $web_path
             return ['success' => false, 'message' => 'No se pudieron generar variantes para la imagen ' . $currentFile['name']];
         }
 
-        cleanupUploadedFiles([$tempFile]);
+        // No borrar el temporal si es el mismo archivo que la variante 'full'
+        // (ocurre cuando se sube una imagen webp directamente)
+        if ($tempFile !== ($variants['full'] ?? null)) {
+            cleanupUploadedFiles([$tempFile]);
+        }
 
         $relativeVariants = [];
         foreach ($variants as $variantName => $variantPath) {

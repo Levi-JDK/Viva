@@ -1,5 +1,5 @@
 -- DROP FUNCTION obtener_ciudades
-CREATE OR REPLACE FUNCTION obtener_ciudades(p_id_dpto INTEGER)
+CREATE OR REPLACE FUNCTION obtener_ciudades(p_id_dpto tab_departamentos.id_departamento%TYPE)
 RETURNS TABLE (
     id 		DECIMAL(5,0),
     nombre 	VARCHAR

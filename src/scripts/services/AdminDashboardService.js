@@ -6,13 +6,23 @@
 export class AdminDashboardService {
 
     static async fetchUsers() {
-        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=list_users&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=list_users&_=${Date.now()}`, {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch users');
         return response.json();
     }
 
     static async fetchProducts() {
-        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=list_products&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=list_products&_=${Date.now()}`, {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
         if (!response.ok) throw new Error('Failed to fetch products');
         return response.json();
     }
@@ -20,7 +30,11 @@ export class AdminDashboardService {
     static async toggleUser(idUser, isActive) {
         const response = await fetch(`${BASE_URL}/admin`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: `accion=toggle_user&id_user=${idUser}&is_active=${isActive}`
         });
         if (!response.ok) throw new Error('Failed to toggle user');
@@ -30,7 +44,11 @@ export class AdminDashboardService {
     static async toggleProduct(idProducto, isActive) {
         const response = await fetch(`${BASE_URL}/admin`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: `accion=toggle_product&id_producto=${idProducto}&is_active=${isActive}`
         });
         if (!response.ok) throw new Error('Failed to toggle product');
@@ -38,7 +56,12 @@ export class AdminDashboardService {
     }
 
     static async crudRead(entidad) {
-        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=read&entidad=${entidad}&_=${Date.now()}`);
+        const response = await fetch(`${BASE_URL}/admin?ajax=1&accion=read&entidad=${entidad}&_=${Date.now()}`, {
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
         if (!response.ok) throw new Error('Failed to read entity');
         return response.json();
     }
@@ -52,7 +75,11 @@ export class AdminDashboardService {
         }
         const response = await fetch(`${BASE_URL}/admin`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: urlEncoded.toString()
         });
         if (!response.ok) throw new Error('CRUD operation failed');

@@ -27,7 +27,7 @@ BEGIN
     END IF;
 
     -- Datos del producto
-    SELECT id_productor, precio_producto::NUMERIC, stock_productor::NUMERIC
+    SELECT id_productor, precio_producto, stock_productor
       INTO w_id_productor, w_precio, w_stock
     FROM tab_productos
     WHERE id_producto = p_id_producto
@@ -44,19 +44,20 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    w_val_total := w_precio * p_cantidad::NUMERIC;
+    w_val_total := w_precio * p_cantidad;
 
     -- Insertar línea de detalle
     INSERT INTO tab_det_fact (id_factura, id_producto, id_productor, val_cantidad, val_bruto, val_neto)
     VALUES (p_id_factura, p_id_producto, w_id_productor,
-            p_cantidad, w_val_total::DECIMAL(12,2), w_val_total::DECIMAL(12,2));
+            p_cantidad, w_val_total, w_val_total);
 
     -- Acumular total en encabezado
     UPDATE tab_enc_fact
-       SET val_tot_fact = val_tot_fact + w_val_total::DECIMAL(12,2)
+       SET val_tot_fact = val_tot_fact + w_val_total
      WHERE id_factura   = p_id_factura;
 
-    -- Registrar salida en kardex (trigger descuenta el stock)
+    -- Registrar salida en kardex. El trigger fun_trg_kardex_stock es la única fuente
+    -- de descuento de stock para evitar doble deducción.
     INSERT INTO tab_kardex (id_producto, id_productor, tipo_movim, cantidad, ref_factura)
     VALUES (p_id_producto, w_id_productor, FALSE, p_cantidad, p_id_factura);
 

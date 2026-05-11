@@ -8,9 +8,11 @@ export class CatalogService {
                 'X-Requested-With': 'XMLHttpRequest',
             }
         });
+        if (!response.ok) throw new Error(response.statusText);
+
         const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Error en el servidor');
+        if (!data.exito) {
+            throw new Error(data.mensaje || 'Error en el servidor');
         }
         return data;
     }

@@ -190,8 +190,6 @@ class Database {
         'pais'           => ['tabla' => 'tab_paises',           'pk' => 'id_pais',          'fun_c' => 'fun_c_pais',           'fun_u' => 'fun_u_pais',           'fun_d' => 'fun_softdel_tab_paises'],
         'parametros'     => ['tabla' => 'tab_pmtros',           'pk' => 'id_parametro',     'fun_c' => 'fun_c_parametros',     'fun_u' => 'fun_u_parametros',     'fun_d' => 'fun_softdel_tab_pmtros'],
         'tipo_doc'       => ['tabla' => 'tab_tipos_doc',        'pk' => 'id_tipo_doc',      'fun_c' => 'fun_c_tipo_doc',       'fun_u' => 'fun_u_tipo_doc',       'fun_d' => 'fun_softdel_tab_tipos_doc'],
-        'transito'       => ['tabla' => 'tab_transito',         'pk' => 'id_entrada',       'fun_c' => 'fun_c_transito',       'fun_u' => 'fun_u_transito',       'fun_d' => 'fun_softdel_tab_transito'],
-        'transportadora' => ['tabla' => 'tab_transportadoras',  'pk' => 'id_transportador', 'fun_c' => 'fun_c_transportadora', 'fun_u' => 'fun_u_transportadora', 'fun_d' => 'fun_softdel_tab_transportadoras']
     ];
 
     public function gestionarCRUDAdmin(string $accion, string $entidad, array $datos = []) {

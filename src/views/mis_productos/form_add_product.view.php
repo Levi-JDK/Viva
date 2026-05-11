@@ -9,7 +9,7 @@
                                 <?php if ($is_edit): ?>
                                     <input type="hidden" name="id_producto" value="<?= $producto_editar['id_producto'] ?>">
                                     <script>
-                                        window.existingImages = <?= $producto_editar['imagenes'] ?? '[]' ?>;
+                                        window.existingImages = <?= json_encode(is_string($producto_editar['imagenes'] ?? '') ? json_decode($producto_editar['imagenes'] ?? '[]', true) : ($producto_editar['imagenes'] ?? [])) ?>;
                                     </script>
                                 <?php endif; ?>
                                 <!-- Image Upload Area -->

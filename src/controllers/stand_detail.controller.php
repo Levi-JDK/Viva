@@ -5,6 +5,7 @@
 
 
 require_once __DIR__ . '/../services/StandDetailService.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 
 try {
     $id_stand = isset($_GET['id']) && $_GET['id'] !== '' ? (int) $_GET['id'] : null;
@@ -17,5 +18,6 @@ try {
 
     require_once ROOT_PATH . 'src/views/stand_detail.view.php';
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'stand_detail.obtenerContexto');
     throw $e;
 }

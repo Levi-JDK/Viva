@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 require_once __DIR__ . '/../utils/image_uploader.php';
 
@@ -49,9 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             $val_actfact     = isset($_POST['val_actfact']) ? (int) $_POST['val_actfact'] : null;
             $val_observa     = $_POST['val_observa'] ?? null;
             $foto_hero       = $_POST['foto_hero'] ?? null;
-            if (isset($_POST['remove_foto_hero']) && $_POST['remove_foto_hero'] === '1') {
-                $foto_hero = 'images/hero.jpeg';
-            }
 
             $landing_hero_titulo    = $_POST['landing_hero_titulo'] ?? null;
             $landing_hero_subtitulo  = $_POST['landing_hero_subtitulo'] ?? null;
@@ -74,6 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
                 }
 
                 $foto_hero = $upload['path'] ?? ($upload['paths'][0] ?? null);
+            }
+
+            if (($_FILES['foto_hero']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE
+                && isset($_POST['remove_foto_hero'])
+                && $_POST['remove_foto_hero'] === '1'
+            ) {
+                $foto_hero = 'images/hero_full.webp';
             }
 
             $stmt = $db->ejecutar('actualizarParametrosGlob', [
@@ -127,7 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
         }
 
         if ($accion === 'read') {
-            echo json_encode($db->gestionarCRUDAdmin('read', $entidad));
+            $result = $db->gestionarCRUDAdmin('read', $entidad);
+            echo json_encode([
+                'success' => true,
+                'data' => $result
+            ]);
             exit;
         }
 
@@ -234,7 +243,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
         $resultado = $db->gestionarCRUDAdmin($accion, $entidad, $datos);
         echo json_encode(['success' => true, 'data' => $resultado]);
     } catch (Exception $e) {
-        throw $e;
+        $resp = ErrorHandler::jsonResponse($e, 'admin.api');
+        echo json_encode($resp);
+        exit;
     }
 
     exit;
@@ -257,6 +268,7 @@ try {
     $totalArtesanos = $db->ejecutar('contarArtesanos')->fetchColumn() ?: 0;
     $ingresosMes    = $db->ejecutar('sumarIngresosMes')->fetchColumn() ?: 0;
 } catch (Throwable $e) {
+    ErrorHandler::handle($e, 'admin.dashboard');
     throw $e;
 }
 

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/error_handler.php';
 
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -107,6 +108,7 @@ class MailService
             return true;
         } catch (Exception $e) {
             $this->lastError = $this->mailer->ErrorInfo;
+            ErrorHandler::handle($e, 'mail_service.sendEmail');
             throw $e;
         }
     }

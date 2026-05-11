@@ -1,9 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../services/VendorService.php';
 
 $userData = AuthHelper::protectRoute();
+AuthHelper::checkAccess(9);
 $id_user = $userData->id_user;
 
 try {
@@ -21,6 +23,7 @@ try {
     $bancos = $registro['bancos'];
 
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'registro_vendedor.obtenerDatosRegistro');
     throw $e;
 }
 

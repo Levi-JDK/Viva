@@ -104,25 +104,36 @@
         
         <div class="file-list">
             <?php
-            $files = glob("*.md");
+$files = glob("*.{md,xlsx,xls,csv,png,jpeg,gif,svg,webp,pptx,sql}", GLOB_BRACE);
             if (empty($files)) {
-                echo '<div class="empty">No hay archivos .md en esta carpeta.</div>';
+                echo '<div class="empty">No hay archivos de documentación en esta carpeta.</div>';
             } else {
                 foreach ($files as $file) {
                     $size = filesize($file);
                     $size_str = $size > 1024 ? round($size/1024, 1) . ' KB' : $size . ' B';
                     $date = date('d/m/Y H:i', filemtime($file));
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                    $image_exts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'];
+                    if ($ext === 'md') {
+                        $icon = '📄';
+                    } elseif ($ext === 'sql') {
+                        $icon = '🗄️';
+                    } elseif (in_array($ext, $image_exts)) {
+                        $icon = '🖼️';
+                    } else {
+                        $icon = '📊';
+                    }
                     
                     echo '<div class="file-item">';
                     echo '<a href="viewer.html?file=' . urlencode($file) . '" style="display:flex;align-items:center;text-decoration:none;color:inherit;flex:1;">';
-                    echo '<div class="file-icon">📄</div>';
+                    echo '<div class="file-icon">' . $icon . '</div>';
                     echo '<div class="file-info">';
                     echo '<div class="file-name">' . htmlspecialchars($file) . '</div>';
                     echo '<div class="file-meta">' . $size_str . ' &middot; Modificado el ' . $date . '</div>';
                     echo '</div>';
                     echo '</a>';
                     echo '<div class="file-actions">';
-                    echo '<a href="' . htmlspecialchars($file) . '" class="btn-download-sm" download>⬇️ Descargar</a>';
+                    echo '<a href="download.php?file=' . urlencode($file) . '" class="btn-download-sm">⬇️ Descargar</a>';
                     echo '<div class="file-arrow">›</div>';
                     echo '</div>';
                     echo '</div>';

@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION fun_carrito(
-    p_id_user     INTEGER,
+    p_id_user     tab_users.id_user%TYPE,
     p_accion      VARCHAR,
-    p_id_producto DECIMAL(12,0) DEFAULT NULL,
-    p_cantidad    INTEGER       DEFAULT NULL
+    p_id_producto tab_productos.id_producto%TYPE,
+    p_cantidad    tab_carrito.cantidad%TYPE
 )
 RETURNS JSON
 LANGUAGE plpgsql

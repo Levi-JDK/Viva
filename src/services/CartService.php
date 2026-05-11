@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 
 class CartService
@@ -135,6 +136,7 @@ class CartService
                 $db->connection->rollBack();
             }
 
+            ErrorHandler::handle($exception, 'cart.flushToPostgres');
             throw $exception;
         }
 

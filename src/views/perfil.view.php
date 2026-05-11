@@ -1,6 +1,8 @@
 <?php 
 $page_title = "Mi Cuenta | VIVA - Artesanías Colombianas";
-$body_class = "bg-gray-50 font-sans antialiased";
+$themePreference = in_array(($themePreference ?? 'light'), ['light', 'dark'], true) ? $themePreference : 'light';
+$html_class = $themePreference === 'dark' ? 'dark' : '';
+$body_class = "bg-gray-50 dark:bg-stone-950 font-sans antialiased";
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
     <!-- CSS crítico para sidebar del perfil: Tailwind no compila correctamente lg:translate-x-0 -->
@@ -37,50 +39,53 @@ require_once __DIR__ . '/partials/base_head.php';
             }
         }
     </style>
+    <script>
+        window.themePreference = '<?= htmlspecialchars($themePreference) ?>';
+    </script>
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl h-full flex-shrink-0 flex flex-col z-20 transition-transform duration-300 ease-out border-r border-gray-100">
-            <div class="p-6 border-b border-gray-100">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-stone-950 shadow-xl h-full flex-shrink-0 flex flex-col z-20 transition-transform duration-300 ease-out border-r border-gray-100 dark:border-stone-800">
+            <div class="p-6 border-b border-gray-100 dark:border-stone-800">
                 <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 group">
                      <div class="w-10 h-10 bg-gradient-to-br from-tierra-oscuro to-verde-artesanal rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-all">
                         <img src="<?= BASE_URL ?>images/Logo_thumb.webp" alt="VIVA" class="w-full h-full object-contain rounded-xl">
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold text-tierra-oscuro">VIVA</h2>
-                        <p class="text-xs text-gray-500 uppercase tracking-widest">Mi Cuenta</p>
+                        <h2 class="text-xl font-bold text-tierra-oscuro dark:text-amber-300">VIVA</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-widest">Mi Cuenta</p>
                     </div>
                 </a>
             </div>
             
             <nav class="flex-1 overflow-y-auto py-6 space-y-1">
                 <?php if (in_array(4, $menu_ids_usuario)): ?>
-                <button data-action="show-section" data-section-id="profile" class="menu-item active-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="profile" class="menu-item active-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-stone-800 transition-colors">
                     <i class="fas fa-user w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Mi Perfil</span>
                 </button>
                 <?php endif; ?>
                 <?php if (in_array(5, $menu_ids_usuario)): ?>
-                <button data-action="show-section" data-section-id="orders" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="orders" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-stone-800 transition-colors">
                     <i class="fas fa-shopping-bag w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Mis Pedidos</span>
                 </button>
                 <?php endif; ?>
                 <?php if (in_array(6, $menu_ids_usuario)): ?>
-                <button data-action="show-section" data-section-id="favorites" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="favorites" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-stone-800 transition-colors">
                     <i class="fas fa-heart w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Favoritos</span>
                 </button>
                 <?php endif; ?>
                 
                 <?php if (isset($es_productor) && $es_productor && in_array(10, $menu_ids_usuario)): ?>
-                <a href="<?= BASE_URL ?>mis_productos" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <a href="<?= BASE_URL ?>mis_productos" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-stone-800 transition-colors">
                     <i class="fas fa-box-open w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Mis Productos</span>
                 </a>
                 <?php endif; ?>
 
                 <?php if (in_array(7, $menu_ids_usuario)): ?>
-                <button data-action="show-section" data-section-id="settings" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 hover:bg-gray-50 transition-colors">
+                <button data-action="show-section" data-section-id="settings" class="menu-item w-full flex items-center space-x-4 px-6 py-3.5 text-left text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-stone-800 transition-colors">
                     <i class="fas fa-cog w-5 text-center text-tierra-medio"></i>
                     <span class="font-semibold">Configuración</span>
                 </button>
@@ -88,8 +93,8 @@ require_once __DIR__ . '/partials/base_head.php';
                 
             </nav>
 
-            <div class="p-4 border-t border-gray-100 bg-gray-50/50">
-                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 text-gray-500 hover:text-naranja-artesanal transition-colors mb-4 pl-2">
+            <div class="p-4 border-t border-gray-100 dark:border-stone-800 bg-gray-50/50 dark:bg-stone-900/70">
+                <a href="<?= BASE_URL ?>" class="flex items-center space-x-3 text-gray-500 dark:text-gray-400 hover:text-naranja-artesanal transition-colors mb-4 pl-2">
                     <i class="fas fa-arrow-left w-5 text-center"></i>
                     <span class="font-medium text-sm">Volver al Inicio</span>
                 </a>
@@ -104,15 +109,15 @@ require_once __DIR__ . '/partials/base_head.php';
         <div id="profileSidebarOverlay" class="fixed inset-0 bg-black/50 z-10 hidden" data-action="toggleSidebar"></div>
         
         <!-- Main Content Wrapper -->
-        <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gray-50">
+        <div class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gray-50 dark:bg-stone-950">
               <!-- Header for Mobile / Top Bar -->
               <!-- Sticky para mantener visible la hamburguesa al scrollear en mobile. -->
-              <header id="mobile-header" class="sticky top-0 bg-white shadow-sm flex items-center justify-between px-6 py-4 z-30">
+              <header id="mobile-header" class="sticky top-0 bg-white dark:bg-stone-950 shadow-sm flex items-center justify-between px-6 py-4 z-30">
                 <div class="flex items-center">
                     <button class="text-gray-500 hover:text-gray-700 mr-4" data-event="click:toggleSidebar">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
-                    <h2 class="text-xl font-bold text-gray-800">Mi Cuenta</h2>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Mi Cuenta</h2>
                 </div>
                 <!-- Botón Volver solo en mobile; estilo naranja consistente con el login. -->
                 <button data-action="profile-go-back" class="bg-naranja-artesanal text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-tierra-oscuro transition-colors flex items-center gap-1.5">
@@ -122,24 +127,24 @@ require_once __DIR__ . '/partials/base_head.php';
             </header>
 
             <!-- Main Content Area -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                <div class="min-h-full flex flex-col bg-gradient-to-br from-orange-50/50 via-white/80 to-amber-50/50">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-stone-950 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                <div class="min-h-full flex flex-col bg-gradient-to-br from-orange-50/50 via-white/80 to-amber-50/50 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
                     <div class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full space-y-8">
                     <?php if (in_array(4, $menu_ids_usuario)): ?>
                 <!-- Profile Section -->
                 <section id="profile" class="content-section active">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                        <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-stone-800 p-8">
                             <div class="flex items-center justify-between mb-8">
                                 <div>
-                                    <h2 class="text-2xl font-bold text-tierra-oscuro">Mi Perfil</h2>
-                                    <p class="text-sm text-gray-500 mt-1">Gestiona tu información personal</p>
+                                    <h2 class="text-2xl font-bold text-tierra-oscuro dark:text-amber-300">Mi Perfil</h2>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona tu información personal</p>
                                 </div>
                                 <div id="edit-buttons" class="flex items-center gap-3">
                                     <button data-action="toggle-edit" id="btn-editar" class="btn-primary text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
                                         <i class="fas fa-edit mr-2"></i>Editar
                                     </button>
                                     <div id="save-cancel-buttons" class="hidden flex items-center gap-3">
-                                        <button data-action="save-profile" class="bg-verde-artesanal text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center">
+                                        <button data-action="save-profile" class="bg-verde-artesanal text-white px-5 py-2.5 rounded-lg text-sm hover:shadow-lg transition-all flex items-center disabled:opacity-60 disabled:cursor-wait">
                                             <i class="fas fa-save mr-2"></i>Guardar
                                         </button>
                                         <button data-action="cancel-edit" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-5 py-2.5 rounded-lg text-sm transition-all flex items-center">
@@ -161,7 +166,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                         - Cache-busting: Se agrega timestamp para forzar recarga después de uploads
                                     -->
                                     <div class="w-full h-full rounded-full overflow-hidden">
-                                        <img id="avatar-image" 
+                                         <img id="avatar-image" 
                                              src="<?= BASE_URL . $foto_usuario ?>?v=<?= time() ?>" 
                                              alt="<?= htmlspecialchars($nombre_completo) ?>" 
                                              class="w-full h-full object-cover">
@@ -178,24 +183,24 @@ require_once __DIR__ . '/partials/base_head.php';
                                     </form>
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-semibold text-gray-800"><?= htmlspecialchars($nombre_completo) ?></h3>
-                                    <p class="text-sm text-gray-500">Miembro desde <?= $fecha_formateada ?></p>
+                                    <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100"><?= htmlspecialchars($nombre_completo) ?></h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Miembro desde <?= $fecha_formateada ?></p>
                                 </div>
                             </div>
 
                             <!-- Info Grid -->
                             <form id="profile-form" class="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nombre </label>
-                                    <input type="text" id="input-nombre" value="<?= htmlspecialchars($nombre_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Nombre </label>
+                                    <input type="text" id="input-nombre" value="<?= htmlspecialchars($nombre_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 dark:border-stone-700 rounded-lg bg-gray-100 dark:bg-stone-800 text-gray-500 dark:text-gray-400 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Apellido</label>
-                                    <input type="text" id="input-apellido" value="<?= htmlspecialchars($apellido_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Apellido</label>
+                                    <input type="text" id="input-apellido" value="<?= htmlspecialchars($apellido_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 dark:border-stone-700 rounded-lg bg-gray-100 dark:bg-stone-800 text-gray-500 dark:text-gray-400 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico</label>
-                                    <input type="email" id="input-email" value="<?= htmlspecialchars($email_usuario) ?>" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Correo Electrónico</label>
+                                    <input type="email" value="<?= htmlspecialchars($email_usuario) ?>" class="w-full px-4 py-3 border border-gray-300 dark:border-stone-700 rounded-lg bg-gray-200 dark:bg-stone-800 text-gray-600 dark:text-gray-400 cursor-not-allowed" readonly disabled>
                                 </div>
                                 <!-- <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Teléfono</label>
@@ -205,7 +210,8 @@ require_once __DIR__ . '/partials/base_head.php';
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Ciudad</label>
                                     <input type="text" id="input-ciudad" value="Bogotá, Colombia" class="profile-input w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed focus:border-tierra-medio focus:outline-none transition-all" disabled>
                                 </div> -->
-                            </form>    
+                            </form>
+                        </div>
                     </div>
                 </section>
                 <?php endif; ?>
@@ -213,11 +219,11 @@ require_once __DIR__ . '/partials/base_head.php';
                 <?php if (in_array(5, $menu_ids_usuario)): ?>
                 <!-- Orders Section -->
                 <section id="orders" class="content-section">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-stone-800 p-8">
                         <div class="flex items-center justify-between mb-8">
                             <div>
-                                <h2 class="text-2xl font-bold text-tierra-oscuro">Mis Pedidos</h2>
-                                <p class="text-sm text-gray-500 mt-1">Historial y estado de tus compras</p>
+                                <h2 class="text-2xl font-bold text-tierra-oscuro dark:text-amber-300">Mis Pedidos</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Historial y estado de tus compras</p>
                             </div>
                         </div>
                         
@@ -225,11 +231,11 @@ require_once __DIR__ . '/partials/base_head.php';
                         <div class="space-y-4">
                             <?php if (empty($pedidos)): ?>
                                 <div class="text-center py-8">
-                                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div class="w-16 h-16 bg-gray-50 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <i class="fas fa-shopping-bag text-3xl text-gray-300"></i>
                                     </div>
-                                    <h3 class="text-lg font-medium text-gray-800 mb-1">Aún no tienes pedidos</h3>
-                                    <p class="text-sm text-gray-500 mb-4">Explora nuestro catálogo y realiza tu primera compra.</p>
+                                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-1">Aún no tienes pedidos</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Explora nuestro catálogo y realiza tu primera compra.</p>
                                     <a href="<?= BASE_URL ?>catalogo" class="btn-primary inline-block text-white px-6 py-2 rounded-lg font-medium transition-colors">
                                         Ver catálogo
                                     </a>
@@ -250,15 +256,15 @@ require_once __DIR__ . '/partials/base_head.php';
                                     }
                                 ?>
                                 <!-- Order Item -->
-                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all">
+                                <div class="border border-gray-200 dark:border-stone-800 rounded-lg p-4 hover:shadow-md transition-all">
                                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                         <div class="flex items-start space-x-4">
                                             <div class="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0">
                                                 <img src="<?= $imagen_pedido ?>" alt="Producto" class="w-full h-full object-cover rounded-lg">
                                             </div>
                                             <div>
-                                                <h3 class="font-semibold text-gray-800">Pedido #<?= htmlspecialchars($pedido['id_factura']) ?></h3>
-                                                <p class="text-sm text-gray-500">
+                                                <h3 class="font-semibold text-gray-800 dark:text-gray-100">Pedido #<?= htmlspecialchars($pedido['id_factura']) ?></h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">
                                                     <?= $pedido['total_productos'] ?> producto<?= $pedido['total_productos'] != 1 ? 's' : '' ?> • 
                                                     <?= htmlspecialchars($fecha_pedido->format('d M Y')) ?>
                                                 </p>
@@ -287,11 +293,11 @@ require_once __DIR__ . '/partials/base_head.php';
                 <?php if (in_array(6, $menu_ids_usuario)): ?>
                 <!-- Favorites Section -->
                 <section id="favorites" class="content-section">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-stone-800 p-8">
                         <div class="flex items-center justify-between mb-8">
                             <div>
-                                <h2 class="text-2xl font-bold text-tierra-oscuro">Mis Favoritos</h2>
-                                <p class="text-sm text-gray-500 mt-1">Productos que te encantan</p>
+                                <h2 class="text-2xl font-bold text-tierra-oscuro dark:text-amber-300">Mis Favoritos</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Productos que te encantan</p>
                             </div>
                         </div>
                         
@@ -302,11 +308,11 @@ require_once __DIR__ . '/partials/base_head.php';
 
                         <!-- Estado vacío de favoritos -->
                         <div id="favoritos-vacio" class="hidden text-center py-16">
-                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div class="w-16 h-16 bg-gray-50 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fa-regular fa-heart text-3xl text-gray-300"></i>
                             </div>
-                            <h3 class="text-lg font-medium text-oscuro mb-1">Aún no tienes favoritos</h3>
-                            <p class="text-gray-500 mb-4 text-sm">Explora el catálogo y guarda los productos que más te gusten.</p>
+                            <h3 class="text-lg font-medium text-oscuro dark:text-gray-100 mb-1">Aún no tienes favoritos</h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4 text-sm">Explora el catálogo y guarda los productos que más te gusten.</p>
                             <a href="<?= BASE_URL ?>catalogo" class="btn-primary text-white px-6 py-2 rounded-lg font-medium inline-block">
                                 Ver catálogo
                             </a>
@@ -318,53 +324,34 @@ require_once __DIR__ . '/partials/base_head.php';
                 <?php if (in_array(7, $menu_ids_usuario)): ?>
                 <!-- Settings Section -->
                 <section id="settings" class="content-section">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-gray-100 dark:border-stone-800 p-8">
                         <div class="flex items-center justify-between mb-8">
                             <div>
-                                <h2 class="text-2xl font-bold text-tierra-oscuro">Configuración</h2>
-                                <p class="text-sm text-gray-500 mt-1">Ajustes de tu cuenta y preferencias</p>
+                                <h2 class="text-2xl font-bold text-tierra-oscuro dark:text-amber-300">Configuración</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ajustes de tu cuenta y preferencias</p>
                             </div>
                         </div>
                         
-                        <div class="space-y-6">
-                            <!-- Notifications -->
-                            <div class="border-b border-gray-200 pb-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Notificaciones</h3>
-                                <div class="space-y-3">
-                                    <label class="flex items-center justify-between cursor-pointer">
-                                        <span class="text-gray-700">Notificaciones por email</span>
-                                        <input type="checkbox" checked class="w-5 h-5 text-tierra-medio rounded">
-                                    </label>
-                                    <label class="flex items-center justify-between cursor-pointer">
-                                        <span class="text-gray-700">Ofertas y promociones</span>
-                                        <input type="checkbox" checked class="w-5 h-5 text-tierra-medio rounded">
-                                    </label>
-                                    <label class="flex items-center justify-between cursor-pointer">
-                                        <span class="text-gray-700">Actualizaciones de pedidos</span>
-                                        <input type="checkbox" checked class="w-5 h-5 text-tierra-medio rounded">
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Privacy -->
-                            <div class="border-b border-gray-200 pb-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Privacidad</h3>
-                                <div class="space-y-3">
-                                    <label class="flex items-center justify-between cursor-pointer">
-                                        <span class="text-gray-700">Perfil público</span>
-                                        <input type="checkbox" class="w-5 h-5 text-tierra-medio rounded">
-                                    </label>
-                                    <label class="flex items-center justify-between cursor-pointer">
-                                        <span class="text-gray-700">Mostrar historial de compras</span>
-                                        <input type="checkbox" class="w-5 h-5 text-tierra-medio rounded">
+                        <div class="space-y-8">
+                            <!-- Apariencia -->
+                            <div class="border-b border-gray-200 dark:border-stone-800 pb-6">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Apariencia</h3>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-gray-700 dark:text-gray-200 block">Modo oscuro</span>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Cambia entre tema claro y oscuro</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="dark-mode-toggle" class="sr-only peer" data-action="change-theme" <?= $themePreference === 'dark' ? 'checked' : '' ?>>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-tierra-medio/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tierra-medio"></div>
                                     </label>
                                 </div>
                             </div>
 
                             <!-- Security -->
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Seguridad</h3>
-                                <button class="w-full md:w-auto btn-primary text-white px-6 py-3 rounded-lg">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Seguridad</h3>
+                                <button class="w-full md:w-auto btn-primary text-white px-6 py-3 rounded-lg" data-action="change-password">
                                     <i class="fas fa-key mr-2"></i>Cambiar Contraseña
                                 </button>
                             </div>
@@ -379,6 +366,42 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </div>
 
+
+    <div id="password-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4">
+        <div class="w-full max-w-md rounded-2xl bg-white dark:bg-stone-900 border border-gray-100 dark:border-stone-800 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-100 dark:border-stone-800 px-6 py-4">
+                <div>
+                    <h3 class="text-lg font-bold text-tierra-oscuro dark:text-amber-300">Cambiar contraseña</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Usá una contraseña fuerte y diferente.</p>
+                </div>
+                <button data-action="close-password-modal" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" aria-label="Cerrar modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="password-change-form" data-action="submit-password-change" class="space-y-4 px-6 py-5">
+                <div>
+                    <label for="current-password" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Contraseña actual</label>
+                    <input type="password" id="current-password" autocomplete="current-password" class="w-full rounded-lg border border-gray-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-gray-800 dark:text-gray-100 focus:border-tierra-medio" required>
+                </div>
+                <div>
+                    <label for="new-password" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Nueva contraseña</label>
+                    <input type="password" id="new-password" autocomplete="new-password" class="w-full rounded-lg border border-gray-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-gray-800 dark:text-gray-100 focus:border-tierra-medio" required>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</p>
+                </div>
+                <div>
+                    <label for="confirm-password" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Confirmar contraseña</label>
+                    <input type="password" id="confirm-password" autocomplete="new-password" class="w-full rounded-lg border border-gray-300 dark:border-stone-700 bg-white dark:bg-stone-950 px-4 py-3 text-gray-800 dark:text-gray-100 focus:border-tierra-medio" required>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" data-action="close-password-modal" class="rounded-lg bg-gray-100 dark:bg-stone-800 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-stone-700">Cancelar</button>
+                    <button type="submit" class="btn-primary text-white px-5 py-2.5 rounded-lg text-sm disabled:opacity-60 disabled:cursor-wait">
+                        <i class="fas fa-key mr-2"></i>Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
     </body>

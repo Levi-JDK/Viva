@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../services/MyProductsService.php';
+require_once __DIR__ . '/../../functions/error_handler.php';
 
 $stats = [
     'total_productos' => 0,
@@ -16,6 +17,7 @@ try {
     $stats = $estadisticas['stats'];
     $top_productos = $estadisticas['top_productos'];
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'mis_productos.statistics.obtenerEstadisticas');
     throw $e;
 }
 

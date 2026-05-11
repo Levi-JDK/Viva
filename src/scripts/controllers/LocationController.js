@@ -33,7 +33,8 @@ export class LocationController {
                     this.ciudadSelect.innerHTML = '<option value="">No hay ciudades disponibles</option>';
                 }
             } catch (error) {
-                console.error('Error al cargar ciudades:', error);
+                if (typeof showToast !== 'undefined') showToast(error.message || 'Error al cargar ciudades', 'error');
+                else console.error('Error al cargar ciudades:', error);
                 this.ciudadSelect.innerHTML = '<option value="">Error al cargar</option>';
             }
         } else {

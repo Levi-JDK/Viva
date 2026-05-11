@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../workers/Config/RedisConfig.php';
 
 class UserService
@@ -37,6 +38,71 @@ class UserService
         ]);
     }
 
+    public static function guardarPreferenciaTema(int $userId, string $theme): void
+    {
+        if (!in_array($theme, ['light', 'dark'], true)) {
+            throw new InvalidArgumentException('Valor inválido');
+        }
+
+        $db = Database::getInstance();
+        $db->ejecutar('actualizarTemaUsuario', [
+            ':theme' => $theme,
+            ':id' => $userId,
+        ]);
+    }
+
+    public static function cambiarPassword(int $userId, string $currentPassword, string $newPassword, string $confirmPassword): array
+    {
+        $currentPassword = trim($currentPassword);
+        $newPassword = trim($newPassword);
+        $confirmPassword = trim($confirmPassword);
+
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            return ['exito' => false, 'mensaje' => 'Todos los campos son obligatorios.'];
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return ['exito' => false, 'mensaje' => 'Las contraseñas no coinciden.'];
+        }
+
+        if ($currentPassword === $newPassword) {
+            return ['exito' => false, 'mensaje' => 'La nueva contraseña debe ser diferente a la actual.'];
+        }
+
+        $errorPassword = self::validarPassword($newPassword);
+        if ($errorPassword !== '') {
+            return ['exito' => false, 'mensaje' => $errorPassword];
+        }
+
+        $db = Database::getInstance();
+        $stmt = $db->ejecutar('obtenerHashPassword', [':id' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row || empty($row['pass_user'])) {
+            return ['exito' => false, 'mensaje' => 'Usuario no encontrado.'];
+        }
+
+        if (!password_verify($currentPassword, $row['pass_user'])) {
+            return ['exito' => false, 'mensaje' => 'La contraseña actual es incorrecta.', 'status' => 401];
+        }
+
+        $hash = password_hash($newPassword, PASSWORD_ARGON2ID);
+        $db->ejecutar('actualizarPassword', [
+            ':id_user' => $userId,
+            ':pass_user' => $hash,
+        ]);
+
+        return ['exito' => true, 'mensaje' => 'Contraseña actualizada.'];
+    }
+
+    public static function esProductor(int $userId): bool
+    {
+        $db = Database::getInstance();
+        $stmt = $db->ejecutar('obtenerIdProductor', [':id_user' => $userId]);
+
+        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public static function obtenerDatosPerfil(int $userId): ?array
     {
         $db = Database::getInstance();
@@ -60,6 +126,9 @@ class UserService
             'fecha_registro' => $usuario['created_at'] ?? null,
             'fecha_formateada' => self::formatearFechaRegistro($usuario['created_at'] ?? null),
             'inicial_usuario' => self::obtenerInicial($nombreUsuario),
+            'theme_preference' => in_array(($usuario['theme_preference'] ?? 'light'), ['light', 'dark'], true)
+                ? $usuario['theme_preference']
+                : 'light',
         ];
     }
 
@@ -71,6 +140,7 @@ class UserService
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            ErrorHandler::handle($e, 'user.obtenerPedidos');
             throw $e;
         }
     }
@@ -104,6 +174,7 @@ class UserService
             
             return $menusLimpio;
         } catch (PDOException $e) {
+            ErrorHandler::handle($e, 'user.obtenerMenuIdsUsuario');
             throw $e;
         }
     }
@@ -137,5 +208,30 @@ class UserService
     private static function obtenerInicial(string $nombreUsuario): string
     {
         return strtoupper(substr($nombreUsuario, 0, 1));
+    }
+
+    private static function validarPassword(string $password): string
+    {
+        if (strlen($password) < 8) {
+            return 'Mínimo 8 caracteres.';
+        }
+
+        if (!preg_match('/[A-Z]/', $password)) {
+            return 'Debe incluir al menos una mayúscula.';
+        }
+
+        if (!preg_match('/[a-z]/', $password)) {
+            return 'Debe incluir al menos una minúscula.';
+        }
+
+        if (!preg_match('/\d/', $password)) {
+            return 'Debe incluir al menos un número.';
+        }
+
+        if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+            return 'Debe incluir al menos un símbolo.';
+        }
+
+        return '';
     }
 }

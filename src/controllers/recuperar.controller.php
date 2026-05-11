@@ -14,7 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax']) || isset($_GET
         echo json_encode(['exito' => false, 'mensaje' => 'Método no permitido']);
         exit;
     }
-    echo json_encode(RecoveryService::procesarSolicitud($_POST));
+    try {
+        echo json_encode(RecoveryService::procesarSolicitud($_POST));
+    } catch (\Throwable $e) {
+        error_log('[Recuperar Controller] Error crítico: ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['exito' => false, 'mensaje' => 'Error temporal del sistema.']);
+    }
 
     exit;
 }

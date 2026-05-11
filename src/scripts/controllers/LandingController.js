@@ -85,7 +85,9 @@ export class LandingController {
             });
         }, observerOptions);
 
-        document.querySelectorAll(".fade-in").forEach(el => {
+        document.querySelectorAll(".fade-in").forEach((el, index) => {
+            const delay = Math.min(index * 120, 600);
+            el.style.setProperty("--stagger-delay", `${delay}ms`);
             fadeInObserver.observe(el);
         });
     }

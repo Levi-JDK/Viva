@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 
 class ProductDetailService
 {
@@ -49,6 +50,7 @@ class ProductDetailService
 
             return $data;
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product_detail.obtenerContexto');
             throw $e;
         }
     }
@@ -93,6 +95,7 @@ class ProductDetailService
 
             return isset($vistasRow['vistas']) ? (int) $vistasRow['vistas'] : null;
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product_detail.incrementarVista');
             throw $e;
         }
     }
@@ -104,6 +107,7 @@ class ProductDetailService
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product_detail.obtenerResenas');
             throw $e;
         }
     }
@@ -119,6 +123,7 @@ class ProductDetailService
                 'total_resenas' => (int) ($promedioRow['total_resenas'] ?? 0),
             ];
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product_detail.obtenerPromedioResenas');
             throw $e;
         }
     }
@@ -138,6 +143,7 @@ class ProductDetailService
 
             return array_slice($relacionados, 0, 4);
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product_detail.obtenerRelacionados');
             throw $e;
         }
     }

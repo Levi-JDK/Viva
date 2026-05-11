@@ -13,6 +13,7 @@
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 $userData = AuthHelper::protectRoute();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -52,9 +53,15 @@ try {
     require_once __DIR__ . '/../functions/database.php';
     $db = Database::getInstance();
 
-    // Validar si el usuario es el mismo productor (no puede auto-reseñarse)
-    $stmtProd = $db->ejecutar('obtenerDetalleProducto', [':id_producto' => $id_producto]);
+    // Validar si el usuario dueño del productor intenta auto-reseñar su producto.
+    // id_productor e id_user son dominios distintos: hay que resolver el owner real.
+    $stmtProd = $db->ejecutar('obtenerUsuarioProductorPorProducto', [':id_producto' => $id_producto]);
     $prod = $stmtProd->fetch(PDO::FETCH_ASSOC);
+    if ($prod && (int)$prod['id_user'] === $id_user) {
+        echo json_encode(['exito' => false, 'mensaje' => 'No puedes reseñar tus propios productos']);
+        exit;
+    }
+
     $stmt = $db->ejecutar('agregarResena', [
         ':id_user' => $id_user,
         ':id_producto' => $id_producto,
@@ -72,5 +79,7 @@ try {
     }
 
 } catch (Exception $e) {
-    throw $e;
+    $resp = ErrorHandler::jsonResponse($e, 'resenas.crear');
+    echo json_encode($resp);
+    exit;
 }

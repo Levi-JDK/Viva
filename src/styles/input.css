@@ -53,7 +53,30 @@
 ----------------------------------------------------------------- */
 @layer base {
 
+    :root {
+        --viva-profile-bg: #fff7ed;
+        --viva-profile-surface: #ffffff;
+        --viva-profile-text: #4A3B2B;
+        --viva-profile-muted: #6b7280;
+        --viva-profile-border: #f3f4f6;
+    }
+
+    .dark {
+        color-scheme: dark;
+        --viva-profile-bg: #0c0a09;
+        --viva-profile-surface: #1c1917;
+        --viva-profile-text: #f5f5f4;
+        --viva-profile-muted: #a8a29e;
+        --viva-profile-border: #292524;
+    }
+
     body {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    h1,
+    h2,
+    h3 {
         font-family: 'Outfit', sans-serif;
     }
 
@@ -156,6 +179,23 @@
         @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
     }
 
+    /* Landing trust cards: superficies cálidas y orgánicas, sin glassmorphism. */
+    .trust-card {
+        @apply rounded-3xl p-6 bg-white border border-claro shadow-lg transition-all duration-300;
+        box-shadow: 0 1.25rem 3rem rgba(62, 39, 35, 0.08);
+    }
+
+    .trust-card:hover {
+        transform: translateY(-0.25rem);
+        box-shadow: 0 1.5rem 3.5rem rgba(62, 39, 35, 0.14);
+    }
+
+    .trust-icon {
+        @apply w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl text-white;
+        background: linear-gradient(135deg, theme('colors.naranja-artesanal'), theme('colors.tierra-oscuro'));
+        box-shadow: 0 0.875rem 1.75rem rgba(177, 91, 10, 0.22);
+    }
+
     /* Inputs con estilo de "línea inferior" (de registro_vendedor.css) */
     .input-line {
         @apply border-b-2 border-gray-300 focus:border-naranja-artesanal outline-none transition-colors py-2 w-full bg-transparent;
@@ -203,7 +243,13 @@
     .fade-in {
         opacity: 0;
         transform: translateY(20px);
-        animation: fadeInUp 0.8s ease forwards;
+        transition: opacity 0.8s ease, transform 0.8s ease;
+        transition-delay: var(--stagger-delay, 0ms);
+    }
+
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     @keyframes fadeInUp {
@@ -226,19 +272,9 @@
         }
     }
 
-    /* Animación de rebote para íconos */
+    /* Transición simple para íconos; sin rebote decorativo redundante. */
     .bounce-icon {
         @apply transition-transform duration-300;
-    }
-
-    .bounce-icon:hover {
-        animation: bounce 0.6s;
-    }
-
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-10px); }
-        60% { transform: translateY(-5px); }
     }
 
     /* Overlay del carrito */
@@ -437,7 +473,8 @@
    ================================================================ */
 @media (prefers-reduced-motion: no-preference) {
     .fade-in {
-        animation: fadeInUp 0.8s ease forwards;
+        transition: opacity 0.8s ease, transform 0.8s ease;
+        transition-delay: var(--stagger-delay, 0ms);
     }
     
     .fade-slide-in {
@@ -459,6 +496,7 @@
     .slide-in-right,
     .slide-out-right {
         animation: none;
+        transition: none;
         opacity: 1;
         transform: none;
     }

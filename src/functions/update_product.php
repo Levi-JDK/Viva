@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../utils/image_uploader.php';
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/error_handler.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -146,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $target_directory = __DIR__ . '/../../images/products/';
 
         if (hasUploadedImages($_FILES['imagen_producto'] ?? null)) {
-            $result = processAndUploadImages($_FILES['imagen_producto'] ?? null, $target_directory, 'prod_' . $id_producto . '_' . time() . '_', 'images/products/');
+            $result = processAndUploadImages($_FILES['imagen_producto'] ?? null, $target_directory, 'prod_' . $id_producto . '_', 'images/products/');
             if (!$result['success']) {
                 throw new Exception($result['message']);
             }
@@ -171,7 +172,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
     catch (Throwable $e) {
-        throw $e;
+        $resp = ErrorHandler::jsonResponse($e, 'update_product');
+        echo json_encode($resp);
+        exit;
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);

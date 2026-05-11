@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION fun_u_foto_user(
-    p_id_user   integer,
-    p_foto_user varchar
+    p_id_user     tab_users.id_user%TYPE,
+    p_foto_user   tab_users.foto_user%TYPE
 ) RETURNS BOOLEAN AS $$
 DECLARE
     w_id_user integer;

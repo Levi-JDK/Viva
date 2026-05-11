@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/error_handler.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -56,7 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => true, 'message' => 'Producto eliminado correctamente.']);
 
     } catch (Exception $e) {
-        throw $e;
+        $resp = ErrorHandler::jsonResponse($e, 'delete_product');
+        echo json_encode($resp);
+        exit;
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Método no permitido']);

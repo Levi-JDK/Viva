@@ -29,6 +29,7 @@ class LoginService
         try {
             $db = Database::getInstance();
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'login.autenticarUsuario.database');
             throw $e;
         }
 
@@ -56,8 +57,10 @@ class LoginService
                 'redirect' => self::resolverRedirectSeguro($input['redirect'] ?? ''),
             ];
         } catch (PDOException $e) {
+            ErrorHandler::handle($e, 'login.autenticarUsuario');
             throw $e;
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'login.autenticarUsuario');
             throw $e;
         }
     }
@@ -117,6 +120,7 @@ class LoginService
                 'email' => $email,
             ];
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'login.buscarUsuarioAutenticadoEnRedis');
             throw $e;
         }
     }

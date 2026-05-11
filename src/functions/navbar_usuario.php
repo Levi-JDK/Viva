@@ -20,6 +20,8 @@
  * 4. Si no hay token, devuelve defaults de visitante.
  */
 
+require_once __DIR__ . '/error_handler.php';
+
 function cargar_datos_navbar(): void
 {
     // Valores por defecto seguros (el navbar los lee aunque no haya sesión)
@@ -37,6 +39,7 @@ function cargar_datos_navbar(): void
         $stmtPublic = $db->ejecutar('obtenerMenuPublico');
         $GLOBALS['navbar_menus'] = $stmtPublic->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
+        ErrorHandler::handle($e, 'navbar_usuario.cargarMenuPublico');
         throw $e;
     }
 
@@ -86,6 +89,7 @@ function cargar_datos_navbar(): void
                             $m['url_menu'] = 'mis_productos?view=stand';
                         }
                     } catch (Exception $e) {
+                        ErrorHandler::handle($e, 'navbar_usuario.resolverMiStand');
                         throw $e;
                     }
                 }
@@ -120,11 +124,13 @@ function cargar_datos_navbar(): void
                     $GLOBALS['is_logged_in'] = false;
                 }
             } catch (Exception $e) {
+                ErrorHandler::handle($e, 'navbar_usuario.cargarFallbackRedis');
                 throw $e;
             }
         }
 
     } catch (Exception $e) {
+        ErrorHandler::handle($e, 'navbar_usuario.cargarDatos');
         throw $e;
     }
 }

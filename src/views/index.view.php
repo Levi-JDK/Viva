@@ -1,9 +1,9 @@
 <?php 
 $page_title = "VIVA | Artesanías Colombianas - Conecta con nuestras raíces";
 $page_description = "Descubre artesanías colombianas únicas, emprendimientos locales y productos hechos por comunidades artesanas en VIVA.";
-$body_class = "font-sans bg-white scroll-smooth";
+$body_class = "font-sans bg-warm-cream scroll-smooth";
 // No cargamos responsive.css: los recursos inexistentes generan 404, ralentizan la página y ensucian la consola.
-$hero_image = !empty($pmtros["foto_hero"]) ? base_url_path($pmtros["foto_hero"]) : base_url_path('images/hero_full.webp');
+$hero_image = base_url_path($pmtros["foto_hero"] ?? 'images/hero.jpeg');
 require_once __DIR__ . '/partials/base_head.php'; 
 ?>
     <!-- Prueba de GGA-->
@@ -31,7 +31,7 @@ require_once __DIR__ . '/partials/base_head.php';
                     <?php 
                         $rawTitle = $pmtros['landing_hero_titulo'] ?? 'Conecta con nuestro {mercado real}';
                         $safeTitle = htmlspecialchars($rawTitle);
-                        $formattedTitle = str_replace(['{', '}'], ['<span class="text-yellow-300">', '</span>'], $safeTitle);
+                        $formattedTitle = str_replace(['{', '}'], ['<span class="text-claro">', '</span>'], $safeTitle);
                         echo $formattedTitle;
                     ?>
                 </h1>
@@ -43,31 +43,31 @@ require_once __DIR__ . '/partials/base_head.php';
                     <i class="fas fa-arrow-right"></i>
                 </button>
 
-                <!-- Panel de Métricas (Glassmorphism) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl transform transition-all hover:scale-[1.02] duration-300">
+                <!-- Panel de Métricas (cards orgánicas) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 bg-warm-cream/95 border border-claro/70 rounded-[2rem] p-6 shadow-[0_24px_60px_rgba(62,39,35,0.22)] transform transition-all hover:-translate-y-1 duration-300">
                     <div class="flex flex-col items-center">
-                        <i class="fas fa-users text-3xl text-yellow-300 mb-3"></i>
-                        <span class="text-3xl font-bold">+500</span>
-                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Productores</span>
+                        <i class="fas fa-users text-3xl text-naranja-artesanal mb-3"></i>
+                        <span class="text-3xl font-bold text-deep-earth">+500</span>
+                        <span class="text-xs font-medium text-oscuro/75 tracking-wider uppercase mt-1">Productores</span>
                     </div>
                     <div class="flex flex-col items-center relative">
-                        <div class="hidden md:block w-px h-16 bg-white/20 absolute -left-3 top-1/2 -translate-y-1/2"></div>
-                        <i class="fas fa-hand-holding-heart text-3xl text-yellow-300 mb-3"></i>
-                        <span class="text-3xl font-bold">15</span>
-                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Comunidades</span>
-                        <div class="hidden md:block w-px h-16 bg-white/20 absolute -right-3 top-1/2 -translate-y-1/2"></div>
+                        <div class="hidden md:block w-px h-16 bg-tierra-claro absolute -left-3 top-1/2 -translate-y-1/2"></div>
+                        <i class="fas fa-hand-holding-heart text-3xl text-naranja-artesanal mb-3"></i>
+                        <span class="text-3xl font-bold text-deep-earth">15</span>
+                        <span class="text-xs font-medium text-oscuro/75 tracking-wider uppercase mt-1">Comunidades</span>
+                        <div class="hidden md:block w-px h-16 bg-tierra-claro absolute -right-3 top-1/2 -translate-y-1/2"></div>
                     </div>
                     <div class="flex flex-col items-center">
-                        <i class="fas fa-box-open text-3xl text-yellow-300 mb-3"></i>
-                        <span class="text-3xl font-bold">+10k</span>
-                        <span class="text-xs font-medium opacity-90 tracking-wider uppercase mt-1">Vendidos</span>
+                        <i class="fas fa-box-open text-3xl text-naranja-artesanal mb-3"></i>
+                        <span class="text-3xl font-bold text-deep-earth">+10k</span>
+                        <span class="text-xs font-medium text-oscuro/75 tracking-wider uppercase mt-1">Vendidos</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
     <!-- Trust Section -->
-    <section class="bg-beige-suave py-12">
+    <section class="bg-warm-cream py-12">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="text-center trust-card">
@@ -95,7 +95,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Affiliates Section -->
-    <section id="categorias" class="py-16 bg-gradient-to-b from-tierra-claro to-beige-suave/30">
+    <section id="categorias" class="py-16 bg-gradient-to-b from-warm-cream via-claro to-beige-suave/30">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-3xl md:text-4xl font-bold text-[#4F270B] mb-4">
@@ -134,7 +134,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Categories Section -->
-    <section id="categorias" class="py-16 bg-gradient-to-b from-blanco-/30 to-tierra-claro">
+    <section id="categorias" class="py-16 bg-gradient-to-b from-warm-cream/50 to-beige-suave">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
@@ -157,7 +157,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             : base_url_path('images/default_category.webp'); 
                 ?>
                     <a href="<?= base_url_path('catalogo?cat=' . $cat['id_categoria']) ?>" class="category-card card-hover rounded-2xl p-6 text-center cursor-pointer h-full flex flex-col items-center justify-center transition-all">
-                        <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center p-2">
+                        <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center p-2 overflow-hidden">
                             <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($cat['nom_categoria']) ?>" class="max-w-full max-h-full object-contain">
                         </div>
                         <h3 class="font-semibold text-tierra-oscuro"><?= htmlspecialchars($cat['nom_categoria']) ?></h3>
@@ -173,7 +173,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Featured Products Section -->
-    <section id="ofertas" class="py-16 bg-gray-50">
+    <section id="ofertas" class="py-16 bg-gradient-to-b from-beige-suave to-warm-cream">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12 fade-in">
                 <h2 class="text-3xl md:text-4xl font-bold text-tierra-oscuro mb-4">
@@ -208,7 +208,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Our Story Section -->
-    <section class="py-16 bg-white overflow-hidden">
+    <section class="py-16 bg-gradient-to-b from-warm-cream to-claro/60 overflow-hidden">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div class="fade-in">
@@ -244,7 +244,7 @@ require_once __DIR__ . '/partials/base_head.php';
         </div>
     </section>
     <!-- Newsletter Section -->
-    <section class="py-16 bg-gradient-to-r from-tierra-oscuro to-verde-artesanal">
+    <section class="py-16 bg-gradient-to-r from-deep-earth via-tierra-oscuro to-verde-artesanal">
         <div class="container mx-auto px-4 text-center text-white">
             <div class="max-w-2xl mx-auto fade-in">
                 <h2 class="text-3xl font-bold mb-4">

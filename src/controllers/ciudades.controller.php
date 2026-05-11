@@ -3,6 +3,7 @@
 // Recibe: id_departamento (GET o POST)
 // Retorna: JSON con lista de ciudades
 header('Content-Type: application/json');
+require_once __DIR__ . '/../functions/error_handler.php';
 try {
     // 1. Obtener ID del departamento
     $id_departamento = $_GET['id_departamento'] ?? $_POST['id_departamento'] ?? null;
@@ -29,5 +30,7 @@ try {
     ]);
 
 } catch (Exception $e) {
-    throw $e;
+    $resp = ErrorHandler::jsonResponse($e, 'ciudades.obtener');
+    echo json_encode($resp);
+    exit;
 }

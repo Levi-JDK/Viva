@@ -8,6 +8,7 @@ export class AdminService {
             },
             body: formData
         });
+        if (!response.ok) throw new Error(response.statusText);
         return response.json();
     }
 
@@ -17,6 +18,7 @@ export class AdminService {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_producto: idProducto })
         });
+        if (!response.ok) throw new Error(response.statusText);
         return response.json();
     }
 
@@ -26,6 +28,7 @@ export class AdminService {
             method: 'POST',
             body: formData
         });
+        if (!response.ok) throw new Error(response.statusText);
         return response.json();
     }
 
@@ -38,6 +41,7 @@ export class AdminService {
             },
             body: formData
         });
+        if (!response.ok) throw new Error(response.statusText);
         return response.json();
     }
 }

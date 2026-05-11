@@ -143,7 +143,8 @@ class FavoritesController {
                 }
             }
         } catch (error) {
-            console.error('[FavoritesController] Error rendering dashboard:', error);
+            if (window.showToast) window.showToast(error.message || 'Error al cargar favoritos', 'error');
+            else console.error('[FavoritesController] Error rendering dashboard:', error);
         }
     }
 

@@ -16,6 +16,7 @@ if (!defined('BASE_URL')) {
 
 // Incluir archivos necesarios (estamos en el mismo directorio)
 require_once __DIR__ . '/../utils/image_uploader.php';
+require_once __DIR__ . '/error_handler.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
@@ -80,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['imagen_perfil'])) {
                 }
 
             } catch (Exception $e) {
+                ErrorHandler::handle($e, 'upload.actualizarFotoUsuario');
                 throw $e;
             }
         }

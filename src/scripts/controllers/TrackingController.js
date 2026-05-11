@@ -55,9 +55,11 @@ export class TrackingController {
                 headers: { 'Accept': 'application/json' },
             });
 
+            if (!response.ok) throw new Error(response.statusText);
+
             const data = await response.json();
-            if (!response.ok || data.success === false) {
-                throw new Error(data.message || 'No se pudo cargar la información de envío.');
+            if (data.exito === false) {
+                throw new Error(data.mensaje || 'No se pudo cargar la información de envío.');
             }
 
             this.failureCount = 0;
@@ -318,13 +320,15 @@ export class TrackingController {
                 },
             });
 
+            if (!response.ok) throw new Error(response.statusText);
+
             const data = await response.json();
-            if (!response.ok || data.success === false) {
-                throw new Error(data.message || 'No se pudo confirmar la recepción del paquete.');
+            if (data.exito === false) {
+                throw new Error(data.mensaje || 'No se pudo confirmar la recepción del paquete.');
             }
 
             if (typeof window.showToast === 'function') {
-                window.showToast(data.message || 'Recepción confirmada.', 'success');
+                window.showToast(data.mensaje || 'Recepción confirmada.', 'success');
             }
 
             this.confirmButton.classList.add('hidden');

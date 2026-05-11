@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/MyProductsService.php';
 require_once ROOT_PATH . 'src/utils/image_processing.php';
 
 $userData = AuthHelper::protectRoute();
+AuthHelper::checkAccess(10);
 $id_user = $userData->id_user;
 
 // Obtener contexto del vendedor (mínimo necesario para autenticar sub-rutas)

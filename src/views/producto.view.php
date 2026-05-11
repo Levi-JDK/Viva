@@ -57,7 +57,7 @@ require_once __DIR__ . '/partials/base_head.php';
                         <div class="w-full h-[400px] md:h-[500px] mb-4">
                             <?php if (!empty($producto['imagen_principal'])): ?>
                                 <div id="imageContainer" class="w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white flex items-center justify-center p-4 relative group cursor-zoom-in">
-                                    <img id="mainImage" src="<?= htmlspecialchars($imagenPrincipalPublicUrl) ?>" alt="<?= htmlspecialchars($producto['nom_producto']) ?>" class="max-w-full max-h-full object-contain transition-transform duration-200">
+                                    <img id="mainImage" src="<?= htmlspecialchars($imagenPrincipalPublicUrl, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($producto['nom_producto']) ?>" class="max-w-full max-h-full object-contain transition-transform duration-200">
                                 </div>
                             <?php else: ?>
                                 <div class="w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white flex items-center justify-center p-4 relative group">
@@ -70,8 +70,8 @@ require_once __DIR__ . '/partials/base_head.php';
                          <?php if (!empty($producto['imagenes']) && count($producto['imagenes']) > 1): ?>
                             <div class="flex space-x-2 overflow-x-auto pb-2 w-full justify-center">
                                 <?php foreach ($producto['imagenes'] as $img): ?>
-                                    <button data-action="change-main-image" data-src="<?= base_url_path($img['url']) ?>" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
-                                        <img src="<?= base_url_path($img['url']) ?>" class="w-full h-full object-cover">
+                                    <button data-action="change-main-image" data-src="<?= htmlspecialchars(base_url_path($img['url']), ENT_QUOTES, 'UTF-8') ?>" class="w-20 h-20 border-2 border-transparent hover:border-naranja-artesanal rounded-lg overflow-hidden transition-all focus:outline-none focus:border-naranja-artesanal">
+                                        <img src="<?= htmlspecialchars(base_url_path($img['url']), ENT_QUOTES, 'UTF-8') ?>" class="w-full h-full object-cover">
                                     </button>
                                 <?php endforeach; ?>
                             </div>
@@ -121,7 +121,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             <div class="mt-4 mb-6 p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex items-start gap-4">
                                 <a href="<?= base_url_path('stand?id=' . $producto['id_stand']) ?>" class="flex-shrink-0 group">
                                     <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-all">
-                                        <img src="<?= base_url_path($vendedor_imagen) ?>" 
+                                        <img src="<?= htmlspecialchars(base_url_path($vendedor_imagen), ENT_QUOTES, 'UTF-8') ?>" 
                                              alt="<?= htmlspecialchars($vendedor_nombre) ?>" 
                                              class="w-full h-full object-cover">
                                     </div>
@@ -301,7 +301,7 @@ require_once __DIR__ . '/partials/base_head.php';
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shadow-sm border border-gray-100">
-                                                    <img src="<?= base_url_path($r['foto_user']) ?>" alt="Foto" class="w-full h-full object-cover">
+                                                    <img src="<?= htmlspecialchars(base_url_path($r['foto_user']), ENT_QUOTES, 'UTF-8') ?>" alt="Foto" class="w-full h-full object-cover">
                                                 </div>
                                                 <div>
                                                     <h4 class="font-bold text-gray-800 text-sm"><?= htmlspecialchars($r['nom_user'] . ' ' . $r['ape_user']) ?></h4>

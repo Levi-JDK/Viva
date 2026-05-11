@@ -8,6 +8,7 @@ CREATE OR REPLACE FUNCTION fun_u_parametros(
     p_val_finfact tab_pmtros.val_finfact%TYPE,
     p_val_actfact tab_pmtros.val_actfact%TYPE,
     p_val_observa tab_pmtros.val_observa%TYPE,
+    p_foto_hero tab_pmtros.foto_hero%TYPE,
     p_landing_hero_titulo tab_pmtros.landing_hero_titulo%TYPE,
     p_landing_hero_subtitulo tab_pmtros.landing_hero_subtitulo%TYPE,
     p_landing_hero_btn tab_pmtros.landing_hero_btn%TYPE,
@@ -56,6 +57,11 @@ BEGIN
 
     IF p_val_actfact IS NULL THEN
         RAISE NOTICE 'El parámetro p_val_actfact es inválido o nulo.';
+        RETURN FALSE;
+    END IF;
+
+    IF p_foto_hero IS NULL THEN
+        RAISE NOTICE 'El parámetro p_foto_hero es inválido o nulo.';
         RETURN FALSE;
     END IF;
 
@@ -139,6 +145,7 @@ BEGIN
         val_finfact = p_val_finfact,
         val_actfact = p_val_actfact,
         val_observa = p_val_observa,
+        foto_hero = p_foto_hero,
         landing_hero_titulo = p_landing_hero_titulo,
         landing_hero_subtitulo = p_landing_hero_subtitulo,
         landing_hero_btn = p_landing_hero_btn,

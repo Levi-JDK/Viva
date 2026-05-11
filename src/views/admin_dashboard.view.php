@@ -129,11 +129,11 @@ $accesos = [
     <div class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
 
         <!-- Topbar -->
-        <header class="sticky top-0 z-30 flex items-center justify-between px-8 lg:px-12 h-20 bg-slate-950/50 backdrop-blur-md border-b border-white/[0.02]">
-            <div class="flex items-center gap-4">
+        <header class="sticky top-0 z-30 flex min-h-20 items-center justify-between px-5 py-3 md:h-20 md:px-8 md:py-0 lg:px-12 bg-slate-950/50 backdrop-blur-md border-b border-white/[0.02]">
+            <div class="flex items-center gap-4 md:gap-4">
                 <button id="admin-mobile-menu-btn"
                         data-action="toggle-sidebar"
-                        class="md:hidden w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 text-white hover:bg-white/10 transition">
+                        class="md:hidden w-11 h-11 rounded-xl flex items-center justify-center bg-white/5 text-white hover:bg-white/10 transition">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="hidden sm:flex items-center gap-2 text-sm font-bold">
@@ -144,17 +144,17 @@ $accesos = [
             </div>
 
             <!-- Cluster derecho -->
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 md:gap-4">
                 <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5">
                     <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></div>
                     <span class="text-[11px] font-bold text-slate-300 uppercase tracking-widest"><?= date('d M Y') ?></span>
                 </div>
                 <div class="w-px h-6 bg-white/10 hidden md:block"></div>
-                <button class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition relative">
+                <button class="w-11 h-11 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition relative">
                     <i class="fas fa-bell"></i>
                     <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
                 </button>
-                <a href="<?= BASE_URL ?>" target="_blank" class="w-10 h-10 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-slate-900 transition-colors" title="Ver Sitio Frontend">
+                <a href="<?= BASE_URL ?>" target="_blank" class="w-11 h-11 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-slate-900 transition-colors" title="Ver Sitio Frontend">
                     <i class="fas fa-external-link-alt text-sm"></i>
                 </a>
             </div>
@@ -198,14 +198,14 @@ $accesos = [
 
                             <div class="relative z-10">
                                 <div class="flex items-start justify-between mb-8">
-                                    <p class="text-[10px] font-bold tracking-widest uppercase text-slate-400 mt-2"><?= $mc['label'] ?></p>
+                                    <p class="text-[10px] font-bold tracking-widest uppercase text-slate-400 mt-2"><?= htmlspecialchars($mc['label'], ENT_QUOTES, 'UTF-8') ?></p>
                                     <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-black/20 border border-white/5 backdrop-blur-md" style="box-shadow: 0 0 15px <?= $mc['color'] ?>20;">
                                         <i class="fas <?= $mc['icon'] ?> text-lg" style="color:<?= $mc['color'] ?>;"></i>
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-4xl font-black text-white tracking-tight mb-1"><?= ($mc['prefix'] ?? '') ?><?= $mc['valor'] ?></p>
-                                    <p class="text-xs text-slate-500 font-medium"><?= $mc['sub'] ?></p>
+                                    <p class="text-4xl font-black text-white tracking-tight mb-1"><?= htmlspecialchars($mc['prefix'] ?? '', ENT_QUOTES, 'UTF-8') ?><?= htmlspecialchars($mc['valor'], ENT_QUOTES, 'UTF-8') ?></p>
+                                    <p class="text-xs text-slate-500 font-medium"><?= htmlspecialchars($mc['sub'], ENT_QUOTES, 'UTF-8') ?></p>
                                 </div>
                             </div>
                         </div>
@@ -236,7 +236,7 @@ $accesos = [
                                     </div>
                                     <div class="flex-1 pt-1.5 min-w-0">
                                         <p class="text-sm font-bold text-slate-300 group-hover:text-white transition-colors truncate"><?= htmlspecialchars($act['txt']) ?></p>
-                                        <p class="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mt-1"><?= $act['time'] ?></p>
+                                        <p class="text-[11px] font-semibold tracking-wide uppercase text-slate-500 mt-1"><?= htmlspecialchars($act['time'], ENT_QUOTES, 'UTF-8') ?></p>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -291,17 +291,17 @@ $accesos = [
                     <div id="usuarios-loader" class="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
                         <i class="fas fa-circle-notch fa-spin text-4xl text-sky-400"></i>
                     </div>
-                    <div class="overflow-x-auto relative z-10">
+                    <div class="admin-table-responsive overflow-x-auto relative z-10">
                         <table class="w-full text-left border-collapse" id="usuarios-table">
                             <thead>
                                 <tr class="border-b border-white/10 text-[10px] font-bold tracking-widest uppercase text-slate-500">
-                                    <th class="px-4 py-3">ID</th>
-                                    <th class="px-4 py-3">Usuario</th>
-                                    <th class="px-4 py-3">Email</th>
-                                    <th class="px-4 py-3">Rol</th>
-                                    <th class="px-4 py-3">Estado</th>
-                                    <th class="px-4 py-3">Registro</th>
-                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                    <th class="px-4 py-3" data-label="ID">ID</th>
+                                    <th class="px-4 py-3" data-label="Usuario">Usuario</th>
+                                    <th class="px-4 py-3" data-label="Email">Email</th>
+                                    <th class="px-4 py-3" data-label="Rol">Rol</th>
+                                    <th class="px-4 py-3" data-label="Estado">Estado</th>
+                                    <th class="px-4 py-3" data-label="Registro">Registro</th>
+                                    <th class="px-4 py-3 text-right" data-label="Acciones">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="usuarios-tbody" class="divide-y divide-white/5 text-sm text-slate-300 font-medium">
@@ -332,19 +332,19 @@ $accesos = [
                     <div id="productos-loader" class="absolute inset-0 z-10 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
                         <i class="fas fa-circle-notch fa-spin text-4xl text-emerald-400"></i>
                     </div>
-                    <div class="overflow-x-auto relative z-10">
+                    <div class="admin-table-responsive overflow-x-auto relative z-10">
                         <table class="w-full text-left border-collapse" id="productos-table">
                             <thead>
                                 <tr class="border-b border-white/10 text-[10px] font-bold tracking-widest uppercase text-slate-500">
-                                    <th class="px-4 py-3">ID</th>
-                                    <th class="px-4 py-3">Imagen</th>
-                                    <th class="px-4 py-3">Producto</th>
-                                    <th class="px-4 py-3">Precio</th>
-                                    <th class="px-4 py-3">Stock</th>
-                                    <th class="px-4 py-3">Categoría</th>
-                                    <th class="px-4 py-3">Stand</th>
-                                    <th class="px-4 py-3">Estado</th>
-                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                    <th class="px-4 py-3" data-label="ID">ID</th>
+                                    <th class="px-4 py-3" data-label="Imagen">Imagen</th>
+                                    <th class="px-4 py-3" data-label="Producto">Producto</th>
+                                    <th class="px-4 py-3" data-label="Precio">Precio</th>
+                                    <th class="px-4 py-3" data-label="Stock">Stock</th>
+                                    <th class="px-4 py-3" data-label="Categoría">Categoría</th>
+                                    <th class="px-4 py-3" data-label="Stand">Stand</th>
+                                    <th class="px-4 py-3" data-label="Estado">Estado</th>
+                                    <th class="px-4 py-3 text-right" data-label="Acciones">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="productos-tbody" class="divide-y divide-white/5 text-sm text-slate-300 font-medium">
@@ -398,6 +398,34 @@ $accesos = [
                     <p class="text-sm text-slate-400 font-medium tracking-wide">Área modular de sistema.</p>
                 </div>
                 
+                <?php if ($pid === 'reportes'): ?>
+                <div id="admin-dashboard-stats" class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 shadow-2xl min-h-[300px]">
+                        <div class="mb-5">
+                            <h3 class="text-base font-bold text-white">Ingresos vs Pedidos</h3>
+                            <p class="text-[11px] text-slate-400 tracking-wide font-medium uppercase">Últimos 6 meses</p>
+                        </div>
+                        <div class="h-64"><canvas id="admin-revenue-orders-chart"></canvas></div>
+                    </div>
+                    <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 shadow-2xl min-h-[300px]">
+                        <div class="mb-5">
+                            <h3 class="text-base font-bold text-white">Categorías</h3>
+                            <p class="text-[11px] text-slate-400 tracking-wide font-medium uppercase">Distribución del catálogo</p>
+                        </div>
+                        <div class="h-64"><canvas id="admin-category-distribution-chart"></canvas></div>
+                    </div>
+                    <div class="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 shadow-2xl min-h-[300px]">
+                        <div class="mb-5 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-bold text-white">Productos más vendidos</h3>
+                                <p class="text-[11px] text-slate-400 tracking-wide font-medium uppercase">Top 5 por unidades</p>
+                            </div>
+                            <p id="admin-dashboard-stats-error" class="text-xs font-semibold text-rose-400"></p>
+                        </div>
+                        <div class="h-56"><canvas id="admin-top-products-chart"></canvas></div>
+                    </div>
+                </div>
+                <?php else: ?>
                 <div class="relative overflow-hidden bg-white/[0.02] border border-white/[0.05] rounded-3xl p-10 flex flex-col items-center text-center max-w-2xl mx-auto mt-20 shadow-2xl">
                     <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
                         <div class="w-64 h-64 rounded-full blur-3xl" style="background:<?= $pcfg['color'] ?>;"></div>
@@ -406,7 +434,7 @@ $accesos = [
                         <i class="fas <?= $pcfg['icon'] ?> text-4xl" style="color:<?= $pcfg['color'] ?>;"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-white mb-4 relative z-10"><?= htmlspecialchars($nom) ?></h3>
-                    <p class="text-slate-400 leading-relaxed font-medium mb-8 relative z-10"><?= $pcfg['desc'] ?></p>
+                    <p class="text-slate-400 leading-relaxed font-medium mb-8 relative z-10"><?= htmlspecialchars($pcfg['desc'], ENT_QUOTES, 'UTF-8') ?></p>
                     <div class="flex items-center gap-3 px-6 py-3 rounded-full bg-black/40 border relative z-10 backdrop-blur-md shadow-inner" style="border-color: <?= $pcfg['color'] ?>30;">
                         <span class="relative flex h-2.5 w-2.5">
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background:<?= $pcfg['color'] ?>;"></span>
@@ -415,6 +443,7 @@ $accesos = [
                         <span class="text-xs font-bold tracking-widest uppercase text-white">Módulo en Desarrollo Activo</span>
                     </div>
                 </div>
+                <?php endif; ?>
             </section>
             <?php endforeach; ?>
 
@@ -441,7 +470,7 @@ $accesos = [
                                     'color' => 'Colores', 'departamento' => 'Departamentos', 'forma_pago' => 'Formas de Pago',
                                     'grupo' => 'Grupos', 'idioma' => 'Idiomas', 'materia' => 'Materias Primas',
                                     'moneda' => 'Monedas', 'oficio' => 'Oficios', 'pais' => 'Países',
-                                    'tipo_doc' => 'Tipos de Documento', 'transito' => 'Tránsito Aduana', 'transportadora' => 'Transportadoras',
+                                    'tipo_doc' => 'Tipos de Documento',
                                 ];
                                 foreach ($entidades as $val => $label): ?>
                                 <button type="button" data-action="select-crud-entity" data-entity="<?= $val ?>" data-value="<?= $val ?>"
@@ -473,8 +502,8 @@ $accesos = [
                         <p class="text-slate-400 font-bold tracking-wide">Selecciona una entidad en el menú superior para comenzar.</p>
                     </div>
 
-                    <div class="overflow-x-auto relative z-10 h-full scrollbar-thin">
-                        <table class="w-full text-left border-collapse hidden" id="crud-table">
+                    <div class="overflow-x-auto relative z-10 h-full">
+                        <table class="min-w-max text-left border-collapse hidden" id="crud-table">
                             <thead>
                                 <tr class="border-b border-white/10 text-[10px] font-bold tracking-widest uppercase text-slate-500" id="crud-thead-tr">
                                     <!-- Dinámico -->
@@ -576,6 +605,7 @@ $accesos = [
 /* CSS adicional estricto mínimo, el resto es Tailwind utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+#admin-sidebar.admin-sidebar--open { transform: translateX(0); }
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
@@ -604,5 +634,7 @@ $accesos = [
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="<?= BASE_URL ?>src/scripts/dashboard_stats.js"></script>
 </body>
 </html>

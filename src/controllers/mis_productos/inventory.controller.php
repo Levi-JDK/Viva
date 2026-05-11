@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../services/MyProductsService.php';
+require_once __DIR__ . '/../../functions/error_handler.php';
 
 $productos = [];
 $total_productos = 0;
@@ -13,6 +14,7 @@ try {
     $productos_activos = $inventario['productos_activos'];
     $vistas_totales = $inventario['vistas_totales'];
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'mis_productos.inventory.obtenerInventario');
     throw $e;
 }
 

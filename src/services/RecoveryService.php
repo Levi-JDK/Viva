@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../functions/mail_service.php';
 
 class RecoveryService
@@ -26,6 +27,7 @@ class RecoveryService
         try {
             $db = Database::getInstance();
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'recovery.procesarSolicitud.database');
             throw $e;
         }
 
@@ -77,6 +79,7 @@ class RecoveryService
 
             return ['exito' => true, 'mensaje' => 'Si el correo existe, recibirás el código en breve.'];
         } catch (\Throwable $e) {
+            ErrorHandler::handle($e, 'recovery.solicitarRecuperacion');
             throw $e;
         }
     }
@@ -119,6 +122,7 @@ class RecoveryService
 
             return ['exito' => true, 'mensaje' => '¡Contraseña actualizada! Ya puedes iniciar sesión.'];
         } catch (\Throwable $e) {
+            ErrorHandler::handle($e, 'recovery.confirmarRecuperacion');
             throw $e;
         }
     }

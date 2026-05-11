@@ -35,20 +35,6 @@ set_exception_handler(function (Throwable $e): void {
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->safeLoad();
 
-// Centralizar sesión aquí para que sea consistente en TODAS las rutas.
-// domain='' evita que la cookie quede atada a 'localhost' o '127.0.0.1' específicamente.
-if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path'     => '/',
-        'domain'   => '',       // Acepta cualquier host (localhost / 127.0.0.1)
-        'secure'   => false,    // true en producción con HTTPS
-        'httponly' => true,
-        'samesite' => 'Lax',    // Lax permite la redirección desde ePayco
-    ]);
-    session_start();
-}
-
 // Detectar carpeta del proyecto
 $proyecto_folder = parse_url(BASE_URL, PHP_URL_PATH) ?? '';
 $proyecto_folder = rtrim($proyecto_folder, '/');
@@ -99,6 +85,9 @@ $routes = [
     '/api/update_product' => 'src/functions/update_product.php',
     '/api/delete_product' => 'src/functions/delete_product.php',
     '/api/upload'         => 'src/functions/upload.php',
+    '/api/stats_admin'    => 'src/api/stats_admin.php',
+    '/api/stats_producer' => 'src/api/stats_producer.php',
+    '/api/epayco_webhook' => 'src/api/epayco_webhook.php',
     '/carrito'            => 'src/controllers/carrito.controller.php',
     '/api/carrito'        => 'src/controllers/carrito.controller.php',
     '/favoritos'          => 'src/controllers/favoritos.controller.php',

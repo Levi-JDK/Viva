@@ -2,7 +2,7 @@
 -- SELECT fun_c_productor(1,'1004912749',1,'jjhj',1,1,1,1,1,'300546544',1);
 CREATE OR REPLACE FUNCTION fun_c_productor(
     p_id_tipo_doc		  tab_productores.id_tipo_doc%TYPE,
-    p_id_productor        VARCHAR,
+    p_id_productor          tab_productores.id_productor%TYPE,
     p_id_user             tab_users.id_user%TYPE,
     p_dir_prod            tab_productores.dir_prod%TYPE,
     p_id_pais             tab_productores.id_pais%TYPE,
@@ -10,7 +10,7 @@ CREATE OR REPLACE FUNCTION fun_c_productor(
     p_id_ciudad           tab_productores.id_ciudad%TYPE,
     p_id_grupo            tab_productores.id_grupo%TYPE,
     p_id_banco            tab_productores.id_banco%TYPE,
-    p_id_cuenta_prod      VARCHAR,
+    p_id_cuenta_prod        tab_productores.id_cuenta_prod%TYPE,
     p_tipo_cuenta         tab_productores.tipo_cuenta%TYPE
 ) RETURNS BOOLEAN AS $$
 DECLARE
@@ -29,7 +29,7 @@ BEGIN
     -- 2. Validar que el ID Productor no exista ya
     PERFORM 1 
       FROM tab_productores pr
-     WHERE pr.id_productor = p_id_productor::NUMERIC;
+     WHERE pr.id_productor = p_id_productor;
     IF FOUND THEN
         RETURN FALSE;
     END IF;
@@ -77,9 +77,9 @@ BEGIN
         dir_prod, id_pais, id_ciudad, id_departamento, id_grupo,
         id_banco, id_cuenta_prod, tipo_cuenta
     ) VALUES (
-        p_id_tipo_doc, p_id_productor::NUMERIC, p_id_user,
+        p_id_tipo_doc, p_id_productor, p_id_user,
         p_dir_prod, p_id_pais, p_id_ciudad, p_id_departamento, p_id_grupo,
-        p_id_banco, p_id_cuenta_prod::NUMERIC, p_tipo_cuenta
+        p_id_banco, p_id_cuenta_prod, p_tipo_cuenta
     );
 
     RETURN TRUE;

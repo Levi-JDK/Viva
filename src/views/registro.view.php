@@ -23,10 +23,6 @@ require_once __DIR__ . "/partials/header.php";
 				<form id="form-registro" data-action="register" method="POST" class="flex flex-col items-center justify-center text-center w-full">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Crear Cuenta</h1>
-					<div class="social-container my-4">
-						<a href="#" class="social border border-gray-300 rounded-full inline-flex justify-center items-center w-10 h-10 mx-1 hover:bg-gray-100 transition-colors"><i class="fab fa-google-plus-g text-oscuro"></i></a>
-					</div>
-					<span class="text-xs mb-4 text-gray-500">o usa tu email para registrarte</span>
 					<input type="text" name="nombre" placeholder="Nombre" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors" />
 					<input type="text" name="apellido" placeholder="Apellido" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors" />
 					<input type="email" name="email" placeholder="Email" required class="bg-fondo-oscuro border-none p-3 my-3 w-full rounded text-sm focus:outline-none focus:bg-gray-200 transition-colors" />

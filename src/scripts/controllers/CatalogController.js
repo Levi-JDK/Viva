@@ -97,7 +97,8 @@ export class CatalogController {
                 this.contenedorProductos.innerHTML = resultado.data.map(p => this.renderTarjetaProducto(p)).join('');
             }
         } catch (error) {
-            console.error('Error al obtener productos:', error);
+            if (typeof showToast !== 'undefined') showToast(error.message || 'Error al obtener productos', 'error');
+            else console.error('Error al obtener productos:', error);
             if (this.contenedorProductos) this.contenedorProductos.innerHTML = this.renderError(error.message);
         } finally {
             if (this.loaderProductos) {

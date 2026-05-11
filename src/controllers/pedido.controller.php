@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../services/OrderService.php';
 
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'tracking') {
@@ -80,6 +81,7 @@ try {
     $pedido = $detallePedido['pedido'];
     $detalles = $detallePedido['detalles'];
 } catch (PDOException $e) {
+    ErrorHandler::handle($e, 'pedido.obtenerDetallePedido');
     throw $e;
 }
 

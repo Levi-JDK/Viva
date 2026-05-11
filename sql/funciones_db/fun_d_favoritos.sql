@@ -1,8 +1,8 @@
 -- Función para eliminar un producto de favoritos
 -- Realizamos un borrado físico simple para evitar acumular registros basura de favoritos
 CREATE OR REPLACE FUNCTION fun_d_favoritos(
-    p_id_user INTEGER,
-    p_id_producto DECIMAL(12,0)
+    p_id_user tab_users.id_user%TYPE,
+    p_id_producto tab_productos.id_producto%TYPE
 )
 RETURNS BOOLEAN AS $$
 BEGIN

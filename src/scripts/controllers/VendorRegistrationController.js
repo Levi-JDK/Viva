@@ -35,18 +35,17 @@ export class VendorRegistrationController {
             const { ApiService } = await import('../services/ApiService.js');
             const data = await ApiService.post(window.BASE_URL + 'registro_vendedor', formData);
             
-            if (data.success) {
-                Toast.show(data.message || 'Registro exitoso', 'success');
+            if (data.exito) {
+                Toast.show(data.mensaje || 'Registro exitoso', 'success');
                 
                 setTimeout(() => {
                     window.location.href = window.BASE_URL + 'mis_productos';
                 }, 2000);
             } else {
-                Toast.show(data.message || 'Error en el registro', 'error');
+                Toast.show(data.mensaje || 'Error en el registro', 'error');
             }
         } catch(err) {
-            console.error(err);
-            Toast.show('Error de red conectando al servidor', 'error');
+            Toast.show(err.message || 'Error de red conectando al servidor', 'error');
         } finally {
             if(submitBtn) {
                 submitBtn.disabled = false;

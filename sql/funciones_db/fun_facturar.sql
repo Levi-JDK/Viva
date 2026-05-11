@@ -58,8 +58,8 @@ BEGIN
     FOR i IN 1..w_len LOOP
         IF (SELECT fun_c_det_fact(
                 w_factura,
-                p_ids_producto[i]::DECIMAL,
-                p_cantidades[i]::DECIMAL
+                p_ids_producto[i],
+                p_cantidades[i]
             )) THEN
             w_ok_items := w_ok_items + 1;
         ELSE

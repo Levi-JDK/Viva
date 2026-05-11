@@ -45,45 +45,25 @@
                         </div>
                     </div>
 
-                    <div class="grid lg:grid-cols-3 gap-6">
-                        <!-- Chart Area -->
-                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-                             <h3 class="text-lg font-bold text-gray-800 mb-6">Estado del Inventario</h3>
-                             <!-- Placeholder for Chart -->
-                             <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center border border-dashed border-gray-300 relative overflow-hidden">
-                                   <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
-                                   <svg class="w-full h-full absolute inset-0 text-blue-400 opacity-30" viewBox="0 0 100 50" preserveAspectRatio="none">
-                                       <path d="M0,50 L0,30 Q10,20 20,35 T40,15 T60,25 T80,10 L100,5 L100,50 Z" fill="currentColor" />
-                                   </svg>
-                                   <div class="text-center text-gray-500 font-medium z-10 space-y-2">
-                                       <p><i class="fas fa-boxes-stacked mr-2"></i>Activos: <strong><?= number_format($stats['productos_activos'] ?? 0) ?></strong></p>
-                                       <p><i class="fas fa-box-open mr-2"></i>Inactivos: <strong><?= number_format($stats['productos_inactivos'] ?? 0) ?></strong></p>
-                                   </div>
-                              </div>
-                         </div>
 
-                         <!-- Top Products -->
-                         <div class="bg-white rounded-xl shadow-sm p-6">
-                             <h3 class="text-lg font-bold text-gray-800 mb-6">Más Vistos</h3>
-                              <ul class="space-y-4">
-                                 <?php if (empty($top_productos)): ?>
-                                     <li class="text-sm text-gray-500">Sin productos para mostrar.</li>
-                                 <?php else: ?>
-                                     <?php foreach ($top_productos as $producto): ?>
-                                         <li class="flex items-center justify-between pb-3 border-b border-gray-100 last:border-0 last:pb-0">
-                                             <div class="flex items-center space-x-3 min-w-0">
-                                                 <div class="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                                                      <img src="<?= BASE_URL . (getImageVariant($producto['imagen'], 'thumb') ?? 'images/default_product.png') ?>" alt="<?= htmlspecialchars($producto['nom_producto'] ?? '') ?>" class="w-full h-full object-cover">
-                                                 </div>
-                                                 <div class="min-w-0">
-                                                     <p class="text-sm font-semibold text-gray-800 truncate"><?= htmlspecialchars($producto['nom_producto'] ?? 'Producto') ?></p>
-                                                     <p class="text-xs text-gray-500"><?= number_format($producto['vistas'] ?? 0) ?> vistas</p>
-                                                 </div>
-                                             </div>
-                                             <span class="text-sm font-bold text-tierra-oscuro"><?= number_format($producto['stock_productor'] ?? 0) ?> u.</span>
-                                         </li>
-                                     <?php endforeach; ?>
-                                 <?php endif; ?>
-                              </ul>
-                         </div>
-                     </div>
+
+                      <div id="producer-dashboard-stats" class="grid lg:grid-cols-2 gap-6 mt-6">
+                          <div class="bg-white rounded-xl shadow-sm p-6">
+                              <h3 class="text-lg font-bold text-gray-800 mb-1">Ingresos últimos 30 días</h3>
+                              <p class="text-xs text-gray-500 mb-6">Ventas del productor autenticado</p>
+                              <div class="h-72"><canvas id="producer-revenue-sales-chart"></canvas></div>
+                          </div>
+                          <div class="bg-white rounded-xl shadow-sm p-6">
+                              <div class="flex items-center justify-between gap-4 mb-6">
+                                  <div>
+                                      <h3 class="text-lg font-bold text-gray-800 mb-1">Top productos vendidos</h3>
+                                      <p class="text-xs text-gray-500">Top 3 por unidades facturadas</p>
+                                  </div>
+                                  <p id="producer-dashboard-stats-error" class="text-xs font-semibold text-red-500"></p>
+                              </div>
+                              <div class="h-72"><canvas id="producer-top-products-chart"></canvas></div>
+                          </div>
+                      </div>
+
+                      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                      <script type="module" src="<?= BASE_URL ?>src/scripts/producer_stats.js"></script>

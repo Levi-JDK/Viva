@@ -24,6 +24,7 @@ class ProductService
                 ],
             ];
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product.obtenerRespuestaCatalogoApi');
             throw $e;
         }
     }
@@ -49,6 +50,7 @@ class ProductService
                 ),
             ];
         } catch (Exception $e) {
+            ErrorHandler::handle($e, 'product.obtenerDatosCatalogo');
             throw $e;
         }
     }

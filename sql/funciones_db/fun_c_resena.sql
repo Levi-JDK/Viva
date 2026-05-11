@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION fun_c_resena(
-    p_id_user       INTEGER,
-    p_id_producto   DECIMAL(12,0),
-    p_calificacion  INTEGER,
+    p_id_user     tab_users.id_user%TYPE,
+    p_id_producto tab_productos.id_producto%TYPE,
+    p_calificacion tab_resenas.calificacion%TYPE,
     p_texto         TEXT
 )
 RETURNS BOOLEAN AS $$
@@ -18,6 +18,19 @@ BEGIN
         RETURN FALSE;
     END IF;
 
+    -- Defensa en BD: el usuario dueño del productor no puede reseñar su propio producto.
+    IF EXISTS (
+        SELECT 1
+        FROM tab_productos p
+        INNER JOIN tab_productores pr ON p.id_productor = pr.id_productor
+        WHERE p.id_producto = p_id_producto
+          AND pr.id_user = p_id_user
+          AND p.is_deleted = FALSE
+          AND pr.is_deleted = FALSE
+    ) THEN
+        RETURN FALSE;
+    END IF;
+
     -- Validar que no haya enviado una reseña vacía o NULL
     IF p_texto IS NULL OR LENGTH(TRIM(p_texto)) = 0 THEN
         RETURN FALSE;
@@ -30,14 +43,14 @@ BEGIN
 
     -- Verificar si ya existe una reseña de este usuario para este producto
     SELECT EXISTS(
-        SELECT 1 FROM tab_resenas 
+        SELECT 1 FROM tab_resenas
         WHERE id_user = p_id_user AND id_producto = p_id_producto
     ) INTO v_exist;
 
     IF v_exist THEN
         -- Actualizar la reseña existente
-        UPDATE tab_resenas 
-        SET calificacion = p_calificacion, 
+        UPDATE tab_resenas
+        SET calificacion = p_calificacion,
             texto_resena = p_texto,
             updated_at = CURRENT_TIMESTAMP,
             is_deleted = FALSE

@@ -106,6 +106,12 @@ export class AdminDashboardController {
         }
     }
 
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str ?? ''));
+        return div.innerHTML;
+    }
+
     // ═══════════════════════════════════════════
     // Confirmation Modal
     // ═══════════════════════════════════════════
@@ -276,12 +282,14 @@ export class AdminDashboardController {
             const th = document.createElement('th');
             th.className = 'px-4 py-3 whitespace-nowrap';
             th.textContent = col.replace(/_/g, ' ');
+            th.dataset.label = th.textContent;
             this.crudTheadRow.appendChild(th);
         });
 
         const actionsHeader = document.createElement('th');
         actionsHeader.className = 'px-4 py-3 text-right';
         actionsHeader.textContent = 'Acciones';
+        actionsHeader.dataset.label = 'Acciones';
         this.crudTheadRow.appendChild(actionsHeader);
 
         if (!rows.length) {
@@ -298,6 +306,7 @@ export class AdminDashboardController {
             cols.forEach((col) => {
                 const td = document.createElement('td');
                 td.className = 'px-4 py-3 border-t border-white/5';
+                td.dataset.label = col.replace(/_/g, ' ');
 
                 let value = row[col] ?? '-';
                 if (typeof value === 'string' && value.length > 50) {
@@ -310,9 +319,10 @@ export class AdminDashboardController {
 
             const actionsTd = document.createElement('td');
             actionsTd.className = 'px-4 py-3 border-t border-white/5 text-right w-32';
+            actionsTd.dataset.label = 'Acciones';
 
             const actionsWrap = document.createElement('div');
-            actionsWrap.className = 'flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity';
+            actionsWrap.className = 'flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity';
 
             const editBtn = document.createElement('button');
             editBtn.type = 'button';
@@ -365,7 +375,7 @@ export class AdminDashboardController {
             this.crudModalSubtitle.textContent = `Entidad: ${this.crudCurrentEntity}`;
         }
 
-        const stringPkEntities = ['color', 'idioma', 'moneda', 'forma_pago', 'transportadora'];
+        const stringPkEntities = ['color', 'idioma', 'moneda', 'forma_pago'];
         this.crudFormFields.innerHTML = '';
 
         this.crudSchemaCols.forEach((column, index) => {
@@ -378,14 +388,15 @@ export class AdminDashboardController {
             const labelText = isPrimaryKey && this.crudCurrentEntity === 'color'
                 ? 'RGB (Hex)'
                 : column.replace(/_/g, ' ');
-            const escapedValue = String(value).replace(/"/g, '&quot;');
+            const escapedValue = this.escapeHtml(value);
+            const escapedLabelText = this.escapeHtml(labelText);
 
             const wrapper = document.createElement('div');
             wrapper.className = 'group';
 
             const label = document.createElement('label');
             label.className = 'block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 group-focus-within:text-amber-500 transition-colors';
-            label.innerHTML = `${labelText}${isPrimaryKey && this.crudIsEditing ? ' <span class="text-rose-400">(Bloqueado)</span>' : ''}`;
+            label.innerHTML = `${escapedLabelText}${isPrimaryKey && this.crudIsEditing ? ' <span class="text-rose-400">(Bloqueado)</span>' : ''}`;
             wrapper.appendChild(label);
 
             if (this.crudCurrentEntity === 'categoria' && column === 'img_cat') {
@@ -397,7 +408,7 @@ export class AdminDashboardController {
                         accept="image/*"
                         class="w-full bg-black/20 border border-white/5 rounded-xl px-5 py-3 text-sm font-bold text-white file:mr-4 file:border-0 file:rounded-lg file:bg-amber-500 file:px-3 file:py-2 file:text-xs file:font-bold file:text-slate-900 hover:file:bg-amber-400 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 focus:outline-none transition-all shadow-inner"
                     >
-                    <p class="mt-2 text-xs text-slate-500 break-all">${value ? `Actual: ${escapedValue}` : 'Sin imagen cargada'}</p>
+                        <p class="mt-2 text-xs text-slate-500 break-all">${value ? `Actual: ${escapedValue}` : 'Sin imagen cargada'}</p>
                     <div class="mt-3 flex items-center gap-2">
                         <input type="checkbox" name="remove_img_cat" value="1" id="remove_img_cat" class="rounded bg-black/20 border-white/10 text-amber-500 focus:ring-amber-500/50">
                         <label for="remove_img_cat" class="text-xs text-slate-400 cursor-pointer hover:text-white transition-colors">Volver a imagen por defecto</label>
@@ -616,38 +627,44 @@ export class AdminDashboardController {
             const isActive = u.is_active === true || u.is_active === 't' || u.is_active === 'true';
             const fecha = u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '—';
             const avatar = u.foto_user ? `${BASE_URL}${u.foto_user}` : `${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/profiles/default.webp`;
+            const escapedId = this.escapeHtml(u.id_user);
+            const escapedAvatar = this.escapeHtml(avatar);
+            const escapedName = this.escapeHtml(`${u.nom_user || ''} ${u.ape_user || ''}`.trim());
+            const escapedEmail = this.escapeHtml(u.mail_user || '');
+            const escapedRole = this.escapeHtml(u.nom_grupo || 'Sin rol');
+            const escapedFecha = this.escapeHtml(fecha);
 
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-white/[0.02] transition-colors group';
             tr.innerHTML = `
-                <td class="px-4 py-3 font-mono text-slate-500">${u.id_user}</td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3 font-mono text-slate-500" data-label="ID">${escapedId}</td>
+                <td class="px-4 py-3" data-label="Usuario">
                     <div class="flex items-center gap-3">
-                        <img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-white/10" alt="">
-                        <span class="font-bold text-white">${u.nom_user || ''} ${u.ape_user || ''}</span>
+                        <img src="${escapedAvatar}" class="w-8 h-8 rounded-full object-cover border border-white/10" alt="">
+                        <span class="font-bold text-white">${escapedName}</span>
                     </div>
                 </td>
-                <td class="px-4 py-3 text-slate-400">${u.mail_user || ''}</td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3 text-slate-400" data-label="Email">${escapedEmail}</td>
+                <td class="px-4 py-3" data-label="Rol">
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        ${u.nom_grupo || 'Sin rol'}
+                        ${escapedRole}
                     </span>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3" data-label="Estado">
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
                         ${isActive ? 'Activo' : 'Inactivo'}
                     </span>
                 </td>
-                <td class="px-4 py-3 text-slate-500 text-xs font-mono">${fecha}</td>
-                <td class="px-4 py-3 text-right">
-                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button data-action="gestionar-menu" data-user-id="${u.id_user}" data-user-name="${u.nom_user} ${u.ape_user}"
+                <td class="px-4 py-3 text-slate-500 text-xs font-mono" data-label="Registro">${escapedFecha}</td>
+                <td class="px-4 py-3 text-right" data-label="Acciones">
+                    <div class="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                        <button data-action="gestionar-menu" data-user-id="${escapedId}" data-user-name="${escapedName}"
                             class="h-8 px-3 rounded-full bg-violet-500/10 hover:bg-violet-500 text-violet-400 hover:text-white transition-colors text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5"
                             title="Gestionar Menú">
                             <i class="fas fa-layer-group text-xs"></i>
                             <span>Menú</span>
                         </button>
-                        <button data-action="toggle-user" data-user-id="${u.id_user}" data-user-name="${u.nom_user} ${u.ape_user}" data-current-state="${isActive}"
+                        <button data-action="toggle-user" data-user-id="${escapedId}" data-user-name="${escapedName}" data-current-state="${isActive}"
                             class="w-8 h-8 rounded-full ${isActive ? 'bg-rose-500/10 hover:bg-rose-500 text-rose-400' : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400'} hover:text-white transition-colors"
                             title="${isActive ? 'Desactivar' : 'Activar'}">
                             <i class="fas ${isActive ? 'fa-user-slash' : 'fa-user-check'} text-xs"></i>
@@ -766,39 +783,49 @@ export class AdminDashboardController {
     _renderProductRow(tbody, p, isArchived) {
         const isActive = p.is_active === true || p.is_active === 't' || p.is_active === 'true';
         const img = p.primera_imagen ? `${BASE_URL}${p.primera_imagen}` : `${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/default_product.jpg`;
+        const defaultProductImg = `${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/default_product.jpg`;
         const precio = parseFloat(p.precio_producto || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+        const escapedId = this.escapeHtml(p.id_producto);
+        const escapedImg = this.escapeHtml(img);
+        const escapedDefaultProductImg = this.escapeHtml(defaultProductImg);
+        const escapedName = this.escapeHtml(p.nom_producto || '—');
+        const escapedProductNameAttr = this.escapeHtml(p.nom_producto || '');
+        const escapedPrecio = this.escapeHtml(precio);
+        const escapedStock = this.escapeHtml(p.stock_productor || 0);
+        const escapedCategoria = this.escapeHtml(p.nom_categoria || 'Sin cat.');
+        const escapedStand = this.escapeHtml(p.nom_stand || '—');
 
         const tr = document.createElement('tr');
         tr.className = `hover:bg-white/[0.02] transition-colors group ${isArchived ? 'opacity-50' : ''}`;
         tr.innerHTML = `
-            <td class="px-4 py-3 font-mono text-slate-500">${p.id_producto}</td>
-            <td class="px-4 py-3">
-                <img src="${img}" class="w-10 h-10 rounded-xl object-cover border border-white/10 ${isArchived ? 'grayscale' : ''}" alt="" onerror="this.src='${window.buildAppUrl ? window.buildAppUrl("images") : BASE_URL + "/images"}/default_product.jpg'">
+            <td class="px-4 py-3 font-mono text-slate-500" data-label="ID">${escapedId}</td>
+            <td class="px-4 py-3" data-label="Imagen">
+                <img src="${escapedImg}" class="w-10 h-10 rounded-xl object-cover border border-white/10 ${isArchived ? 'grayscale' : ''}" alt="" onerror="this.src='${escapedDefaultProductImg}'">
             </td>
-            <td class="px-4 py-3 font-bold text-white max-w-[200px] truncate ${isArchived ? 'line-through text-slate-500' : ''}">${p.nom_producto || '—'}</td>
-            <td class="px-4 py-3 font-mono text-emerald-400">${precio}</td>
-            <td class="px-4 py-3 font-mono text-center">${p.stock_productor || 0}</td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 font-bold text-white max-w-[200px] truncate ${isArchived ? 'line-through text-slate-500' : ''}" data-label="Producto">${escapedName}</td>
+            <td class="px-4 py-3 font-mono text-emerald-400" data-label="Precio">${escapedPrecio}</td>
+            <td class="px-4 py-3 font-mono text-center" data-label="Stock">${escapedStock}</td>
+            <td class="px-4 py-3" data-label="Categoría">
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                    ${p.nom_categoria || 'Sin cat.'}
+                    ${escapedCategoria}
                 </span>
             </td>
-            <td class="px-4 py-3 text-slate-400 text-xs truncate max-w-[120px]">${p.nom_stand || '—'}</td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 text-slate-400 text-xs truncate max-w-[120px]" data-label="Stand">${escapedStand}</td>
+            <td class="px-4 py-3" data-label="Estado">
                 ${isArchived
                     ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-500/10 text-slate-500 border border-slate-500/20">Archivado</span>'
                     : `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${isActive ? 'Activo' : 'Inactivo'}</span>`
                 }
             </td>
-            <td class="px-4 py-3 text-right">
-                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <td class="px-4 py-3 text-right" data-label="Acciones">
+                <div class="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     ${isArchived
-                        ? `<button data-action="toggle-product" data-product-id="${p.id_producto}" data-product-name="${p.nom_producto}" data-current-state="false"
+                        ? `<button data-action="toggle-product" data-product-id="${escapedId}" data-product-name="${escapedProductNameAttr}" data-current-state="false"
                                 class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white text-xs font-bold transition-colors"
                                 title="Reactivar producto">
                                 <i class="fas fa-undo mr-1"></i> Reactivar
                            </button>`
-                        : `<button data-action="toggle-product" data-product-id="${p.id_producto}" data-product-name="${p.nom_producto}" data-current-state="${isActive}"
+                        : `<button data-action="toggle-product" data-product-id="${escapedId}" data-product-name="${escapedProductNameAttr}" data-current-state="${isActive}"
                                 class="w-8 h-8 rounded-full ${isActive ? 'bg-rose-500/10 hover:bg-rose-500 text-rose-400' : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400'} hover:text-white transition-colors"
                                 title="${isActive ? 'Desactivar' : 'Activar'}">
                                 <i class="fas ${isActive ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i>
@@ -889,12 +916,14 @@ export class AdminDashboardController {
             const label = c.replace(/_/g, ' ');
             const isId = c.startsWith('id_') || c === 'id';
             const isReadonly = isId;
-            const escapedValue = String(val).replace(/"/g, '&quot;');
+            const escapedValue = this.escapeHtml(val);
+            const escapedLabel = this.escapeHtml(label);
+            const escapedColumn = this.escapeHtml(c);
 
             if (c === 'foto_hero') {
                 html += `
                     <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 hover:border-white/15 transition-colors">
-                        <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-3">${label}</label>
+                        <label class="block text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-3">${escapedLabel}</label>
                         <input type="hidden" name="foto_hero" value="${escapedValue}" data-original="${escapedValue}" class="param-input">
                         <input type="file"
                             name="foto_hero_upload"
@@ -913,9 +942,9 @@ export class AdminDashboardController {
 
             html += `
                 <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 hover:border-white/15 transition-colors ${isReadonly ? 'opacity-60' : ''}">
-                    <label class="block text-[10px] font-bold tracking-widest uppercase ${isReadonly ? 'text-slate-600' : 'text-slate-500'} mb-3">${label}</label>
+                    <label class="block text-[10px] font-bold tracking-widest uppercase ${isReadonly ? 'text-slate-600' : 'text-slate-500'} mb-3">${escapedLabel}</label>
                     <input type="text"
-                        name="${c}"
+                        name="${escapedColumn}"
                         value="${escapedValue}"
                         ${isReadonly ? 'readonly' : ''}
                         data-original="${escapedValue}"
@@ -932,6 +961,10 @@ export class AdminDashboardController {
         container.querySelectorAll('.param-input:not([readonly])').forEach(input => {
             input.addEventListener('input', () => this.checkParametrosChanged());
         });
+        const removeHeroCheckbox = container.querySelector('#remove_foto_hero');
+        if (removeHeroCheckbox) {
+            removeHeroCheckbox.addEventListener('change', () => this.checkParametrosChanged());
+        }
         container.querySelectorAll('.param-file-input').forEach((input) => {
             input.addEventListener('change', () => this.checkParametrosChanged());
         });
@@ -943,7 +976,8 @@ export class AdminDashboardController {
         const inputs = document.querySelectorAll('#parametros-fields .param-input:not([readonly])');
         let changed = false;
         inputs.forEach(inp => {
-            if (inp.value !== inp.dataset.original) changed = true;
+            const currentValue = inp.type === 'checkbox' ? (inp.checked ? '1' : '0') : inp.value;
+            if (currentValue !== inp.dataset.original) changed = true;
         });
         document.querySelectorAll('#parametros-fields .param-file-input').forEach((input) => {
             if (input.files?.length) changed = true;
@@ -974,7 +1008,11 @@ export class AdminDashboardController {
     async saveParametros() {
         const inputs = document.querySelectorAll('#parametros-fields .param-input');
         const formData = new FormData();
-        inputs.forEach(inp => { formData.append(inp.name, inp.value); });
+        inputs.forEach(inp => {
+            if (inp.type !== 'checkbox' || inp.checked) {
+                formData.append(inp.name, inp.value);
+            }
+        });
         document.querySelectorAll('#parametros-fields .param-file-input').forEach((input) => {
             const file = input.files?.[0] ?? null;
             if (file) {

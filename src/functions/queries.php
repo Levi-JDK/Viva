@@ -11,8 +11,10 @@ return [
     'crearUsuario' => "SELECT fun_c_user(:email, :contrasena, :nombre, :apellido)",
     'obtenerHashLogin' => "SELECT fun_val_log(:email)",
     'obtenerUsuarioPorEmail' => "SELECT id_user, nom_user FROM tab_users WHERE mail_user = :email",
-    'obtenerUsuarioPorId' => "SELECT nom_user, ape_user, mail_user, foto_user, created_at FROM tab_users WHERE id_user = :id",
+    'obtenerUsuarioPorId' => "SELECT nom_user, ape_user, mail_user, foto_user, theme_preference, created_at FROM tab_users WHERE id_user = :id",
     'actualizarPerfil' => "UPDATE tab_users SET nom_user = :nombre, ape_user = :apellido WHERE id_user = :id",
+    'obtenerHashPassword' => "SELECT pass_user FROM tab_users WHERE id_user = :id AND is_deleted = FALSE LIMIT 1",
+    'actualizarTemaUsuario' => "UPDATE tab_users SET theme_preference = :theme, updated_at = CURRENT_TIMESTAMP, updated_by = current_user WHERE id_user = :id",
     'obtenerIdPorEmail' => "SELECT id_user FROM tab_users WHERE mail_user = :email",
     'actualizarFotoUsuario' => "SELECT fun_u_foto_user(:id, :foto) as resultado",
     'obtenerTiposDocumento' => "SELECT id, nombre FROM tipos_col_view",
@@ -27,6 +29,33 @@ return [
     'obtenerOficios' => "SELECT id_oficio, nom_oficio FROM oficios_view",
     'obtenerMaterias' => "SELECT id_materia, nom_materia FROM materias_view",
     'obtenerIdProductor' => "SELECT id_productor FROM tab_productores WHERE id_user = :id_user",
+    'obtenerConfiguracionVendedor' => "
+        SELECT
+            p.id_productor,
+            p.id_tipo_doc,
+            td.nom_tipo_doc,
+            p.id_banco,
+            p.id_cuenta_prod,
+            p.tipo_cuenta,
+            p.dir_prod,
+            p.id_pais,
+            p.id_departamento,
+            p.id_ciudad,
+            p.id_grupo
+        FROM tab_productores p
+        LEFT JOIN tab_tipos_doc td ON td.id_tipo_doc = p.id_tipo_doc
+        WHERE p.id_user = :id_user AND p.is_deleted = FALSE
+        LIMIT 1
+    ",
+    'actualizarConfiguracionVendedor' => "
+        SELECT fun_u_configuracion_productor(
+            :id_productor, :id_banco, :id_cuenta_prod, :tipo_cuenta,
+            :dir_prod, :id_pais, :id_departamento, :id_ciudad, :id_grupo
+        )
+    ",
+    'softdelProductor' => "
+        SELECT fun_softdel_tab_productores(:id_productor, TRUE)
+    ",
     'eliminarProductoLogicamente' => "
         UPDATE tab_productos 
         SET is_deleted = TRUE, is_active = FALSE, stock_productor = 0 
@@ -184,6 +213,15 @@ return [
                slogan_stand, descripcion_stand, portada_stand, ubicacion, imagenes, foto_user
         FROM fun_obtener_detalle_producto(:id_producto)
     ",
+    'obtenerUsuarioProductorPorProducto' => "
+        SELECT pr.id_user
+        FROM tab_productos p
+        INNER JOIN tab_productores pr ON p.id_productor = pr.id_productor
+        WHERE p.id_producto = :id_producto
+          AND p.is_deleted = FALSE
+          AND pr.is_deleted = FALSE
+        LIMIT 1
+    ",
     'obtenerStandsActivos' => "
         SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand
         FROM tab_stand
@@ -315,8 +353,21 @@ return [
         )",
     'actualizarGuiaFactura' => "
         UPDATE tab_enc_fact
-        SET num_guia = :num_guia
+        SET num_guia = :num_guia,
+            envio_estado = 'creado'
         WHERE id_factura = :id_factura
+    ",
+    'actualizarEstadoEnvio' => "
+        UPDATE tab_enc_fact
+        SET envio_estado = :estado
+        WHERE id_factura = :id_fact
+    ",
+    'obtenerNumGuiaPorReferencia' => "SELECT num_guia FROM tab_enc_fact WHERE epayco_ref = :ref LIMIT 1",
+    'obtenerEnvioPorReferencia' => "
+        SELECT num_guia, envio_estado
+        FROM tab_enc_fact
+        WHERE epayco_ref = :ref
+        LIMIT 1
     ",
     'obtenerGuiaPorFactura' => "
         SELECT f.num_guia
@@ -442,5 +493,146 @@ return [
         LEFT JOIN tab_menu_user mu ON m.id_menu = mu.id_menu AND mu.id_user = :id_user
         WHERE m.is_deleted = FALSE
         ORDER BY m.id_menu ASC
+    ",
+    'adminRevenueVsOrders' => "
+        WITH meses AS (
+            SELECT generate_series(
+                date_trunc('month', CURRENT_DATE) - interval '5 months',
+                date_trunc('month', CURRENT_DATE),
+                interval '1 month'
+            )::date AS mes
+        )
+        SELECT
+            to_char(m.mes, 'YYYY-MM') AS label,
+            COALESCE(SUM(f.val_tot_fact), 0)::numeric AS revenue,
+            COUNT(f.id_factura)::integer AS orders
+        FROM meses m
+        LEFT JOIN tab_enc_fact f
+            ON date_trunc('month', f.fec_factura)::date = m.mes
+           AND f.is_deleted = FALSE
+           AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
+        GROUP BY m.mes
+        ORDER BY m.mes ASC
+    ",
+    'adminTopProducts' => "
+        SELECT
+            p.nom_producto AS label,
+            COALESCE(SUM(d.val_cantidad), 0)::integer AS quantity,
+            COALESCE(SUM(d.val_neto), 0)::numeric AS revenue
+        FROM tab_det_fact d
+        INNER JOIN tab_enc_fact f ON f.id_factura = d.id_factura
+        INNER JOIN tab_productos p ON p.id_producto = d.id_producto
+        WHERE d.is_deleted = FALSE
+          AND f.is_deleted = FALSE
+          AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
+        GROUP BY p.id_producto, p.nom_producto
+        ORDER BY quantity DESC, revenue DESC
+        LIMIT :limit
+    ",
+    'adminCategoryDistribution' => "
+        SELECT
+            COALESCE(c.nom_categoria, 'Sin categoría') AS label,
+            COUNT(DISTINCT p.id_producto)::integer AS total
+        FROM tab_productos p
+        LEFT JOIN tab_categorias c ON c.id_categoria = p.id_categoria
+        WHERE p.is_deleted = FALSE
+        GROUP BY COALESCE(c.nom_categoria, 'Sin categoría')
+        ORDER BY total DESC, label ASC
+    ",
+    'producerRevenueVsSales' => "
+        WITH dias AS (
+            SELECT generate_series(
+                CURRENT_DATE - interval '29 days',
+                CURRENT_DATE,
+                interval '1 day'
+            )::date AS dia
+        )
+        SELECT
+            to_char(dias.dia, 'DD/MM') AS label,
+            COALESCE(SUM(df.val_neto), 0)::numeric AS revenue,
+            COALESCE(SUM(df.val_cantidad), 0)::integer AS sales
+        FROM dias
+        LEFT JOIN tab_enc_fact f
+            ON f.fec_factura = dias.dia
+           AND f.is_deleted = FALSE
+           AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
+        LEFT JOIN tab_det_fact df
+            ON df.id_factura = f.id_factura
+           AND df.id_productor = :id_productor
+           AND df.is_deleted = FALSE
+        GROUP BY dias.dia
+        ORDER BY dias.dia ASC
+    ",
+    'producerTopProducts' => "
+        SELECT
+            p.nom_producto AS label,
+            COALESCE(SUM(d.val_cantidad), 0)::integer AS quantity,
+            COALESCE(SUM(d.val_neto), 0)::numeric AS revenue
+        FROM tab_det_fact d
+        INNER JOIN tab_enc_fact f ON f.id_factura = d.id_factura
+        INNER JOIN tab_productos p ON p.id_producto = d.id_producto
+        WHERE d.id_productor = :id_productor
+          AND d.is_deleted = FALSE
+          AND f.is_deleted = FALSE
+          AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
+        GROUP BY p.id_producto, p.nom_producto
+        ORDER BY quantity DESC, revenue DESC
+        LIMIT :limit
+    ",
+    'seleccionarProductosSeedRag' => "
+        SELECT
+            p.id_producto,
+            p.id_productor,
+            p.nom_producto,
+            p.descripcion_producto,
+            p.id_categoria,
+            p.id_oficio,
+            p.id_materia,
+            i.url_imagen
+        FROM tab_productos p
+        INNER JOIN tab_imagenes i ON i.id_producto = p.id_producto
+        WHERE p.is_deleted = FALSE
+          AND COALESCE(i.url_imagen, '') <> ''
+        ORDER BY p.id_productor ASC, p.id_producto ASC
+        LIMIT :limit
+    ",
+    'insertarImagenEmbeddingRag' => "
+        SELECT fun_insert_imagen_embedding(
+            :id_producto,
+            :id_productor,
+            :url_imagen,
+            :hash_phash,
+            :hash_dhash,
+            :embedding_visual,
+            :modelo_embedding,
+            :validado_admin
+        ) AS id_imagen_embedding
+    ",
+    'marcarProductoSeedValidado' => "
+        UPDATE tab_productos
+        SET validado_admin = TRUE,
+            estado_producto = 'artesanal_verificado',
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = current_user
+        WHERE id_producto = :id_producto
+    ",
+    'insertarValidacionIaInicialRag' => "
+        SELECT fun_insert_validacion_ia(
+            :id_producto,
+            :id_productor,
+            :score_artesanal,
+            :score_comercial,
+            :score_plagio_interno,
+            :score_duplicado_visual,
+            :score_coherencia,
+            :clasificacion_producto,
+            :riesgo_imagen,
+            :decision_operativa,
+            :motivo_principal,
+            :explicacion_ia,
+            :evidencia_json,
+            :modelo_decision,
+            :version_prompt
+        ) AS id_validacion
     ",
 ];

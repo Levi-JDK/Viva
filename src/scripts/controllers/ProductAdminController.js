@@ -193,7 +193,7 @@ export class ProductAdminController {
         try {
             const data = await AdminService.saveProduct(formData, isEditMode);
             if (data.success) {
-                if (typeof showToast !== 'undefined') showToast(isEditMode ? 'Cambios guardados exitosamente.' : 'Producto publicado exitosamente.', 'success');
+                if (typeof showToast !== 'undefined') showToast(data.message || (isEditMode ? 'Cambios guardados exitosamente.' : 'Producto publicado exitosamente.'), 'success');
                 if (!isEditMode) {
                     this.selectedImages = [];
                     this.renderPreviews(uploadForm);
@@ -205,8 +205,8 @@ export class ProductAdminController {
                 if (typeof showToast !== 'undefined') showToast(data.message || 'Error al procesar la solicitud.', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
-            if (typeof showToast !== 'undefined') showToast('Error de conexión.', 'error');
+            if (typeof showToast !== 'undefined') showToast(error.message || 'Error de conexión.', 'error');
+            else console.error('Error:', error);
         }
     }
 
@@ -223,8 +223,8 @@ export class ProductAdminController {
                 if (typeof showToast !== 'undefined') showToast(data.message, 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
-            if (typeof showToast !== 'undefined') showToast('Error de conexión', 'error');
+            if (typeof showToast !== 'undefined') showToast(error.message || 'Error de conexión', 'error');
+            else console.error('Error:', error);
         }
     }
 
@@ -319,6 +319,7 @@ export class ProductAdminController {
                     try {
                         const data = await AdminService.deleteProduct(id_producto);
                         if (data.success) {
+                            if (typeof showToast !== 'undefined') showToast(data.message || 'Producto eliminado correctamente.', 'success');
                             Swal.fire({
                                 title: '¡Eliminado!',
                                 text: 'Tu producto ha sido eliminado.',
@@ -333,8 +334,8 @@ export class ProductAdminController {
                             if (typeof showToast !== 'undefined') showToast(data.message || 'Error al eliminar.', 'error');
                         }
                     } catch (err) {
-                        console.error('Error:', err);
-                        if (typeof showToast !== 'undefined') showToast('Error de conexión', 'error');
+                        if (typeof showToast !== 'undefined') showToast(err.message || 'Error de conexión', 'error');
+                        else console.error('Error:', err);
                     }
                 }
             });

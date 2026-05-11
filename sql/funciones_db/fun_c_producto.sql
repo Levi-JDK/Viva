@@ -74,7 +74,7 @@ BEGIN
         p_id_materia,
         p_precio_producto,
         p_descripcion_producto,
-        p_is_active
+        (p_stock_productor > 0)
     );
 
     RETURN TRUE;

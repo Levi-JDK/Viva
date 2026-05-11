@@ -1,8 +1,10 @@
 <?php
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../services/UserService.php';
 
 $usuarioData = AuthHelper::protectRoute();
+AuthHelper::checkAccess(4);
 $id_usuario = $usuarioData->id_user;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax']) || isset($_GET['api'])) {
@@ -35,9 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax']) || isset($_GET
             echo json_encode(['clase' => 'mensaje-exito', 'mensaje' => 'Perfil actualizado correctamente.']);
             exit;
         } catch (PDOException $e) {
-            throw $e;
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.actualizarPerfil');
+            echo json_encode($resp);
+            exit;
         } catch (Exception $e) {
-            throw $e;
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.actualizarPerfil');
+            echo json_encode($resp);
+            exit;
         }
     }
 
@@ -76,9 +82,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax']) || isset($_GET
             ]);
             exit;
         } catch (PDOException $e) {
-            throw $e;
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.guardarDireccionEnvio');
+            echo json_encode($resp);
+            exit;
         } catch (Exception $e) {
-            throw $e;
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.guardarDireccionEnvio');
+            echo json_encode($resp);
+            exit;
+        }
+    }
+
+    if ($accion === 'update_theme') {
+        $theme = trim($_POST['theme'] ?? '');
+
+        try {
+            UserService::guardarPreferenciaTema((int) $id_usuario, $theme);
+
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'Tema actualizado.',
+            ]);
+            exit;
+        } catch (InvalidArgumentException $e) {
+            http_response_code(400);
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => $e->getMessage(),
+            ]);
+            exit;
+        } catch (PDOException $e) {
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.actualizarTema');
+            echo json_encode($resp);
+            exit;
+        } catch (Exception $e) {
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.actualizarTema');
+            echo json_encode($resp);
+            exit;
+        }
+    }
+
+    if ($accion === 'change_password') {
+        try {
+            $resultado = UserService::cambiarPassword(
+                (int) $id_usuario,
+                $_POST['current_password'] ?? '',
+                $_POST['new_password'] ?? '',
+                $_POST['confirm_password'] ?? ''
+            );
+
+            if (!($resultado['exito'] ?? false)) {
+                http_response_code((int) ($resultado['status'] ?? 400));
+            }
+
+            unset($resultado['status']);
+            echo json_encode($resultado);
+            exit;
+        } catch (PDOException $e) {
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.cambiarPassword');
+            echo json_encode($resp);
+            exit;
+        } catch (Exception $e) {
+            $resp = ErrorHandler::jsonResponse($e, 'perfil.cambiarPassword');
+            echo json_encode($resp);
+            exit;
         }
     }
 
@@ -95,8 +161,10 @@ try {
         exit;
     }
 } catch (PDOException $e) {
+    ErrorHandler::handle($e, 'perfil.obtenerDatosPerfil');
     throw $e;
 } catch (Exception $e) {
+    ErrorHandler::handle($e, 'perfil.obtenerDatosPerfil');
     throw $e;
 }
 
@@ -108,8 +176,10 @@ $foto_usuario = $perfil['foto_usuario'];
 $fecha_registro = $perfil['fecha_registro'];
 $fecha_formateada = $perfil['fecha_formateada'];
 $inicial_usuario = $perfil['inicial_usuario'];
+$themePreference = $perfil['theme_preference'];
 
 $pedidos = UserService::obtenerPedidos((int) $id_usuario);
 $menu_ids_usuario = UserService::obtenerMenuIdsUsuario((int) $id_usuario);
+$es_productor = UserService::esProductor((int) $id_usuario);
 
 require_once __DIR__ . '/../views/perfil.view.php';

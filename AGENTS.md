@@ -108,6 +108,12 @@ Los siguientes skills están disponibles y se activan automáticamente según el
 | "Crear pipeline Redis-PostgreSQL" | redis-async-worker | Workers asíncronos con Redis (Predis) |
 | "Crear worker asíncrono" | redis-async-worker | Sistema de colas con retry y DLQ |
 
+### Requerimientos Skills
+
+| Trigger | Skill | Descripción |
+|---------|-------|-------------|
+| "sincronizar requerimientos", "actualizar reqs desde código" | viva-req-sync | Sincroniza código ↔ requerimientos md, módulo por módulo, exhaustivo |
+
 ---
 
 ## 📁 Estructura de Archivos

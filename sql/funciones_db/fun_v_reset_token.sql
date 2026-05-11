@@ -1,7 +1,7 @@
 -- Valida un token OTP: devuelve id_user si es válido, NULL si no.
 CREATE OR REPLACE FUNCTION fun_v_reset_token(
-    p_mail_user  VARCHAR,
-    p_token      VARCHAR
+    p_mail_user tab_users.mail_user%TYPE,
+    p_token tab_reset_tokens.token_reset%TYPE
 ) RETURNS INTEGER AS $$
 DECLARE
     w_id_user tab_users.id_user%TYPE;

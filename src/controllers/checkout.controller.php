@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../functions/auth_helper.php';
+require_once __DIR__ . '/../functions/error_handler.php';
 require_once __DIR__ . '/../services/CheckoutService.php';
 
 $routePath = request_relative_path(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
@@ -29,5 +30,7 @@ try {
     require_once __DIR__ . '/../views/checkout.view.php';
 
 } catch (Exception $e) {
-    throw $e;
+    $resp = ErrorHandler::jsonResponse($e, 'checkout.obtenerDatosCheckout');
+    echo json_encode($resp);
+    exit;
 }

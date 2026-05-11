@@ -164,7 +164,9 @@ class MyProductsService
         $productosRaw = $db->ejecutar('obtenerProductos', [':id_productor' => $idProductor])->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(static function (array $producto): array {
-            $imagenes = json_decode($producto['imagenes'] ?? '[]', true);
+            // PostgreSQL JSON puede venir como string o como array PHP
+            $imagenesRaw = $producto['imagenes'] ?? '[]';
+            $imagenes = is_string($imagenesRaw) ? json_decode($imagenesRaw, true) : $imagenesRaw;
             $producto['imagen'] = 'images/default.webp';
             $producto['vistas'] = (int) ($producto['vistas'] ?? 0);
             $producto['stock_productor'] = (int) ($producto['stock_productor'] ?? 0);

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    darkMode: 'class',
     content: [
         "./src/**/*.{php,html,js}",
         "./index.php"
@@ -20,6 +21,8 @@ module.exports = {
                 secundario: '#a04e07',
                 claro: '#F5E9D3',
                 oscuro: '#4A3B2B',
+                'warm-cream': '#FDF8F4',
+                'deep-earth': '#3E2723',
                 'fondo-claro': '#fff',
                 'fondo-oscuro': '#eee',
                 'tierra-oscuro': '#8B4513',

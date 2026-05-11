@@ -111,6 +111,10 @@ eventRouter.register('cancel-edit', (e) => { e.preventDefault(); profileControll
 eventRouter.register('trigger-profile-upload', (e) => { e.preventDefault(); profileController.triggerProfileUpload(); });
 eventRouter.register('profile-upload-change', (e, el) => { profileController.handleProfileUpload(e, el); });
 eventRouter.register('profile-go-back', (e) => { e.preventDefault(); profileController.goBackSafely(); });
+eventRouter.register('change-theme', (e, el) => profileController.toggleTheme(el));
+eventRouter.register('change-password', (e) => { e.preventDefault(); profileController.openChangePasswordModal(); });
+eventRouter.register('close-password-modal', (e) => { e.preventDefault(); profileController.closeChangePasswordModal(); });
+eventRouter.register('submit-password-change', (e, form) => { e.preventDefault(); profileController.submitPasswordChange(form); });
 
 eventRouter.register('next-step', (e) => { e.preventDefault(); vendorRegistrationController.nextStep(e); });
 eventRouter.register('prev-step', (e) => { e.preventDefault(); vendorRegistrationController.prevStep(e); });

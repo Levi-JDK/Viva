@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
-require_once __DIR__ . '/PuntoEnvioService.php';
+require_once __DIR__ . '/ShippingOrchestrator.php';
 
 class OrderService
 {
@@ -47,7 +47,7 @@ class OrderService
 
         return [
             'success' => true,
-            'checkpoints' => PuntoEnvioService::getCheckpoints($numGuia),
+            'checkpoints' => ShippingOrchestrator::getCheckpoints($numGuia),
         ];
     }
 
@@ -75,7 +75,7 @@ class OrderService
             ];
         }
 
-        if (!PuntoEnvioService::confirmarEntrega($numGuia)) {
+        if (!ShippingOrchestrator::confirmarEntrega($numGuia)) {
             return [
                 'success' => false,
                 'message' => 'No se pudo confirmar la recepción del paquete.',

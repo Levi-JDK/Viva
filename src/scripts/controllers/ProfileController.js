@@ -1,3 +1,5 @@
+import { PasswordService } from '../services/PasswordService.js';
+
 export class ProfileController {
     init() {
         this.handleClickOutside = this.handleClickOutside.bind(this);
@@ -29,6 +31,7 @@ export class ProfileController {
         }
 
         this.handleHashChange();
+        this.applyInitialTheme();
         window.addEventListener('hashchange', () => this.handleHashChange());
     }
 
@@ -55,11 +58,11 @@ export class ProfileController {
 
         menuItems.forEach(item => {
             if (item.dataset.sectionId === sectionId) {
-                item.classList.add('active-item', 'bg-orange-50', 'text-naranja-artesanal');
-                item.classList.remove('text-gray-600');
+                item.classList.add('active-item', 'bg-orange-50', 'text-naranja-artesanal', 'dark:bg-stone-800');
+                item.classList.remove('text-gray-600', 'dark:text-gray-300');
             } else {
-                item.classList.remove('active-item', 'bg-orange-50', 'text-naranja-artesanal');
-                item.classList.add('text-gray-600');
+                item.classList.remove('active-item', 'bg-orange-50', 'text-naranja-artesanal', 'dark:bg-stone-800');
+                item.classList.add('text-gray-600', 'dark:text-gray-300');
             }
         });
 
@@ -96,11 +99,11 @@ export class ProfileController {
         inputs.forEach(i => {
             i.disabled = !i.disabled;
             if (i.disabled) {
-                i.classList.remove('bg-white', 'text-gray-800', 'border-tierra-medio');
-                i.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                i.classList.remove('bg-white', 'text-gray-800', 'border-tierra-medio', 'dark:bg-stone-900', 'dark:text-gray-100');
+                i.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed', 'dark:bg-stone-800', 'dark:text-gray-400');
             } else {
-                i.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
-                i.classList.add('bg-white', 'text-gray-800', 'border-tierra-medio');
+                i.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed', 'dark:bg-stone-800', 'dark:text-gray-400');
+                i.classList.add('bg-white', 'text-gray-800', 'border-tierra-medio', 'dark:bg-stone-900', 'dark:text-gray-100');
             }
         });
         
@@ -111,13 +114,44 @@ export class ProfileController {
         if (saveCancelButtons) saveCancelButtons.classList.toggle('hidden');
     }
 
-    saveProfile() {
-        // Mock save logic for now
-        this.toggleEdit();
-        if (typeof showToast !== 'undefined') {
-            showToast('Perfil actualizado correctamente', 'success');
-        } else if (window.Toast && typeof window.Toast.show === 'function') {
-            window.Toast.show('Perfil actualizado correctamente', 'success');
+    async saveProfile() {
+        const nombre = document.getElementById('input-nombre')?.value.trim() || '';
+        const apellido = document.getElementById('input-apellido')?.value.trim() || '';
+        const button = document.querySelector('[data-action="save-profile"]');
+
+        if (!nombre || !apellido) {
+            this.showToast('El nombre y apellido son obligatorios.', 'error');
+            return;
+        }
+
+        const originalHtml = button?.innerHTML;
+        this.setButtonLoading(button, true, 'Guardando...');
+
+        try {
+            const formData = new FormData();
+            formData.append('accion', 'update_profile');
+            formData.append('nombre', nombre);
+            formData.append('apellido', apellido);
+
+            const response = await fetch(window.buildAppUrl ? window.buildAppUrl('perfil') : `${window.BASE_URL}perfil`, {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            const success = response.ok && (data.exito === true || data.clase === 'mensaje-exito');
+
+            if (!success) {
+                this.showToast(data.mensaje || 'No se pudo actualizar el perfil.', 'error');
+                return;
+            }
+
+            this.toggleEdit();
+            this.showToast(data.mensaje || 'Perfil actualizado correctamente.', 'success');
+        } catch (error) {
+            console.error('Profile save error:', error);
+            this.showToast('Error al actualizar el perfil.', 'error');
+        } finally {
+            this.setButtonLoading(button, false, null, originalHtml);
         }
     }
 
@@ -213,6 +247,119 @@ export class ProfileController {
         const input = document.getElementById('profile-image-input');
         if (input) {
             input.click();
+        }
+    }
+
+    applyInitialTheme() {
+        const toggle = document.getElementById('dark-mode-toggle');
+        const theme = window.themePreference === 'dark' ? 'dark' : 'light';
+
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        if (toggle) {
+            toggle.checked = theme === 'dark';
+        }
+    }
+
+    async toggleTheme(toggle) {
+        const theme = toggle?.checked ? 'dark' : 'light';
+        const previousTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        window.themePreference = theme;
+
+        const formData = new FormData();
+        formData.append('accion', 'update_theme');
+        formData.append('theme', theme);
+
+        try {
+            const response = await fetch(window.buildAppUrl ? window.buildAppUrl('perfil') : `${window.BASE_URL}perfil`, {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.exito) {
+                throw new Error(data.mensaje || 'No se pudo actualizar el tema.');
+            }
+
+            this.showToast(data.mensaje || 'Tema actualizado.', 'success');
+        } catch (error) {
+            document.documentElement.classList.toggle('dark', previousTheme === 'dark');
+            if (toggle) {
+                toggle.checked = previousTheme === 'dark';
+            }
+            window.themePreference = previousTheme;
+            this.showToast(error.message || 'No se pudo actualizar el tema.', 'error');
+        }
+    }
+
+    openChangePasswordModal() {
+        const modal = document.getElementById('password-modal');
+        if (!modal) return;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('current-password')?.focus();
+    }
+
+    closeChangePasswordModal() {
+        const modal = document.getElementById('password-modal');
+        const form = document.getElementById('password-change-form');
+        if (!modal) return;
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        form?.reset();
+    }
+
+    async submitPasswordChange(form) {
+        const button = form?.querySelector('button[type="submit"]');
+        const originalHtml = button?.innerHTML;
+        const currentPassword = form?.querySelector('#current-password')?.value || '';
+        const newPassword = form?.querySelector('#new-password')?.value || '';
+        const confirmPassword = form?.querySelector('#confirm-password')?.value || '';
+
+        this.setButtonLoading(button, true, 'Actualizando...');
+
+        try {
+            const result = await PasswordService.cambiarContrasena(currentPassword, newPassword, confirmPassword);
+            if (!result.exito) {
+                this.showToast(result.mensaje, 'error');
+                return;
+            }
+
+            this.closeChangePasswordModal();
+            this.showToast(result.mensaje, 'success');
+        } catch (error) {
+            console.error('Password change error:', error);
+            this.showToast('No se pudo cambiar la contraseña.', 'error');
+        } finally {
+            this.setButtonLoading(button, false, null, originalHtml);
+        }
+    }
+
+    setButtonLoading(button, isLoading, label = 'Procesando...', originalHtml = null) {
+        if (!button) return;
+
+        button.disabled = isLoading;
+        if (isLoading) {
+            button.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${label}`;
+            return;
+        }
+
+        if (originalHtml) {
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    showToast(message, type = 'success') {
+        if (typeof showToast !== 'undefined') {
+            showToast(message, type);
+            return;
+        }
+
+        if (window.Toast && typeof window.Toast.show === 'function') {
+            window.Toast.show(message, type);
         }
     }
 

@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $userData = AuthHelper::protectRoute();
+AuthHelper::checkAccess(9);
 
 echo json_encode(
     VendorService::registrarVendedor((int) $userData->id_user, $_POST),
