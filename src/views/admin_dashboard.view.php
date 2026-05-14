@@ -16,6 +16,7 @@ $menus = [
     ['panel_id' => 'overview',   'nom_menu' => 'Resumen General',   'icono_menu' => 'fas fa-home',        'grupo' => 'Resumen',  'color_icon' => 'text-amber-400'],
     ['panel_id' => 'usuarios',   'nom_menu' => 'Usuarios',           'icono_menu' => 'fas fa-users',       'grupo' => 'Gestión',  'color_icon' => 'text-sky-400'],
     ['panel_id' => 'productos',  'nom_menu' => 'Aprobar Productos',  'icono_menu' => 'fas fa-box-open',    'grupo' => 'Gestión',  'color_icon' => 'text-emerald-400'],
+    ['panel_id' => 'validaciones','nom_menu' => 'Validaciones',       'icono_menu' => 'fas fa-robot',        'grupo' => 'Gestión',  'color_icon' => 'text-rose-400'],
     ['panel_id' => 'menus',      'nom_menu' => 'Gestión de Menús',   'icono_menu' => 'fas fa-layer-group', 'grupo' => 'Gestión',  'color_icon' => 'text-violet-400'],
     ['panel_id' => 'crud',       'nom_menu' => 'Gestor de CRUD',     'icono_menu' => 'fas fa-database',    'grupo' => 'Gestión',  'color_icon' => 'text-yellow-400'],
     ['panel_id' => 'reportes',   'nom_menu' => 'Reportes',           'icono_menu' => 'fas fa-chart-line',  'grupo' => 'Gestión',  'color_icon' => 'text-teal-400'],
@@ -31,6 +32,7 @@ foreach ($menus as $m) {
 $panel_config = [
     'usuarios'   => ['color' => '#38BDF8', 'icon' => 'fa-users',      'desc' => 'Lista, edita y elimina usuarios. Activa o desactiva accesos de forma segura.'],
     'productos'  => ['color' => '#34D399', 'icon' => 'fa-box-open',   'desc' => 'Gestiona los productos. Revisa calidad, aprueba o solicita modificaciones.'],
+    'validaciones' => ['color' => '#FB7185', 'icon' => 'fa-robot', 'desc' => 'Administra validaciones IA y evidencia de productos.'],
     'roles'      => ['color' => '#BC544B', 'icon' => 'fa-users-cog',  'desc' => 'Descontinuado: gestión de accesos por menús.'],
     'crud'       => ['color' => '#D4AF37', 'icon' => 'fa-database',   'desc' => 'Realiza operaciones CRUD directas sobre tablas maestras.'],
     'reportes'   => ['color' => '#2D9E73', 'icon' => 'fa-chart-line', 'desc' => 'Visualiza estadísticas avanzadas y métricas globales del ecosistema.'],
@@ -49,6 +51,7 @@ $actividades = [
 $accesos = [
     ['panel' => 'usuarios',   'icon' => 'fa-users',      'nom' => 'Usuarios',    'color_icon' => 'text-sky-400',    'border_glow' => 'hover:border-sky-500/30 hover:shadow-[0_0_15px_rgba(56,189,248,0.15)]'],
     ['panel' => 'productos',  'icon' => 'fa-box-open',   'nom' => 'Productos',   'color_icon' => 'text-emerald-400','border_glow' => 'hover:border-emerald-500/30 hover:shadow-[0_0_15px_rgba(52,211,153,0.15)]'],
+    ['panel' => 'validaciones', 'icon' => 'fa-robot', 'nom' => 'Validaciones', 'color_icon' => 'text-rose-400', 'border_glow' => 'hover:border-rose-500/30 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]'],
     ['panel' => 'reportes',   'icon' => 'fa-chart-line', 'nom' => 'Reportes',    'color_icon' => 'text-amber-400',  'border_glow' => 'hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(251,191,36,0.15)]'],
     ['panel' => 'crud',       'icon' => 'fa-database',   'nom' => 'Base Datos',  'color_icon' => 'text-rose-400',   'border_glow' => 'hover:border-rose-500/30 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]'],
 ];
@@ -354,6 +357,8 @@ $accesos = [
                 </div>
             </section>
 
+            <?php require __DIR__ . '/admin_validation.view.php'; ?>
+
             <!-- ══════ PANEL: MENÚS ══════ -->
             <section id="panel-menus" class="admin-panel hidden">
                 <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
@@ -386,7 +391,7 @@ $accesos = [
             <!-- ══════ PANELES EN DESARROLLO (Roles, Reportes) ══════ -->
 
             <?php foreach ($panel_config as $pid => $pcfg):
-                if (in_array($pid, ['crud', 'usuarios', 'productos', 'menus'])) continue; 
+                if (in_array($pid, ['crud', 'usuarios', 'productos', 'validaciones', 'menus'])) continue; 
             ?>
             <section id="panel-<?= $pid ?>" class="admin-panel hidden">
                 <div class="mb-10">

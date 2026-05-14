@@ -3,10 +3,9 @@
  * Manejador de Subida de Productos
  */
 
-require_once __DIR__ . '/../utils/image_uploader.php';
-
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/error_handler.php';
+require_once __DIR__ . '/product_validation_queue.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -92,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':id_materia'         => $id_materia,
             ':precio_producto'    => $precio,
             ':descripcion_producto' => $desc,
-            ':is_active'          => 'true'
+            ':is_active'          => 'false'
         ]);
 
         $result_insert = $stmt->fetchColumn();
@@ -105,35 +104,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtId = $db->ejecutar('obtenerUltimoIdProducto');
         $id_producto = $stmtId->fetchColumn();
 
-        // 2. Subir imágenes físicas con validación centralizada
-        $target_directory = __DIR__ . '/../../images/products/';
-        $result = processAndUploadImages($_FILES['imagen_producto'] ?? null, $target_directory, 'prod_' . $id_producto . '_', 'images/products/');
-        if (!$result['success']) {
-            throw new Exception($result['message']);
+        // 2. Guardar imágenes temporales (sin procesar)
+        $tempDir = __DIR__ . '/../../images/products/temp/';
+        if (!is_dir($tempDir) && !mkdir($tempDir, 0775, true)) {
+            throw new Exception("No se pudo crear el directorio temporal.");
         }
 
-        // Solo guardar la imagen principal (full), no las variantes (thumb, medium)
-        $uploaded_paths = [];
-        if (!empty($result['path'])) {
-            $uploaded_paths = [$result['path']];
-        } elseif (!empty($result['paths'])) {
-            $uploaded_paths = $result['paths'];
+        $tempPaths = [];
+        $files = $_FILES['imagen_producto'] ?? null;
+        if ($files && !is_array($files['error'])) {
+            // Normalizar: un solo archivo
+            $files = [
+                'name' => [$files['name']],
+                'error' => [$files['error']],
+                'tmp_name' => [$files['tmp_name']],
+            ];
         }
 
-        // Doble chequeo crítico
-        if (empty($uploaded_paths)) {
-            throw new Exception("Fallo general al procesar las imágenes físicas.");
+        if ($files && is_array($files['error'])) {
+            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            foreach ($files['error'] as $i => $error) {
+                if ($error !== UPLOAD_ERR_OK) continue;
+                
+                $origName = $files['name'][$i] ?? '';
+                $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowed, true)) continue;
+                
+                $tempName = 'prod_' . $id_producto . '_' . time() . '_' . $i . '.' . $ext;
+                $tempFullPath = $tempDir . $tempName;
+                
+                if (move_uploaded_file($files['tmp_name'][$i], $tempFullPath)) {
+                    $tempPaths[] = 'images/products/temp/' . $tempName;
+                }
+            }
         }
 
-        // 3. Insertar imágenes
-        foreach ($uploaded_paths as $index => $path) {
+        if (empty($tempPaths)) {
+            throw new Exception("No se pudo procesar la imagen.");
+        }
+
+        // 3. Insertar imágenes temporales en tab_imagenes
+        foreach ($tempPaths as $tempPath) {
             $db->ejecutar('registrarImagen', [
                 ':id_producto' => $id_producto,
-                ':url_imagen'  => $path
+                ':url_imagen'  => $tempPath,
             ]);
         }
 
-        echo json_encode(['success' => true, 'message' => 'Producto publicado exitosamente.']);
+        // 4. Encolar validación (el worker procesará las imágenes)
+        viva_enqueue_product_validation(
+            (int) $id_producto,
+            (int) $id_productor,
+            viva_product_validation_images($tempPaths),
+            $nom_producto,
+            $desc,
+            $id_materia ?? '',
+            $id_categoria ?? ''
+        );
+
+        echo json_encode(['success' => true, 'message' => 'Producto añadido satisfactoriamente, en espera de revisión.']);
 
     }
     catch (Exception $e) {

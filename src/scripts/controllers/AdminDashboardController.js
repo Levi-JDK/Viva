@@ -67,9 +67,15 @@ export class AdminDashboardController {
 
         // Lazy-load panel data
         if (id === 'usuarios') this.loadUsuarios();
-        if (id === 'productos') this.loadProductos();
+        if (id === 'productos') {
+            this.productosLoaded = false;
+            this.loadProductos();
+        }
         if (id === 'menus') {
             import('../controllers/AdminMenusController.js').then(m => m.adminMenusController.onPanelShow());
+        }
+        if (id === 'validaciones') {
+            import('../controllers/AdminValidationController.js').then(m => m.adminValidationController.onPanelShow());
         }
         if (id === 'parametros') this.loadParametros();
     }
@@ -814,7 +820,9 @@ export class AdminDashboardController {
             <td class="px-4 py-3" data-label="Estado">
                 ${isArchived
                     ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-slate-500/10 text-slate-500 border border-slate-500/20">Archivado</span>'
-                    : `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${isActive ? 'Activo' : 'Inactivo'}</span>`
+                    : (p.validation_status === 'pending_review' || p.validation_status === 'pending_images' || p.decision === 'pending_review')
+                        ? '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20"><i class="fas fa-clock mr-1"></i>En revisión</span>'
+                        : `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">${isActive ? 'Activo' : 'Inactivo'}</span>`
                 }
             </td>
             <td class="px-4 py-3 text-right" data-label="Acciones">
@@ -825,11 +833,13 @@ export class AdminDashboardController {
                                 title="Reactivar producto">
                                 <i class="fas fa-undo mr-1"></i> Reactivar
                            </button>`
-                        : `<button data-action="toggle-product" data-product-id="${escapedId}" data-product-name="${escapedProductNameAttr}" data-current-state="${isActive}"
-                                class="w-8 h-8 rounded-full ${isActive ? 'bg-rose-500/10 hover:bg-rose-500 text-rose-400' : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400'} hover:text-white transition-colors"
-                                title="${isActive ? 'Desactivar' : 'Activar'}">
-                                <i class="fas ${isActive ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i>
-                           </button>`
+                        : (p.validation_status === 'pending_review' || p.validation_status === 'pending_images' || p.decision === 'pending_review')
+                            ? `<span class="text-[10px] text-amber-500/60 font-bold uppercase tracking-widest"><i class="fas fa-lock mr-1"></i>En revisión</span>`
+                            : `<button data-action="toggle-product" data-product-id="${escapedId}" data-product-name="${escapedProductNameAttr}" data-current-state="${isActive}"
+                                    class="w-8 h-8 rounded-full ${isActive ? 'bg-rose-500/10 hover:bg-rose-500 text-rose-400' : 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400'} hover:text-white transition-colors"
+                                    title="${isActive ? 'Desactivar' : 'Activar'}">
+                                    <i class="fas ${isActive ? 'fa-eye-slash' : 'fa-eye'} text-xs"></i>
+                               </button>`
                     }
                 </div>
             </td>

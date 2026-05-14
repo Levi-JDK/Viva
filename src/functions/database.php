@@ -104,7 +104,9 @@ class Database {
                 (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
             FROM tab_productos p
             LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
-            WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+            WHERE p.is_deleted = FALSE
+              AND p.is_active = TRUE
+              AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         ";
         
         $params = [];

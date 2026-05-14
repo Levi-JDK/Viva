@@ -206,7 +206,9 @@ Cuando un usuario se registra o compra algo, el servidor tardaba en responder po
 ```
 src/workers/
 ├── README.md                      ← Este archivo
-├── Worker.php                     ← Worker principal (escucha colas)
+├── Worker.php                     ← Worker dedicado a registros
+├── CartWorker.php                 ← Worker dedicado a carritos
+├── ValidationWorker.php           ← Worker dedicado a validaciones IA
 ├── Config/
 │   └── RedisConfig.php           ← Conexión a Redis
 ├── Services/
@@ -237,9 +239,19 @@ src/workers/
 - **Ubicación**: `src/workers/Services/RedisCacheService.php`
 
 ### Worker
-- **Qué hace**: Escucha colas y procesa en background
-- **Para qué**: Procesar transacciones sin bloquear al usuario
+- **Qué hace**: Escucha la cola `viva:cola:registro` y procesa registros en background
+- **Para qué**: Persistir usuarios sin bloquear al usuario
 - **Ubicación**: `src/workers/Worker.php`
+
+### CartWorker
+- **Qué hace**: Escucha la cola `viva:cola:carrito` y procesa carritos en background
+- **Para qué**: Persistir acciones de carrito sin bloquear al usuario
+- **Ubicación**: `src/workers/CartWorker.php`
+
+### ValidationWorker
+- **Qué hace**: Escucha la cola `viva:cola:validacion` y procesa validaciones de producto con IA
+- **Para qué**: Validar productos de forma asíncrona sin bloquear el alta o edición
+- **Ubicación**: `src/workers/ValidationWorker.php`
 
 ---
 
@@ -283,14 +295,50 @@ redis-cli ping
 
 ## Cómo usar
 
-### 1. Iniciar el Worker
+### 1. Iniciar los Workers
 
 ```bash
-# En terminal
+# Registro
 php src/workers/Worker.php
+
+# Carrito
+php src/workers/CartWorker.php
+
+# Validación de productos
+php src/workers/ValidationWorker.php
 ```
 
-El worker se queda escuchando indefinidamente. Para detenerlo, presioná `Ctrl+C`.
+Cada worker se queda escuchando indefinidamente su propia cola. Para detenerlo, presioná `Ctrl+C`.
+
+### Supervisor
+
+Ejemplo de configuración para ejecutar los 3 workers como procesos supervisados:
+
+```ini
+[program:viva-worker-registro]
+command=php /var/www/html/viva/src/workers/Worker.php
+directory=/var/www/html/viva
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/viva-worker-registro.err.log
+stdout_logfile=/var/log/viva-worker-registro.out.log
+
+[program:viva-worker-carrito]
+command=php /var/www/html/viva/src/workers/CartWorker.php
+directory=/var/www/html/viva
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/viva-worker-carrito.err.log
+stdout_logfile=/var/log/viva-worker-carrito.out.log
+
+[program:viva-worker-validacion]
+command=php /var/www/html/viva/src/workers/ValidationWorker.php
+directory=/var/www/html/viva
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/viva-worker-validacion.err.log
+stdout_logfile=/var/log/viva-worker-validacion.out.log
+```
 
 ### 2. Registrar un usuario (desde API)
 
@@ -372,8 +420,14 @@ redis-cli KEYS "viva:*"
 ### Worker
 
 ```bash
-# Iniciar worker
+# Iniciar worker de registros
 php src/workers/Worker.php
+
+# Iniciar worker de carrito
+php src/workers/CartWorker.php
+
+# Iniciar worker de validación
+php src/workers/ValidationWorker.php
 
 # Ver logs del worker
 # (los logs aparecen en la terminal)
@@ -421,7 +475,8 @@ php src/workers/Worker.php
 |--------|----------|
 | `brpop()` | Espera hasta que llegue un mensaje a la cola |
 | `procesarRegistro()` | Procesa un registro de usuario |
-| `procesarCarrito()` | Procesa un carrito de compras |
+| `procesarCarrito()` | Procesa un carrito de compras desde `CartWorker` |
+| `procesarValidacion()` | Procesa una validación de producto desde `ValidationWorker` |
 | `moverADLQ()` | Envía un job fallido a la cola de muertos |
 
 ---

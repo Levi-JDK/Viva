@@ -18,6 +18,7 @@ import { productDetailController } from './controllers/ProductDetailController.j
 import { checkoutController } from './controllers/CheckoutController.js';
 import { adminDashboardController } from './controllers/AdminDashboardController.js';
 import { adminMenusController } from './controllers/AdminMenusController.js';
+import { adminValidationController } from './controllers/AdminValidationController.js';
 import { productAdminController } from './controllers/ProductAdminController.js';
 import { landingController } from './controllers/LandingController.js';
 import { passwordRecoveryController } from './controllers/PasswordRecoveryController.js';
@@ -45,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkoutController.init();
     adminDashboardController.init();
     adminMenusController.init();
+    adminValidationController.init();
     productAdminController.init();
     landingController.init();
     passwordRecoveryController.init();

@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../utils/image_uploader.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/error_handler.php';
+require_once __DIR__ . '/product_validation_queue.php';
 
 // Detectar BASE_URL
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Obtener imágenes actuales de la BD para la validación final
-        $stmtImg = $db->ejecutar('obtenerImagenesProducto', [':id' => $id_producto]);
+        $stmtImg = $db->ejecutar('obtenerImagenesProducto', [':id_producto' => $id_producto]);
         $imagenes_actuales_db = $stmtImg->fetchAll(PDO::FETCH_ASSOC);
         $urls_actuales_db = array_column($imagenes_actuales_db, 'url_imagen');
 
@@ -168,7 +169,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
-        echo json_encode(['success' => true, 'message' => 'Producto actualizado exitosamente.']);
+        $validationPaths = array_values(array_unique(array_merge($urls_mantenidas, $uploaded_paths)));
+        viva_enqueue_product_validation(
+            (int) $id_producto,
+            (int) $id_productor,
+            viva_product_validation_images($validationPaths),
+            $nom_producto,
+            $desc,
+            $id_materia ?? '',
+            $id_categoria ?? ''
+        );
+
+        echo json_encode(['success' => true, 'message' => 'Producto actualizado. Está siendo re-validado por IA, esto puede tomar unos segundos.']);
 
     }
     catch (Throwable $e) {

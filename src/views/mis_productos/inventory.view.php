@@ -26,9 +26,15 @@
                                         
                                         <!-- Badge Status -->
                                         <div class="absolute top-3 right-3 z-10">
-                                            <span class="px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-sm <?= $producto['activo'] ? 'bg-green-100/90 text-green-700' : 'bg-gray-100/90 text-gray-600' ?>">
-                                                <?= $producto['activo'] ? 'Activo' : 'Inactivo' ?>
-                                            </span>
+                                                <?php if (in_array(($producto['validation_status'] ?? ''), ['pending_review', 'pending_images'])): ?>
+                                                <span class="px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-sm bg-amber-100/90 text-amber-700">
+                                                    <i class="fas fa-clock mr-1"></i>Revisión
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-sm <?= $producto['activo'] ? 'bg-green-100/90 text-green-700' : 'bg-gray-100/90 text-gray-600' ?>">
+                                                    <?= $producto['activo'] ? 'Activo' : 'Inactivo' ?>
+                                                </span>
+                                            <?php endif; ?>
                                         </div>
 
                                         <!-- Image Container -->
@@ -46,12 +52,18 @@
                                             
                                             <!-- Quick Actions Overlay -->
                                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                                                <button data-action="edit-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 hover:scale-110 transition-all shadow-lg" title="Editar">
-                                                    <i class="fas fa-pencil-alt"></i>
-                                                </button>
-                                                <button data-action="delete-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 hover:scale-110 transition-all shadow-lg" title="Eliminar">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
+                                            <?php if (in_array(($producto['validation_status'] ?? ''), ['pending_review', 'pending_images'])): ?>
+                                                    <span class="px-4 py-2 bg-amber-500/80 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-2">
+                                                        <i class="fas fa-lock"></i> En revisión
+                                                    </span>
+                                                <?php else: ?>
+                                                    <button data-action="edit-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 hover:scale-110 transition-all shadow-lg" title="Editar">
+                                                        <i class="fas fa-pencil-alt"></i>
+                                                    </button>
+                                                    <button data-action="delete-product" data-product-id="<?= $producto['id_producto'] ?>" class="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 hover:scale-110 transition-all shadow-lg" title="Eliminar">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
 

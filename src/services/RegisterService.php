@@ -75,7 +75,7 @@ class RegisterService
         $pipe = $redis->pipeline();
         $pipe->setex($lockKey, 3600, '1');
         $pipe->hset($prefix . 'user:' . $idWorker, 'nombre', $nombre, 'apellido', $apellido, 'email', $email, 'password', $hash, 'created_at', date('Y-m-d H:i:s'));
-        $pipe->lpush($prefix . 'queue:users', $idWorker);
+        $pipe->lpush(RedisConfig::cola('registro'), $idWorker);
         $pipe->execute();
 
         // Verificar que los datos se guardaron en Redis

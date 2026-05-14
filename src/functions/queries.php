@@ -3,7 +3,7 @@
  * Mapa de consultas SQL para Database.
  *
  * Cada entrada es 'nombre' => "SQL string".
- * Los prepares se hacen lazy en Database::ejecutar().
+ * Los prepares se hacen lazy desde Database.
  */
 
 return [
@@ -15,6 +15,23 @@ return [
     'actualizarPerfil' => "UPDATE tab_users SET nom_user = :nombre, ape_user = :apellido WHERE id_user = :id",
     'obtenerHashPassword' => "SELECT pass_user FROM tab_users WHERE id_user = :id AND is_deleted = FALSE LIMIT 1",
     'actualizarTemaUsuario' => "UPDATE tab_users SET theme_preference = :theme, updated_at = CURRENT_TIMESTAMP, updated_by = current_user WHERE id_user = :id",
+    'actualizarValidacionAdmin' => "
+        UPDATE tab_productos
+        SET validation_status = :validation_status,
+            is_active = CAST(:is_active AS boolean),
+            validado_admin = TRUE,
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = current_user
+        WHERE id_producto = :id_producto AND is_deleted = FALSE
+    ",
+    'actualizarValidacionStatus' => "
+        UPDATE tab_productos
+        SET validation_status = :validation_status,
+            is_active = CAST(:is_active AS boolean),
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = current_user
+        WHERE id_producto = :id_producto
+    ",
     'obtenerIdPorEmail' => "SELECT id_user FROM tab_users WHERE mail_user = :email",
     'actualizarFotoUsuario' => "SELECT fun_u_foto_user(:id, :foto) as resultado",
     'obtenerTiposDocumento' => "SELECT id, nombre FROM tipos_col_view",
@@ -46,6 +63,12 @@ return [
         LEFT JOIN tab_tipos_doc td ON td.id_tipo_doc = p.id_tipo_doc
         WHERE p.id_user = :id_user AND p.is_deleted = FALSE
         LIMIT 1
+    ",
+    'obtenerDatosProductoValidacion' => "
+        SELECT id_producto, id_productor, nom_producto, descripcion_producto,
+               id_materia, id_categoria
+        FROM tab_productos
+        WHERE id_producto = :id_producto AND is_deleted = FALSE
     ",
     'actualizarConfiguracionVendedor' => "
         SELECT fun_u_configuracion_productor(
@@ -80,6 +103,7 @@ return [
             nom_categoria,
             activo,
             vistas,
+            validation_status,
             imagenes
         FROM fun_obtener_productos(:id_productor)
     ",
@@ -161,7 +185,9 @@ return [
             (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
         FROM tab_productos p
         LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
-        WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         ORDER BY p.created_at ASC
         LIMIT :limit
     ",
@@ -203,15 +229,20 @@ return [
             (SELECT url_imagen FROM tab_imagenes WHERE id_producto = p.id_producto ORDER BY id_imagen LIMIT 1) as primera_imagen
         FROM tab_productos p
         LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
-        WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         ORDER BY p.created_at DESC
     ",
     'obtenerDetalleProducto' => "
-        SELECT id_producto, nom_producto, precio_producto, descripcion_producto, stock_productor, 
-               is_active, id_categoria, nom_categoria, id_color, nom_color, id_oficio, nom_oficio, 
-               id_materia, nom_materia, id_productor, nom_productor, id_stand, nom_stand, img_stand, 
-               slogan_stand, descripcion_stand, portada_stand, ubicacion, imagenes, foto_user
-        FROM fun_obtener_detalle_producto(:id_producto)
+        SELECT d.id_producto, d.nom_producto, d.precio_producto, d.descripcion_producto, d.stock_productor, 
+               d.is_active, d.id_categoria, d.nom_categoria, d.id_color, d.nom_color, d.id_oficio, d.nom_oficio, 
+               d.id_materia, d.nom_materia, d.id_productor, d.nom_productor, d.id_stand, d.nom_stand, d.img_stand, 
+               d.slogan_stand, d.descripcion_stand, d.portada_stand, d.ubicacion, d.imagenes, d.foto_user
+        FROM fun_obtener_detalle_producto(:id_producto) d
+        INNER JOIN tab_productos p ON p.id_producto = d.id_producto
+        WHERE p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
     ",
     'obtenerUsuarioProductorPorProducto' => "
         SELECT pr.id_user
@@ -223,29 +254,56 @@ return [
         LIMIT 1
     ",
     'obtenerStandsActivos' => "
-        SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand
-        FROM tab_stand
-        WHERE is_deleted = FALSE
+        SELECT s.id_productor, s.id_stand, s.nom_stand, s.slogan_stand, s.descripcion_stand, s.img_stand, s.portada_stand
+        FROM tab_stand s
+        WHERE s.is_deleted = FALSE
+          AND EXISTS (
+              SELECT 1
+              FROM tab_productos p
+              WHERE p.id_productor = s.id_productor
+                AND p.is_deleted = FALSE
+                AND p.is_active = TRUE
+                AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
+          )
         ORDER BY nom_stand ASC
     ",
     'obtenerStandsDestacados' => "
-        SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand
-        FROM tab_stand
-        WHERE is_deleted = FALSE
+        SELECT s.id_productor, s.id_stand, s.nom_stand, s.slogan_stand, s.descripcion_stand, s.img_stand, s.portada_stand
+        FROM tab_stand s
+        WHERE s.is_deleted = FALSE
+          AND EXISTS (
+              SELECT 1
+              FROM tab_productos p
+              WHERE p.id_productor = s.id_productor
+                AND p.is_deleted = FALSE
+                AND p.is_active = TRUE
+                AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
+          )
         ORDER BY RANDOM()
         LIMIT :limit
     ",
     'buscarStandsActivos' => "
-        SELECT id_productor, id_stand, nom_stand, slogan_stand, descripcion_stand, img_stand, portada_stand
-        FROM tab_stand
-        WHERE is_deleted = FALSE AND (nom_stand ILIKE :search OR descripcion_stand ILIKE :search)
+        SELECT s.id_productor, s.id_stand, s.nom_stand, s.slogan_stand, s.descripcion_stand, s.img_stand, s.portada_stand
+        FROM tab_stand s
+        WHERE s.is_deleted = FALSE
+          AND (s.nom_stand ILIKE :search OR s.descripcion_stand ILIKE :search)
+          AND EXISTS (
+              SELECT 1
+              FROM tab_productos p
+              WHERE p.id_productor = s.id_productor
+                AND p.is_deleted = FALSE
+                AND p.is_active = TRUE
+                AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
+          )
         ORDER BY nom_stand ASC
     ",
     'obtenerFiltrosCategorias' => "
         SELECT c.id_categoria, c.nom_categoria, c.img_cat, COUNT(p.id_producto) as total
         FROM categorias_view c
         INNER JOIN tab_productos p ON p.id_categoria = c.id_categoria
-        WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         GROUP BY c.id_categoria, c.nom_categoria, c.img_cat
         ORDER BY c.nom_categoria ASC
     ",
@@ -253,7 +311,9 @@ return [
         SELECT o.id_oficio, o.nom_oficio, COUNT(p.id_producto) as total
         FROM oficios_view o
         INNER JOIN tab_productos p ON p.id_oficio = o.id_oficio
-        WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         GROUP BY o.id_oficio, o.nom_oficio
         ORDER BY o.nom_oficio ASC
     ",
@@ -261,7 +321,9 @@ return [
         SELECT m.id_materia, m.nom_materia, COUNT(p.id_producto) as total
         FROM materias_view m
         INNER JOIN tab_productos p ON p.id_materia = m.id_materia
-        WHERE p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         GROUP BY m.id_materia, m.nom_materia
         ORDER BY m.nom_materia ASC
     ",
@@ -300,7 +362,11 @@ return [
         FROM tab_favoritos f
         INNER JOIN tab_productos p ON f.id_producto = p.id_producto
         LEFT JOIN tab_stand s ON p.id_productor = s.id_productor
-        WHERE f.id_user = :id_user AND f.is_deleted = FALSE AND p.is_deleted = FALSE AND p.is_active = TRUE
+        WHERE f.id_user = :id_user
+          AND f.is_deleted = FALSE
+          AND p.is_deleted = FALSE
+          AND p.is_active = TRUE
+          AND (p.validation_status = 'approved' OR p.validation_status IS NULL)
         ORDER BY f.created_at DESC
     ",
     'agregarResena' => "
@@ -348,8 +414,8 @@ return [
             :id_user, :id_pago,
             :dpto, :ciudad, :dir,
             :epayco_ref, :epayco_txn, :epayco_estado,
-            :ids_producto::INTEGER[],
-            :cantidades::INTEGER[]
+            CAST(:ids_producto AS INTEGER[]),
+            CAST(:cantidades AS INTEGER[])
         )",
     'actualizarGuiaFactura' => "
         UPDATE tab_enc_fact
@@ -394,7 +460,26 @@ return [
         WHERE id_producto = :id_p AND id_productor = :id_prod
     ",
     'obtenerImagenesProducto' => "
-        SELECT id_imagen, url_imagen FROM tab_imagenes WHERE id_producto = :id
+        SELECT id_imagen, url_imagen
+        FROM tab_imagenes
+        WHERE id_producto = :id_producto AND is_deleted = FALSE
+        ORDER BY id_imagen ASC
+    ",
+    'obtenerImagenPorProductoUrl' => "
+        SELECT id_imagen
+        FROM tab_imagenes
+        WHERE id_producto = :id_producto
+          AND url_imagen = :url_imagen
+          AND is_deleted = FALSE
+        ORDER BY id_imagen DESC
+        LIMIT 1
+    ",
+    'updateImageHashes' => "
+        UPDATE tab_imagenes
+        SET file_hash = :file_hash,
+            phash = CAST(:phash AS BIT(64)),
+            dhash = CAST(:dhash AS BIT(64))
+        WHERE id_producto = :id_producto AND id_imagen = :id_imagen
     ",
     'actualizarDescripcionPrecio' => "
         UPDATE tab_productos 
@@ -475,6 +560,8 @@ return [
         LEFT JOIN tab_categorias c ON p.id_categoria = c.id_categoria
         LEFT JOIN tab_productores pr ON p.id_productor = pr.id_productor
         LEFT JOIN tab_stand s ON pr.id_productor = s.id_productor
+        WHERE (p.validado_admin IS NULL OR p.validado_admin = FALSE)
+          AND (p.validation_status IS NULL OR p.validation_status != 'rejected')
         ORDER BY p.is_deleted ASC, p.id_producto DESC
     ",
     'toggleUsuarioActivo' => "
@@ -496,19 +583,19 @@ return [
     ",
     'adminRevenueVsOrders' => "
         WITH meses AS (
-            SELECT generate_series(
+            SELECT CAST(generate_series(
                 date_trunc('month', CURRENT_DATE) - interval '5 months',
                 date_trunc('month', CURRENT_DATE),
                 interval '1 month'
-            )::date AS mes
+            ) AS date) AS mes
         )
         SELECT
             to_char(m.mes, 'YYYY-MM') AS label,
-            COALESCE(SUM(f.val_tot_fact), 0)::numeric AS revenue,
-            COUNT(f.id_factura)::integer AS orders
+            CAST(COALESCE(SUM(f.val_tot_fact), 0) AS numeric) AS revenue,
+            CAST(COUNT(f.id_factura) AS integer) AS orders
         FROM meses m
         LEFT JOIN tab_enc_fact f
-            ON date_trunc('month', f.fec_factura)::date = m.mes
+            ON CAST(date_trunc('month', f.fec_factura) AS date) = m.mes
            AND f.is_deleted = FALSE
            AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
         GROUP BY m.mes
@@ -517,8 +604,8 @@ return [
     'adminTopProducts' => "
         SELECT
             p.nom_producto AS label,
-            COALESCE(SUM(d.val_cantidad), 0)::integer AS quantity,
-            COALESCE(SUM(d.val_neto), 0)::numeric AS revenue
+            CAST(COALESCE(SUM(d.val_cantidad), 0) AS integer) AS quantity,
+            CAST(COALESCE(SUM(d.val_neto), 0) AS numeric) AS revenue
         FROM tab_det_fact d
         INNER JOIN tab_enc_fact f ON f.id_factura = d.id_factura
         INNER JOIN tab_productos p ON p.id_producto = d.id_producto
@@ -532,7 +619,7 @@ return [
     'adminCategoryDistribution' => "
         SELECT
             COALESCE(c.nom_categoria, 'Sin categoría') AS label,
-            COUNT(DISTINCT p.id_producto)::integer AS total
+            CAST(COUNT(DISTINCT p.id_producto) AS integer) AS total
         FROM tab_productos p
         LEFT JOIN tab_categorias c ON c.id_categoria = p.id_categoria
         WHERE p.is_deleted = FALSE
@@ -541,16 +628,16 @@ return [
     ",
     'producerRevenueVsSales' => "
         WITH dias AS (
-            SELECT generate_series(
+            SELECT CAST(generate_series(
                 CURRENT_DATE - interval '29 days',
                 CURRENT_DATE,
                 interval '1 day'
-            )::date AS dia
+            ) AS date) AS dia
         )
         SELECT
             to_char(dias.dia, 'DD/MM') AS label,
-            COALESCE(SUM(df.val_neto), 0)::numeric AS revenue,
-            COALESCE(SUM(df.val_cantidad), 0)::integer AS sales
+            CAST(COALESCE(SUM(df.val_neto), 0) AS numeric) AS revenue,
+            CAST(COALESCE(SUM(df.val_cantidad), 0) AS integer) AS sales
         FROM dias
         LEFT JOIN tab_enc_fact f
             ON f.fec_factura = dias.dia
@@ -566,8 +653,8 @@ return [
     'producerTopProducts' => "
         SELECT
             p.nom_producto AS label,
-            COALESCE(SUM(d.val_cantidad), 0)::integer AS quantity,
-            COALESCE(SUM(d.val_neto), 0)::numeric AS revenue
+            CAST(COALESCE(SUM(d.val_cantidad), 0) AS integer) AS quantity,
+            CAST(COALESCE(SUM(d.val_neto), 0) AS numeric) AS revenue
         FROM tab_det_fact d
         INNER JOIN tab_enc_fact f ON f.id_factura = d.id_factura
         INNER JOIN tab_productos p ON p.id_producto = d.id_producto
@@ -578,6 +665,55 @@ return [
         GROUP BY p.id_producto, p.nom_producto
         ORDER BY quantity DESC, revenue DESC
         LIMIT :limit
+    ",
+    'productosPorValidacionStatus' => "
+        SELECT p.id_producto, p.nom_producto, p.id_productor,
+               p.precio_producto, p.stock_productor, p.validation_status,
+               p.is_active, p.created_at,
+               (u.nom_user || ' ' || u.ape_user) AS nombre_productor,
+               vr.decision, vr.reason, vr.provider_used,
+               vr.plagiarism_status, vr.plagiarism_score, vr.plagiarism_method,
+               vr.text_image_status, vr.text_image_score,
+               vr.artisan_status, vr.artisan_score,
+               vr.fallback_used,
+               vr.matched_product_id, vr.matched_producer_id,
+               vr.matched_image_id, vr.matched_image_url,
+               vr.created_at as validated_at,
+               img.url_imagen
+        FROM tab_productos p
+        LEFT JOIN tab_productores pr ON pr.id_productor = p.id_productor
+        LEFT JOIN tab_users u ON u.id_user = pr.id_user
+        LEFT JOIN LATERAL (
+            SELECT decision, reason, provider_used,
+                   plagiarism_status, plagiarism_score, plagiarism_method,
+                   text_image_status, text_image_score,
+                   artisan_status, artisan_score,
+                    fallback_used,
+                    matched_product_id, matched_producer_id,
+                   matched_image_id, matched_image_url,
+                   created_at
+            FROM ai.product_validation_results
+            WHERE product_id = p.id_producto
+            ORDER BY created_at DESC
+            LIMIT 1
+        ) vr ON true
+        LEFT JOIN LATERAL (
+            SELECT url_imagen
+            FROM tab_imagenes
+            WHERE id_producto = p.id_producto AND is_deleted = FALSE
+            ORDER BY id_imagen ASC
+            LIMIT 1
+        ) img ON true
+        WHERE p.is_deleted = FALSE
+          AND ('' = :validation_status OR p.validation_status = :validation_status)
+        ORDER BY p.updated_at DESC
+        LIMIT :limit OFFSET :offset
+    ",
+    'contarProductosPorValidacionStatus' => "
+        SELECT CAST(COUNT(*) AS integer) AS total
+        FROM tab_productos p
+        WHERE p.is_deleted = FALSE
+          AND ('' = :validation_status OR p.validation_status = :validation_status)
     ",
     'seleccionarProductosSeedRag' => "
         SELECT
@@ -634,5 +770,86 @@ return [
             :modelo_decision,
             :version_prompt
         ) AS id_validacion
+    ",
+    'ai.fun_val_unified_hash_search' => "
+        SELECT *
+        FROM ai.fun_val_unified_hash_search(
+            :file_hash, CAST(:phash AS BIT(64)), CAST(:dhash AS BIT(64)),
+            :phash_threshold, :dhash_threshold,
+            :exclude_product_id, :exclude_image_id, :limit
+        )
+    ",
+    'ai.fun_c_visual_embedding' => "
+        SELECT ai.fun_c_visual_embedding(:id_producto, :id_imagen, CAST(:visual_embedding AS vector), :embedding_model)
+    ",
+    'ai.fun_val_similar_by_vector' => "
+        SELECT *
+        FROM ai.fun_val_similar_by_vector(CAST(:embedding AS vector), :threshold, :limit)
+    ",
+    'ai.fun_val_similar_by_vector_exclude' => "
+        SELECT *
+        FROM ai.fun_val_similar_by_vector_exclude(CAST(:embedding AS vector), :producer_id, :threshold, :limit)
+    ",
+    'ai.fun_val_similar_by_status' => "
+        SELECT *
+        FROM ai.fun_val_similar_by_status(
+            CAST(:embedding AS vector(2048)),
+            :status,
+            CAST(:threshold AS FLOAT8),
+            :limit
+        )
+    ",
+    'ai.fun_val_check_examples_count' => "
+        SELECT ai.fun_val_check_examples_count()
+    ",
+    'ai.fun_val_check_pgvector' => "
+        SELECT ai.fun_val_check_pgvector() AS available
+    ",
+    'ai.fun_c_text_embedding' => "
+        SELECT ai.fun_c_text_embedding(
+            :product_id, :producer_id, :content, CAST(:text_embedding AS vector)
+        )
+    ",
+    'ai.fun_val_search_similar_text' => "
+        SELECT *
+        FROM ai.fun_val_search_similar_text(CAST(:embedding AS vector), :threshold, :limit)
+    ",
+    'ai.fun_val_search_similar_text_exclude' => "
+        SELECT *
+        FROM ai.fun_val_search_similar_text_exclude(CAST(:embedding AS vector), :producer_id, :threshold, :limit)
+    ",
+    'ai.fun_get_rag_rules' => "
+        SELECT *
+        FROM ai.fun_get_rag_rules(CAST(:p_types AS TEXT[]))
+    ",
+    'ai.fun_c_validation_result' => "
+        SELECT ai.fun_c_validation_result(
+            :product_id, :producer_id, :decision, :plagiarism_status,
+            :plagiarism_score, :plagiarism_method, :matched_product_id,
+            :matched_producer_id, :matched_image_id, :matched_image_url,
+            :text_image_status, :text_image_score, :artisan_status,
+            :artisan_score, :provider_used, :decision_model, :fallback_used, :reason
+        )
+    ",
+    'ai.fun_val_latest_validation_result' => "
+        SELECT *
+        FROM ai.fun_val_latest_validation_result(:product_id)
+    ",
+    'ai.fun_c_rag_rule' => "
+        SELECT ai.fun_c_rag_rule(:id, :type, :content)
+    ",
+    'ai.fun_val_get_config' => "
+        SELECT value
+        FROM ai.config
+        WHERE key = :key
+    ",
+    'ai.fun_admin_approve_product' => "
+        SELECT ai.fun_admin_approve_product(:product_id, :producer_id, :decision, :motivo)
+    ",
+    'actualizarUrlImagen' => "
+        UPDATE tab_imagenes SET url_imagen = :url WHERE url_imagen = :temp
+    ",
+    'actualizarUrlImagenPorId' => "
+        UPDATE tab_imagenes SET url_imagen = :url WHERE id_imagen = :id
     ",
 ];
