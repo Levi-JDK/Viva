@@ -27,6 +27,8 @@
     </FilesMatch>
 </IfModule>
 
+DirectoryIndex index.php
+
 RewriteEngine On
 RewriteBase /viva/
 
