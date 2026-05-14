@@ -5,3 +5,9 @@ node_modules/
 *.backup
 *.original
 images/products/temp/
+.agents/
+openspec/
+scripts/
+sql/alterations/
+sql/migrations/
+sql/run_softdel.php

@@ -375,6 +375,7 @@ CREATE TABLE IF NOT EXISTS tab_productos
     id_materia                DECIMAL(12,0)                   NOT NULL,                                  -- Materia prima principal
     precio_producto           DECIMAL(12,2)                   NOT NULL            DEFAULT 0,
     descripcion_producto      TEXT                            NOT NULL            DEFAULT 'Sin dato',    -- Precio del producto
+    validation_status         VARCHAR(20)                     NOT NULL            DEFAULT 'approved',    -- Estado de validación IA
     is_active                 BOOLEAN                         NOT NULL            DEFAULT TRUE,          -- Visibilidad
     vistas                    INTEGER                         NOT NULL            DEFAULT 0,             -- Estadísticas de visualización
     created_by                VARCHAR                         NOT NULL            DEFAULT current_user,  -- Usuario que creó
@@ -382,7 +383,9 @@ CREATE TABLE IF NOT EXISTS tab_productos
     updated_by                VARCHAR                         NOT NULL            DEFAULT 'N/A',         -- Usuario que modificó
     updated_at                TIMESTAMP WITHOUT TIME ZONE     NOT NULL            DEFAULT '1900-01-01 00:00:00',  -- Fecha de modificación
     is_deleted                BOOLEAN                         NOT NULL            DEFAULT FALSE,         -- Borrado lógico
+    CONSTRAINT chk_validation_status CHECK (validation_status IN ('pending_review', 'approved', 'rejected')),
     CONSTRAINT chk_pp_stock_activo CHECK (
+    (validation_status        = 'pending_review' AND is_active = FALSE) OR
     (stock_productor          > 0 AND is_active = TRUE) OR
     (stock_productor          = 0 AND is_active = FALSE)
     ),
@@ -399,6 +402,9 @@ CREATE TABLE IF NOT EXISTS tab_imagenes
     id_producto               DECIMAL(12,0)                   NOT NULL,                                  -- Identificador del producto
     id_imagen                 DECIMAL(12,0)                   NOT NULL,
     url_imagen                VARCHAR(255)                    NOT NULL            DEFAULT 'Sin dato',
+    file_hash                 CHAR(64)                        ,
+    phash                     BIT(64)                         ,
+    dhash                     BIT(64)                         ,
     created_by                VARCHAR                         NOT NULL            DEFAULT current_user,  -- Usuario que creó
     created_at                TIMESTAMP WITHOUT TIME ZONE     NOT NULL            DEFAULT CURRENT_TIMESTAMP,  -- Fecha de creación
     updated_by                VARCHAR                         NOT NULL            DEFAULT 'N/A',         -- Usuario que modificó
@@ -603,6 +609,8 @@ CREATE INDEX idx_producto_categoria ON tab_productos(id_categoria);
 CREATE INDEX idx_producto_color ON tab_productos(id_color);
 CREATE INDEX idx_producto_oficio ON tab_productos(id_oficio);
 CREATE INDEX idx_producto_materia ON tab_productos(id_materia);
+CREATE INDEX idx_productos_validation_status ON tab_productos(validation_status);
+CREATE INDEX idx_productos_status_created ON tab_productos(validation_status, created_at DESC);
 CREATE INDEX idx_enc_fact_cliente ON tab_enc_fact(id_client);
 CREATE INDEX idx_enc_fact_pago ON tab_enc_fact(id_pago);
 CREATE INDEX idx_enc_fact_ciudad ON tab_enc_fact(id_ciudad, id_pais);
@@ -721,5 +729,4 @@ CREATE OR REPLACE VIEW materias_view AS
 SELECT id_materia, nom_materia 
 FROM tab_materia_prima 
 ORDER BY nom_materia ASC;
-
 

@@ -13,8 +13,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- 1. Embeddings visuales de imagen
 -- ════════════════════════════════════════════════════════════════════════════
 
--- Los hashes de imagen viven en tab_imagenes (public schema) y se agregan
--- mediante migración/ALTER TABLE para no redefinir la tabla base acá.
+-- Los hashes de imagen viven en tab_imagenes (public schema).
 CREATE TABLE IF NOT EXISTS ai.product_image_embeddings(
     id_producto      DECIMAL(12,0)               NOT NULL,
     id_imagen        DECIMAL(12,0)               NOT NULL,
