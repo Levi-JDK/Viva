@@ -105,7 +105,7 @@ require_once __DIR__ . '/partials/base_head.php';
                             <p class="text-gray-500">Este artesano aún no tiene productos publicados.</p>
                         </div>
                     <?php else: ?>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                             <?php 
                             $show_price = true;
                             foreach ($productos_stand as $product): 

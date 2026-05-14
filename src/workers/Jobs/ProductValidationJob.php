@@ -84,28 +84,6 @@ class ProductValidationJob
             ? $validator($this->productId, $this->producerId, $this->productData['images'], $this->productData)
             : ProductValidationService::validate($this->productId, $this->producerId, $this->productData['images'], $this->productData);
 
-        // Actualizar validation_status en tab_productos según decisión de IA
-        try {
-            $decision = $result['decision'] ?? 'pending_validacion_ia';
-            $newStatus = match ($decision) {
-                'approved' => ['validation_status' => 'approved', 'is_active' => 'true'],
-                'revision_humana' => ['validation_status' => 'pending_review', 'is_active' => 'false'],
-                'rejected' => ['validation_status' => 'rejected', 'is_active' => 'false'],
-                default => ['validation_status' => 'pending_review', 'is_active' => 'false'],
-            };
-
-            Database::getInstance()->ejecutar('actualizarValidacionStatus', [
-                ':id_producto' => $this->productId,
-                ':validation_status' => $newStatus['validation_status'],
-                ':is_active' => $newStatus['is_active'],
-            ]);
-
-            error_log('[ProductValidationJob] Producto ' . $this->productId
-                . ' → validation_status=' . $newStatus['validation_status']);
-        } catch (Throwable $e) {
-            error_log('[ProductValidationJob] Error al actualizar status en DB: ' . $e->getMessage());
-        }
-
         error_log('[ProductValidationJob] Producto ' . $this->productId . ' validado. decision=' . ($result['decision'] ?? 'desconocida'));
     }
 

@@ -302,8 +302,12 @@ require_once __DIR__ . '/partials/base_head.php';
                         </div>
                         
                         <!-- Favorites Grid -->
-                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="favoritos-grid">
-                            <!-- Los favoritos se renderizan aquí dinámicamente vía JS -->
+                        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6" id="favoritos-grid">
+                            <?php if (!empty($favoritos)): ?>
+                                <?php $show_price = true; foreach ($favoritos as $product): ?>
+                                    <?php require ROOT_PATH . 'src/views/partials/card_producto.php'; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Estado vacío de favoritos -->

@@ -182,4 +182,17 @@ $pedidos = UserService::obtenerPedidos((int) $id_usuario);
 $menu_ids_usuario = UserService::obtenerMenuIdsUsuario((int) $id_usuario);
 $es_productor = UserService::esProductor((int) $id_usuario);
 
+// Cargar favoritos para renderizar con card_producto.php
+$favoritos = [];
+if (in_array(6, $menu_ids_usuario)) {
+    try {
+        require_once __DIR__ . '/../functions/database.php';
+        $db = Database::getInstance();
+        $stmt = $db->ejecutar('obtenerFavoritosUsuario', [':id_user' => (int)$id_usuario]);
+        $favoritos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $favoritos = [];
+    }
+}
+
 require_once __DIR__ . '/../views/perfil.view.php';

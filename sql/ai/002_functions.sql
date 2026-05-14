@@ -1,15 +1,8 @@
 -- ============================================================================
--- Functions — AI module
+-- Funciones — Módulo de IA
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION ai.hamming_distance(a BIT(64), b BIT(64))
-RETURNS INTEGER
-LANGUAGE SQL
-IMMUTABLE
-AS $$
-    SELECT CAST(bit_count(a # b) AS INTEGER);
-$$;
-
+-- Limpieza de sobrecargas antiguas
 DROP FUNCTION IF EXISTS ai.fun_c_image_signature(DECIMAL, VARCHAR, CHAR(64), BIT(64), BIT(64));
 DROP FUNCTION IF EXISTS ai.fun_u_embedding(BIGINT, VECTOR, VARCHAR);
 DROP FUNCTION IF EXISTS ai.fun_u_delete_image_signatures_by_product(DECIMAL);
@@ -19,8 +12,20 @@ DROP FUNCTION IF EXISTS ai.fun_val_unified_hash_search(TEXT, BIT(64), BIT(64), I
 DROP FUNCTION IF EXISTS ai.fun_val_similar_by_vector(VECTOR, DOUBLE PRECISION, INTEGER);
 DROP FUNCTION IF EXISTS ai.fun_val_similar_by_vector_exclude(VECTOR, DECIMAL, DOUBLE PRECISION, INTEGER);
 DROP FUNCTION IF EXISTS ai.fun_val_similar_by_status(VECTOR, VARCHAR, DOUBLE PRECISION, INTEGER);
+DROP FUNCTION IF EXISTS ai.fun_val_visual_embeddings_by_products(DECIMAL[]);
 
-CREATE OR REPLACE FUNCTION ai.fun_val_unified_hash_search(
+-- Funciones actuales: drop + create con LANGUAGE al final
+DROP FUNCTION IF EXISTS ai.hamming_distance(BIT(64), BIT(64));
+CREATE FUNCTION ai.hamming_distance(a BIT(64), b BIT(64))
+RETURNS INTEGER
+AS $$
+BEGIN
+    RETURN CAST(bit_count(a # b) AS INTEGER);
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS ai.fun_val_unified_hash_search(TEXT, BIT(64), BIT(64), INTEGER, INTEGER, NUMERIC, NUMERIC, INTEGER);
+CREATE FUNCTION ai.fun_val_unified_hash_search(
     p_file_hash TEXT,
     p_phash BIT(64),
     p_dhash BIT(64),
@@ -40,9 +45,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_unified_hash_search(
     detection_method TEXT,
     score FLOAT8
 )
-LANGUAGE SQL
-STABLE
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT ti.id_producto, ti.id_imagen, ti.url_imagen,
            ti.file_hash, ti.phash, ti.dhash, p.id_productor,
            CAST(
@@ -75,25 +80,29 @@ AS $$
       )
     ORDER BY score DESC
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_c_visual_embedding(
+DROP FUNCTION IF EXISTS ai.fun_c_visual_embedding(NUMERIC, NUMERIC, VECTOR(1024), VARCHAR);
+CREATE FUNCTION ai.fun_c_visual_embedding(
     p_id_producto tab_imagenes.id_producto%TYPE,
     p_id_imagen tab_imagenes.id_imagen%TYPE,
-    p_visual_embedding VECTOR(2048),
+    p_visual_embedding VECTOR(1024),
     p_embedding_model VARCHAR
 ) RETURNS VOID
-LANGUAGE SQL
 AS $$
+BEGIN
     INSERT INTO ai.product_image_embeddings (id_producto, id_imagen, visual_embedding, embedding_model)
     VALUES (p_id_producto, p_id_imagen, p_visual_embedding, p_embedding_model)
     ON CONFLICT (id_producto, id_imagen) DO UPDATE
         SET visual_embedding = p_visual_embedding,
             embedding_model = p_embedding_model;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_vector(
-    p_embedding VECTOR(2048),
+DROP FUNCTION IF EXISTS ai.fun_val_similar_by_vector(VECTOR(1024), FLOAT8, INT);
+CREATE FUNCTION ai.fun_val_similar_by_vector(
+    p_embedding VECTOR(1024),
     p_threshold FLOAT8,
     p_limit INT
 ) RETURNS TABLE(
@@ -102,9 +111,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_vector(
     url_imagen VARCHAR,
     similarity FLOAT8
 )
-LANGUAGE SQL
-STABLE
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT e.id_producto, e.id_imagen, ti.url_imagen,
            1 - (e.visual_embedding <=> p_embedding) AS similarity
     FROM ai.product_image_embeddings e
@@ -113,10 +122,12 @@ AS $$
       AND 1 - (e.visual_embedding <=> p_embedding) >= p_threshold
     ORDER BY e.visual_embedding <=> p_embedding
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_vector_exclude(
-    p_embedding VECTOR(2048),
+DROP FUNCTION IF EXISTS ai.fun_val_similar_by_vector_exclude(VECTOR(1024), NUMERIC, FLOAT8, INT);
+CREATE FUNCTION ai.fun_val_similar_by_vector_exclude(
+    p_embedding VECTOR(1024),
     p_producer_id tab_productos.id_productor%TYPE,
     p_threshold FLOAT8,
     p_limit INT
@@ -126,9 +137,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_vector_exclude(
     url_imagen VARCHAR,
     similarity FLOAT8
 )
-LANGUAGE SQL
-STABLE
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT e.id_producto, e.id_imagen, ti.url_imagen,
            1 - (e.visual_embedding <=> p_embedding) AS similarity
     FROM ai.product_image_embeddings e
@@ -139,10 +150,12 @@ AS $$
       AND 1 - (e.visual_embedding <=> p_embedding) >= p_threshold
     ORDER BY e.visual_embedding <=> p_embedding
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_status(
-    p_embedding VECTOR(2048),
+DROP FUNCTION IF EXISTS ai.fun_val_similar_by_status(VECTOR(1024), VARCHAR, FLOAT8, INT);
+CREATE FUNCTION ai.fun_val_similar_by_status(
+    p_embedding VECTOR(1024),
     p_status tab_productos.validation_status%TYPE,
     p_threshold FLOAT8 DEFAULT 0.85,
     p_limit INT DEFAULT 10
@@ -153,9 +166,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_similar_by_status(
     similarity FLOAT8,
     validation_status tab_productos.validation_status%TYPE
 )
-LANGUAGE SQL
-STABLE
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT e.id_producto, e.id_imagen, ti.url_imagen,
            1 - (e.visual_embedding <=> p_embedding) AS similarity,
            p.validation_status
@@ -167,41 +180,78 @@ AS $$
       AND 1 - (e.visual_embedding <=> p_embedding) >= p_threshold
     ORDER BY e.visual_embedding <=> p_embedding
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_check_examples_count()
-RETURNS BIGINT
-LANGUAGE SQL
-STABLE
+DROP FUNCTION IF EXISTS ai.fun_val_visual_embeddings_by_products(NUMERIC[]);
+CREATE FUNCTION ai.fun_val_visual_embeddings_by_products(
+    p_product_ids DECIMAL[]
+) RETURNS TABLE(
+    id_producto      DECIMAL,
+    id_imagen        DECIMAL,
+    url_imagen       TEXT,
+    visual_embedding VECTOR(1024)
+)
 AS $$
-    SELECT COUNT(DISTINCT product_id)
-    FROM ai.product_validation_results
-    WHERE decision IN ('approved', 'rejected');
-$$;
+BEGIN
+    RETURN QUERY
+    SELECT
+        e.id_producto,
+        e.id_imagen,
+        CAST(ti.url_imagen AS TEXT) AS url_imagen,
+        e.visual_embedding
+    FROM ai.product_image_embeddings e
+    INNER JOIN tab_imagenes ti
+        ON ti.id_producto = e.id_producto
+       AND ti.id_imagen = e.id_imagen
+    WHERE e.id_producto = ANY(p_product_ids)
+      AND ti.is_deleted = FALSE
+    ORDER BY e.id_producto, e.id_imagen;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_c_text_embedding(
+DROP FUNCTION IF EXISTS ai.fun_val_check_examples_count();
+CREATE FUNCTION ai.fun_val_check_examples_count()
+RETURNS BIGINT
+AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(DISTINCT product_id)
+        FROM ai.product_validation_results
+        WHERE decision IN ('approved', 'rejected')
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS ai.fun_c_text_embedding(NUMERIC, NUMERIC, TEXT, VECTOR(1024));
+CREATE FUNCTION ai.fun_c_text_embedding(
     p_product_id      DECIMAL(12,0),
     p_producer_id     DECIMAL(10,0),
     p_content         TEXT,
-    p_text_embedding  VECTOR(2048)
+    p_text_embedding  VECTOR(1024)
 ) RETURNS BIGINT
-LANGUAGE SQL
 AS $$
+DECLARE
+    v_id BIGINT;
+BEGIN
     INSERT INTO ai.product_text_embeddings (
         product_id, producer_id, content, text_embedding
     ) VALUES (
         p_product_id, p_producer_id, p_content, p_text_embedding
     )
-    ON CONFLICT ON CONSTRAINT product_text_embeddings_pkey 
+    ON CONFLICT ON CONSTRAINT product_text_embeddings_pkey
     DO UPDATE SET
         content = EXCLUDED.content,
         text_embedding = EXCLUDED.text_embedding,
         updated_at = NOW()
-    RETURNING id;
-$$;
+    RETURNING id INTO v_id;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_search_similar_text(
-    p_embedding     VECTOR(2048),
+DROP FUNCTION IF EXISTS ai.fun_val_search_similar_text(VECTOR(1024), DOUBLE PRECISION, INTEGER);
+CREATE FUNCTION ai.fun_val_search_similar_text(
+    p_embedding     VECTOR(1024),
     p_threshold     DOUBLE PRECISION,
     p_limit         INTEGER DEFAULT 5
 ) RETURNS TABLE(
@@ -211,8 +261,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_search_similar_text(
     content         TEXT,
     similarity      DOUBLE PRECISION
 )
-LANGUAGE SQL
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT
         pte.id,
         pte.product_id,
@@ -223,10 +274,12 @@ AS $$
     WHERE 1 - (pte.text_embedding <=> p_embedding) >= p_threshold
     ORDER BY similarity DESC
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_search_similar_text_exclude(
-    p_embedding     VECTOR(2048),
+DROP FUNCTION IF EXISTS ai.fun_val_search_similar_text_exclude(VECTOR(1024), NUMERIC, DOUBLE PRECISION, INTEGER);
+CREATE FUNCTION ai.fun_val_search_similar_text_exclude(
+    p_embedding     VECTOR(1024),
     p_producer_id   DECIMAL(10,0),
     p_threshold     DOUBLE PRECISION,
     p_limit         INTEGER DEFAULT 5
@@ -237,8 +290,9 @@ CREATE OR REPLACE FUNCTION ai.fun_val_search_similar_text_exclude(
     content         TEXT,
     similarity      DOUBLE PRECISION
 )
-LANGUAGE SQL
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT
         pte.id,
         pte.product_id,
@@ -250,24 +304,29 @@ AS $$
       AND 1 - (pte.text_embedding <=> p_embedding) >= p_threshold
     ORDER BY similarity DESC
     LIMIT p_limit;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_get_rag_rules(
+DROP FUNCTION IF EXISTS ai.fun_get_rag_rules(TEXT[]);
+CREATE FUNCTION ai.fun_get_rag_rules(
     p_types TEXT[]
 ) RETURNS TABLE(
     id      DECIMAL(2,0),
     type    TEXT,
     content TEXT
 )
-LANGUAGE SQL
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT rr.id, rr.type, rr.content
     FROM ai.rag_rules rr
     WHERE rr.type = ANY(p_types)
     ORDER BY rr.id;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_c_validation_result(
+DROP FUNCTION IF EXISTS ai.fun_c_validation_result(NUMERIC, NUMERIC, TEXT, TEXT, NUMERIC, TEXT, VARCHAR, VARCHAR, VARCHAR, TEXT, TEXT, NUMERIC, TEXT, NUMERIC, TEXT, TEXT, BOOLEAN, TEXT);
+CREATE FUNCTION ai.fun_c_validation_result(
     p_product_id            ai.product_validation_results.product_id%TYPE,
     p_producer_id           ai.product_validation_results.producer_id%TYPE,
     p_decision              ai.product_validation_results.decision%TYPE,
@@ -287,8 +346,10 @@ CREATE OR REPLACE FUNCTION ai.fun_c_validation_result(
     p_fallback_used         ai.product_validation_results.fallback_used%TYPE,
     p_reason                ai.product_validation_results.reason%TYPE
 ) RETURNS BIGINT
-LANGUAGE SQL
 AS $$
+DECLARE
+    v_id BIGINT;
+BEGIN
     INSERT INTO ai.product_validation_results (
         product_id, producer_id, decision, plagiarism_status, plagiarism_score,
         plagiarism_method, matched_product_id, matched_producer_id, matched_image_id,
@@ -300,38 +361,47 @@ AS $$
         p_matched_image_url, p_text_image_status, p_text_image_score, p_artisan_status,
         p_artisan_score, p_provider_used, p_decision_model, p_fallback_used, p_reason
     )
-    RETURNING id;
-$$;
+    RETURNING id INTO v_id;
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_check_pgvector()
+DROP FUNCTION IF EXISTS ai.fun_val_check_pgvector();
+CREATE FUNCTION ai.fun_val_check_pgvector()
 RETURNS BOOLEAN
-LANGUAGE SQL
 AS $$
-    SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector');
-$$;
+BEGIN
+    RETURN (SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'vector'));
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_val_latest_validation_result(
+DROP FUNCTION IF EXISTS ai.fun_val_latest_validation_result(NUMERIC);
+CREATE FUNCTION ai.fun_val_latest_validation_result(
     p_product_id ai.product_validation_results.product_id%TYPE
 ) RETURNS SETOF ai.product_validation_results
-LANGUAGE SQL
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT *
     FROM ai.product_validation_results
     WHERE product_id = p_product_id
     ORDER BY created_at DESC
     LIMIT 1;
-$$;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ai.fun_c_rag_rule(
+DROP FUNCTION IF EXISTS ai.fun_c_rag_rule(NUMERIC, TEXT, TEXT);
+CREATE FUNCTION ai.fun_c_rag_rule(
     p_id      DECIMAL(2,0),
     p_type    TEXT,
     p_content TEXT
 ) RETURNS VOID
-LANGUAGE SQL
 AS $$
+BEGIN
     INSERT INTO ai.rag_rules(id, type, content)
     VALUES (p_id, p_type, p_content)
     ON CONFLICT (id) DO UPDATE
     SET content = EXCLUDED.content,
         updated_at = NOW();
-$$;
+END;
+$$ LANGUAGE plpgsql;

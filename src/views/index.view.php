@@ -157,8 +157,8 @@ require_once __DIR__ . '/partials/base_head.php';
                             : base_url_path('images/default_category.webp'); 
                 ?>
                     <a href="<?= base_url_path('catalogo?cat=' . $cat['id_categoria']) ?>" class="category-card card-hover rounded-2xl p-6 text-center cursor-pointer h-full flex flex-col items-center justify-center transition-all">
-                        <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center p-2 overflow-hidden">
-                            <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($cat['nom_categoria']) ?>" class="max-w-full max-h-full object-contain">
+                        <div class="w-24 h-24 bg-white shadow-sm rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+                            <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($cat['nom_categoria']) ?>" class="w-full h-full object-cover">
                         </div>
                         <h3 class="font-semibold text-tierra-oscuro"><?= htmlspecialchars($cat['nom_categoria']) ?></h3>
                         <p class="text-xs text-gray-600 mt-1"><?= $cat['total'] ?> productos</p>
@@ -185,7 +185,7 @@ require_once __DIR__ . '/partials/base_head.php';
             </div>
 
             <?php if (!empty($featured_products)): ?>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                     <?php 
                     $show_price = false; // Ocultar precio en el landing
                     foreach ($featured_products as $product): 

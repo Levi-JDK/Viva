@@ -799,6 +799,10 @@ return [
             :limit
         )
     ",
+    'ai.fun_val_visual_embeddings_by_products' => "
+        SELECT *
+        FROM ai.fun_val_visual_embeddings_by_products(CAST(:p_product_ids AS DECIMAL[]))
+    ",
     'ai.fun_val_check_examples_count' => "
         SELECT ai.fun_val_check_examples_count()
     ",
@@ -817,6 +821,18 @@ return [
     'ai.fun_val_search_similar_text_exclude' => "
         SELECT *
         FROM ai.fun_val_search_similar_text_exclude(CAST(:embedding AS vector), :producer_id, :threshold, :limit)
+    ",
+    'ai.fun_val_search_by_visual_desc' => "
+        SELECT d.product_id,
+               d.description,
+               1 - (d.embedding <=> CAST(:vec AS vector(2048))) AS similarity,
+               vr.decision
+        FROM ai.product_visual_descriptions d
+        LEFT JOIN ai.product_validation_results vr ON vr.product_id = d.product_id
+        WHERE d.product_id <> :pid
+          AND vr.decision IS NOT NULL
+        ORDER BY similarity DESC
+        LIMIT :limit
     ",
     'ai.fun_get_rag_rules' => "
         SELECT *

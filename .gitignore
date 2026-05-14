@@ -1,3 +1,7 @@
 /vendor
+node_modules/
 .env
 .vscode
+*.backup
+*.original
+images/products/temp/

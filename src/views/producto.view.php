@@ -327,7 +327,7 @@ require_once __DIR__ . '/partials/base_head.php';
             <?php if (!empty($productos_relacionados)): ?>
              <div class="mt-12">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-heart text-naranja-artesanal"></i>También te podría gustar</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                     <?php 
                     $show_price = true;
                     foreach ($productos_relacionados as $product):

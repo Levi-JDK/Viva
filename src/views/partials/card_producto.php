@@ -84,12 +84,12 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
 <div class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col group h-full relative">
     <!-- Imagen del Producto — es el link principal -->
     <a href="<?= htmlspecialchars($product_url) ?>" class="block relative group/img">
-        <!-- sm:aspect-auto desactiva el ratio móvil en desktop para que no compita con h-48 y no desalineé la grilla. -->
-        <div class="aspect-[4/3] sm:aspect-auto sm:h-48 bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">
+        <!-- aspect-ratio único en todos los breakpoints: siempre proporcional, cero saltos -->
+        <div class="aspect-[4/3] bg-gradient-to-br from-tierra-claro to-beige-suave relative overflow-hidden">
             <!-- srcset permite elegir resolución adecuada; loading lazy evita descargar imágenes below-the-fold antes de tiempo. -->
             <img src="<?= $product_image ?>"
                  srcset="<?= htmlspecialchars($product_image_thumb) ?> 320w, <?= htmlspecialchars($product_image_medium) ?> 640w, <?= htmlspecialchars($product_image) ?> 1024w"
-                 sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                 sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw"
                  alt="<?= htmlspecialchars($product['nom_producto'] ?? 'Producto') ?>"
                  loading="lazy"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -106,24 +106,24 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
     </a>
 
     <!-- Información del Producto -->
-    <div class="p-5 flex-1 flex flex-col">
+    <div class="p-3 sm:p-5 flex-1 flex flex-col">
         <!-- Nombre del Producto -->
         <a href="<?= htmlspecialchars($product_url) ?>">
-            <h3 class="font-bold text-lg text-tierra-oscuro mb-2 line-clamp-2 group-hover:text-naranja-artesanal transition-colors">
+            <h3 class="font-bold text-sm sm:text-lg text-tierra-oscuro mb-1 sm:mb-2 line-clamp-2 group-hover:text-naranja-artesanal transition-colors">
                 <?= htmlspecialchars($product['nom_producto'] ?? 'Sin nombre') ?>
             </h3>
         </a>
 
         <!-- Información del Stand (Productor) -->
-        <div class="flex items-center gap-2 mb-3">
-            <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-tierra-claro bg-white">
+        <div class="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-3">
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-tierra-claro bg-white">
                 <!-- object-contain evita recortar logos rectangulares dentro del círculo; bg-white rellena el espacio sobrante. -->
                 <img src="<?= $stand_logo ?>"
                      alt="<?= htmlspecialchars($product['nom_stand'] ?? 'Stand') ?>"
                      loading="lazy"
                      class="w-full h-full object-contain">
             </div>
-            <span class="text-sm text-gray-600 truncate">
+            <span class="text-xs sm:text-sm text-gray-600 truncate">
                 <?= htmlspecialchars($product['nom_stand'] ?? 'Stand artesanal') ?>
             </span>
         </div>
@@ -133,9 +133,9 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
 
         <!-- Precio (condicional) -->
         <?php if ($show_price): ?>
-            <div class="mt-auto pt-3 border-t border-gray-100">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="text-2xl font-bold text-tierra-oscuro">
+            <div class="mt-auto pt-2 sm:pt-3 border-t border-gray-100">
+                <div class="flex items-center justify-between gap-1 sm:gap-2">
+                    <span class="text-base sm:text-2xl font-bold text-tierra-oscuro">
                         $<?= number_format($product['precio_producto'] ?? 0, 0, ',', '.') ?>
                     </span>
                     <!-- Botón Agregar al Carrito -->
@@ -146,10 +146,11 @@ $cart_price = (int)($product['precio_producto'] ?? 0);
                         data-name="<?= htmlspecialchars((string)($product['nom_producto'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                         data-price="<?= $cart_price ?>"
                         data-image="<?= htmlspecialchars((string)$product_image, ENT_QUOTES, 'UTF-8') ?>"
-                        class="btn-agregar-carrito bg-naranja-artesanal text-white px-4 py-2 rounded-lg text-sm font-medium
-                               hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1.5">
-                        <i class="fas fa-shopping-cart text-xs"></i>
-                        Agregar
+                        class="btn-agregar-carrito bg-naranja-artesanal text-white px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium
+                               hover:bg-tierra-oscuro active:scale-95 transition-all flex items-center gap-1 sm:gap-1.5">
+                        <i class="fas fa-shopping-cart text-[10px] sm:text-xs"></i>
+                        <span class="hidden sm:inline">Agregar</span>
+                        <span class="sm:hidden"><i class="fas fa-plus"></i></span>
                     </button>
                 </div>
             </div>

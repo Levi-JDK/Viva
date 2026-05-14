@@ -804,12 +804,15 @@
    SECCIONES DE CONTENIDO DEL PERFIL
    ================================================================ */
 
-/* Por defecto todas las secciones están ocultas */
+/* Secciones del perfil: visibles por defecto, ocultas solo cuando JS está listo */
 .content-section {
+    display: block;
+}
+
+html.js .content-section {
     display: none;
 }
 
-/* Solo la sección activa se muestra */
-.content-section.active {
+html.js .content-section.active {
     display: block;
 }

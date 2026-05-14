@@ -9,11 +9,11 @@ require_once __DIR__ . "/partials/header.php";
 	<!-- Toast Container -->
 	<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-	<main class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-fixed bg-no-repeat" style="background-image: url('<?= BASE_URL ?>images/artesanias_full.webp');">
-		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,50rem)] min-h-[37.5rem] md:min-h-[34.375rem] transform-gpu will-change-transform" id="auth-shell" data-auth-shell>
+	<main class="center flex-1 w-full flex items-center justify-center py-10 md:py-20 px-4 bg-cover bg-center bg-no-repeat md:bg-fixed" style="background-image: url('<?= BASE_URL ?>images/artesanias_full.webp');">
+		<div class="container flex flex-col md:flex-row bg-fondo-claro rounded-2xl shadow-2xl overflow-hidden w-full max-w-[min(90%,50rem)] min-h-[30rem] md:min-h-[34.375rem] transform-gpu will-change-transform" id="auth-shell" data-auth-shell>
 			
 			<!-- Login Form (left side) -->
-			<div class="w-full md:w-1/2 flex flex-col items-center justify-center px-8 py-10 transform-gpu will-change-transform" data-auth-panel="login">
+			<div class="w-full md:w-1/2 flex flex-col items-center justify-center px-6 md:px-8 py-8 md:py-10 transform-gpu will-change-transform" data-auth-panel="login">
 				<form id="form-login" data-action="login" method="POST" class="flex flex-col items-center justify-center text-center w-full">
 					<input type="hidden" name="redirect" value="<?= htmlspecialchars($_GET['redirect'] ?? '', ENT_QUOTES) ?>">
 					<h1 class="font-bold text-3xl mb-4 text-oscuro">Iniciar Sesión</h1>

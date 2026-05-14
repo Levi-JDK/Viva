@@ -9,6 +9,9 @@ require_once __DIR__ . '/TextEmbeddingService.php';
 
 class ProductValidationService
 {
+    private const VISUAL_DESC_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
+    private const VISUAL_DESC_PROMPT = "Eres un experto en artesanías colombianas y clasificación visual de productos para e-commerce.\n\nAnaliza la imagen del producto y genera una descripción semántica útil para búsqueda por embeddings.\n\nInstrucciones:\n1. Identifica el objeto principal.\n2. Si el producto parece una artesanía conocida, menciona su nombre común y nombre cultural.\n3. No te quedes solo en colores o formas; describe tipo de producto, material probable, técnica artesanal, patrón, uso y categoría.\n4. Si el objeto se parece a un sombrero vueltiao, mochila wayuu, ruana, canasto, cerámica, talla en madera u otra artesanía tradicional, indícalo explícitamente con nivel de confianza.\n5. Si no estás seguro, usa frases como \"posible\", \"parece\", \"similar a\", pero no inventes.\n6. Responde en español.\n7. Devuelve una descripción optimizada para embeddings, no una descripción para humanos.\n\nFormato JSON:\n{\"categoria_visual\": \"...\", \"producto_probable\": \"...\", \"descripcion_semantica\": \"...\", \"etiquetas\": [], \"confianza\": \"baja|media|alta\"}\n\nSOLO responde con el JSON, sin texto adicional, sin markdown.";
+
     /**
      * @param array<int,array>|array<string,mixed> $productData
      * @param array<string,mixed>|null $legacyProductData
@@ -56,8 +59,11 @@ class ProductValidationService
                 return $result;
             }
 
-            // Siempre generar embeddings (imagen + texto) antes del threshold
-            [$imageEmbeddings, $visualSimilarities] = self::processImageEmbeddings($imageHashes, $producerId, $productId, $result);
+            self::saveImageHashes($imageHashes, $productId);
+
+            [$visualDescription, $visualDescriptionEmbedding] = self::generateAndSaveVisualDescription($productId, $imageHashes);
+            $result['visual_description'] = $visualDescription;
+            $result['visual_description_embedding'] = $visualDescriptionEmbedding;
 
             try {
                 TextEmbeddingService::embedAndSaveProductData($productId, $productData);
@@ -80,29 +86,21 @@ class ProductValidationService
                 return $result;
             }
 
-            if ($visualSimilarities !== []) {
-                $bestVisual = self::bestMatch($visualSimilarities);
-                $score = (float) ($bestVisual['similarity'] ?? $bestVisual['score'] ?? 0.0);
-                if ($score > 0.0) {
-                    $result['plagio_visual'] = self::plagiarismPayload($bestVisual, $score);
-                }
-            }
-
-            [$coherence, $ragRules, $exampleDecisions, $ragContextText] = self::buildRagContext($productId, $productData, $imageEmbeddings, $result);
+            [$coherence, $ragRules, $exampleDecisions, $ragContextText, $visualDescMatches] = self::buildRagContext($productId, $productData, $result);
             $result['coherencia_texto_imagen'] = $coherence;
 
-            $needsDecision = self::shouldCallDecisionModel(
-                $result['plagio_visual'], $result['coherencia_texto_imagen'], $result['artesanalidad'],
-                $ragRules, $exampleDecisions
-            );
-            if ($needsDecision) {
-                $evidence = self::buildEvidence($productData, $hashMatches, $visualSimilarities,
-                    $result['coherencia_texto_imagen'], $ragRules, $result['artesanalidad'],
-                    $exampleDecisions);
-                self::applyDecisionModel($result, $evidence);
-            } else {
-                $result['motivo_general'] = 'Producto aprobado automáticamente: sin plagio visual y con coherencia texto-imagen alta o no requerida.';
+            // ── Pre-LLM Rules: decisiones sin llamar al modelo ──
+            $preDecision = self::applyPreLlmRules($result);
+            if ($preDecision !== null) {
+                self::saveResult($productId, $producerId, $result);
+                return $result;
             }
+
+            // ── LLM Decision ──
+            $evidence = self::buildEvidence($productData, $hashMatches,
+                $result['coherencia_texto_imagen'], $ragRules, $result['artesanalidad'],
+                $exampleDecisions, $result['visual_description'] ?? null, $visualDescMatches);
+            self::applyDecisionModel($result, $evidence);
 
             self::saveResult($productId, $producerId, $result);
             return $result;
@@ -140,6 +138,8 @@ class ProductValidationService
             ],
             'coherencia_texto_imagen' => ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Aún no evaluada'],
             'artesanalidad' => ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Aún no evaluada'],
+            'visual_description' => null,
+            'visual_description_embedding' => null,
             'rag_evidence' => 0,
             'provider_used' => null,
             'fallback_used' => false,
@@ -196,55 +196,103 @@ class ProductValidationService
         return $matches;
     }
 
-    private static function processImageEmbeddings(array $imageHashes, int $producerId, int $productId, array &$result): array
+    private static function saveImageHashes(array $imageHashes, int $productId): void
     {
-        $imageEmbeddings = [];
-        $visualSimilarities = [];
-
         foreach ($imageHashes as $hashData) {
             self::saveImageSignature($productId, $hashData);
-            try {
-                // Usar URL pública para el embedding (el proveedor IA necesita acceso HTTP)
-                $imageUrl = self::imageUrl($hashData);
-                if (!preg_match('/^https?:\/\//i', $imageUrl)) {
-                    // Si no hay URL pública, construir desde path local
-                    $localPath = (string) ($hashData['path'] ?? $hashData['image_path'] ?? '');
-                    if ($localPath !== '' && !str_starts_with($localPath, '/')) {
-                        $imageUrl = 'http://135.119.114.214/viva/' . ltrim($localPath, '/');
-                    }
-                }
-                $embedding = AIProviderRouter::generateImageEmbedding($imageUrl);
-                $imageEmbeddings[] = $embedding['embedding'];
-                $imageId = (int) ($hashData['id_imagen'] ?? $hashData['image_id'] ?? 0);
-                if ($imageId > 0) {
-                    ImageSignatureService::saveVisualEmbedding(
-                        $productId,
-                        $imageId,
-                        $embedding['embedding'],
-                        (string) ($embedding['model'] ?? '')
-                    );
-                }
-                $similar = ImageSignatureService::findSimilarByVectorExcludingProducer($embedding['embedding'], $producerId, 0.90, 10);
-                foreach ($similar as $match) {
-                    $match['detection_method'] = 'embedding_visual';
-                    $visualSimilarities[] = $match;
-                }
-                $result['models']['embedding_model'] = $embedding['model'] ?? null;
-                $result['provider_used'] = $embedding['provider'] ?? $result['provider_used'];
-                $result['fallback_used'] = self::providerIsFallback((string) ($embedding['provider'] ?? ''));
-            } catch (AIProviderException $exception) {
-                $result['provider_used'] = null;
-                $result['fallback_used'] = true;
-            }
         }
-
-        return [$imageEmbeddings, $visualSimilarities];
     }
 
-    private static function buildRagContext(int $productId, array $productData, array $imageEmbeddings, array &$result): array
+    /**
+     * @param array<int,array> $imageHashes
+     * @return array{0:?string,1:?array<int,float>}
+     */
+    private static function generateAndSaveVisualDescription(int $productId, array $imageHashes): array
+    {
+        if ($imageHashes === []) {
+            return [null, null];
+        }
+
+        try {
+            $firstImage = reset($imageHashes);
+            if (!is_array($firstImage)) {
+                return [null, null];
+            }
+
+            $imageUrl = (string) ($firstImage['url'] ?? $firstImage['image_url'] ?? $firstImage['path'] ?? $firstImage['image_path'] ?? '');
+            if (!preg_match('/^data:image/i', $imageUrl) && !preg_match('/^https?:\/\//i', $imageUrl)) {
+                $localPath = (string) ($firstImage['path'] ?? '');
+                if ($localPath !== '') {
+                    $imageUrl = 'http://135.119.114.214/viva/' . ltrim($localPath, '/');
+                }
+            }
+
+            $descResult = AIProviderRouter::callChat([
+                ['role' => 'user', 'content' => [
+                    ['type' => 'image_url', 'image_url' => ['url' => $imageUrl]],
+                    ['type' => 'text', 'text' => self::VISUAL_DESC_PROMPT],
+                ]],
+            ], self::VISUAL_DESC_MODEL, ['nvidia'], [
+                'chat_template_kwargs' => ['enable_thinking' => false],
+            ]);
+
+            $descText = (string) ($descResult['content'] ?? '');
+            if ($descText === '' || preg_match('/\{.*\}/s', $descText, $matches) !== 1) {
+                return [null, null];
+            }
+
+            $descJson = json_decode($matches[0], true);
+            if (!is_array($descJson) || empty($descJson['descripcion_semantica'])) {
+                return [null, null];
+            }
+
+            $semanticDesc = trim((string) $descJson['descripcion_semantica']);
+            if ($semanticDesc === '') {
+                return [null, null];
+            }
+
+            $embedResult = AIProviderRouter::generateTextEmbedding($semanticDesc);
+            $visualDescriptionEmbedding = $embedResult['embedding'] ?? null;
+            if (!is_array($visualDescriptionEmbedding) || $visualDescriptionEmbedding === []) {
+                return [null, null];
+            }
+
+            self::saveVisualDescription($productId, $semanticDesc, $visualDescriptionEmbedding, self::VISUAL_DESC_MODEL);
+            return [$semanticDesc, $visualDescriptionEmbedding];
+        } catch (Throwable $e) {
+            error_log('[ProductValidation] Error generando descripción visual: ' . $e->getMessage());
+            return [null, null];
+        }
+    }
+
+    /**
+     * @param array<int,float> $embedding
+     */
+    private static function saveVisualDescription(int $productId, string $description, array $embedding, string $model): void
+    {
+        $db = Database::getInstance();
+        $stmt = $db->connection->prepare(
+            'INSERT INTO ai.product_visual_descriptions (product_id, description, embedding, model)
+             VALUES (:pid, :description, CAST(:embedding AS vector(2048)), :model)
+             ON CONFLICT (product_id) DO UPDATE SET
+                 description = EXCLUDED.description,
+                 embedding = EXCLUDED.embedding,
+                 model = EXCLUDED.model,
+                 created_at = NOW()'
+        );
+        $stmt->execute([
+            ':pid' => $productId,
+            ':description' => $description,
+            ':embedding' => self::vectorLiteral($embedding),
+            ':model' => $model,
+        ]);
+    }
+
+    private static function buildRagContext(int $productId, array $productData, array &$result): array
     {
         $ragRules = [];
         $exampleDecisions = [];
+        $visualDescMatches = [];
         $textEmbedding = null;
 
         try {
@@ -254,23 +302,14 @@ class ProductValidationService
                 $result['models']['embedding_model'] = $textData['model'];
             }
         } catch (AIProviderException $exception) {
-            if ($imageEmbeddings === []) {
-                throw $exception;
-            }
             $result['fallback_used'] = true;
         }
 
-        // Usar solo el título para coherencia texto-imagen (más preciso que el texto combinado)
-        $title = trim((string) ($productData['title'] ?? ''));
-        if ($title !== '') {
-            try {
-                $titleCoherence = TextEmbeddingService::computeTextImageCoherence($title, $imageEmbeddings);
-            } catch (Throwable $e) {
-                $titleCoherence = ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Error al evaluar coherencia con título.'];
-            }
-            $coherence = $titleCoherence;
+        $visualDescriptionEmbedding = $result['visual_description_embedding'] ?? null;
+        if ($textEmbedding !== null && is_array($visualDescriptionEmbedding) && $visualDescriptionEmbedding !== []) {
+            $coherence = TextEmbeddingService::computeTextImageCoherenceEmbedding($textEmbedding, [$visualDescriptionEmbedding]);
         } else {
-            $coherence = TextEmbeddingService::computeTextImageCoherenceEmbedding($textEmbedding, $imageEmbeddings);
+            $coherence = ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Sin descripción visual para evaluar'];
         }
 
         try {
@@ -292,6 +331,7 @@ class ProductValidationService
                     (int) ($productData['producer_id'] ?? 0),
                     5
                 );
+
                 foreach ($similarProducts as $similar) {
                     $similarId = $similar['product_id'] ?? null;
                     if ($similarId === null) {
@@ -307,7 +347,20 @@ class ProductValidationService
             }
         }
 
-        return [$coherence, $ragRules, $exampleDecisions, $ragContextText];
+        if (is_array($visualDescriptionEmbedding) && $visualDescriptionEmbedding !== []) {
+            try {
+                $stmt = Database::getInstance()->ejecutar('ai.fun_val_search_by_visual_desc', [
+                    ':vec' => self::vectorLiteral($visualDescriptionEmbedding),
+                    ':pid' => $productId,
+                    ':limit' => 5,
+                ]);
+                $visualDescMatches = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            } catch (Throwable $e) {
+                error_log('[ProductValidation] Error en búsqueda por descripción visual: ' . $e->getMessage());
+            }
+        }
+
+        return [$coherence, $ragRules, $exampleDecisions, $ragContextText, $visualDescMatches];
     }
 
     private static function getLatestDecision(int $productId): ?array
@@ -372,11 +425,6 @@ class ProductValidationService
         return (int) ($stmt->fetchColumn() ?: 0);
     }
 
-    private static function imageUrl(array $image): string
-    {
-        return (string) ($image['url'] ?? $image['image_url'] ?? $image['path'] ?? $image['image_path'] ?? '');
-    }
-
     private static function bestMatch(array $matches): array
     {
         usort($matches, static fn (array $a, array $b): int => (float) ($b['similarity'] ?? $b['score'] ?? 0.0) <=> (float) ($a['similarity'] ?? $a['score'] ?? 0.0));
@@ -387,7 +435,7 @@ class ProductValidationService
     {
         return [
             'status' => 'posible',
-            'detection_method' => $match['detection_method'] ?? 'embedding_visual',
+            'detection_method' => $match['detection_method'] ?? 'hash_exacto',
             'score' => $score,
             'matched_product_id' => $match['product_id'] ?? $match['id_producto'] ?? null,
             'matched_producer_id' => self::producerId($match),
@@ -424,7 +472,16 @@ class ProductValidationService
             );
     }
 
-    private static function buildEvidence(array $productData, array $hashResults, array $visualResults, array $coherence, array $ragRules, array $artisanNotes, array $exampleDecisions = []): array
+    /**
+     * Evalúa reglas de decisión pre-LLM. Si alguna regla decide, setea $result y retorna true.
+     * Si ninguna regla aplica, retorna false y se procede a llamar al LLM.
+     */
+    private static function applyPreLlmRules(array &$result): ?string
+    {
+        return null;
+    }
+
+    private static function buildEvidence(array $productData, array $hashResults, array $coherence, array $ragRules, array $artisanNotes, array $exampleDecisions = [], $visualDescription = null, array $visualDescMatches = []): array
     {
         return [
             'product' => [
@@ -434,11 +491,12 @@ class ProductValidationService
                 'materials' => $productData['materials'] ?? '',
             ],
             'hash_results' => array_slice($hashResults, 0, 5),
-            'visual_similarity' => array_slice($visualResults, 0, 5),
             'text_image_coherence' => $coherence,
             'rag_rules' => array_slice($ragRules, 0, 10),
             'similar_product_decisions' => array_slice($exampleDecisions, 0, 5),
             'artisan_assessment' => $artisanNotes,
+            'visual_description' => $visualDescription,
+            'visual_desc_matches' => array_slice($visualDescMatches, 0, 5),
         ];
     }
 
@@ -448,7 +506,8 @@ class ProductValidationService
             "1. Artesanía indígena tradicional (mochilas, hamacas, cerámica, talla, etc.)\n" .
             "2. Artesanía popular no indígena (marroquinería, alimentos artesanales, etc.)\n" .
             "3. Piezas vintage, antigüedades y objetos de mercadillo con valor cultural (como una olla de bronce precolombina)\n\n" .
-            "Tenés acceso a REGLAS de artesanalidad y EJEMPLOS de productos previamente aprobados y rechazados como contexto.\n" .
+            "Tenés acceso a REGLAS de artesanalidad, EJEMPLOS de productos previamente aprobados y rechazados, y una DESCRIPCIÓN VISUAL semántica generada por un modelo multimodal experto.\n" .
+            "La decisión final es text-only: evaluá esa descripción visual junto con el texto del producto y el contexto RAG, sin pedir ni procesar imágenes.\n" .
             "Usá esa información para decidir consistentemente.\n\n" .
             "Criterios:\n" .
             "- approved: El producto es artesanal (hecho a mano, técnica tradicional), o es una pieza vintage/precolombina con valor cultural.\n" .
@@ -507,31 +566,58 @@ class ProductValidationService
 
     private static function saveResult(int $productId, int $producerId, array $result): int
     {
-        $plagiarism = $result['plagio_visual'] ?? [];
-        $coherence = $result['coherencia_texto_imagen'] ?? [];
-        $artisan = $result['artesanalidad'] ?? [];
-        $stmt = Database::getInstance()->ejecutar('ai.fun_c_validation_result', [
-            ':product_id' => $productId,
-            ':producer_id' => $producerId,
-            ':decision' => $result['decision'],
-            ':plagiarism_status' => $plagiarism['status'] ?? 'none',
-            ':plagiarism_score' => $plagiarism['score'] ?? 0.0,
-            ':plagiarism_method' => $plagiarism['detection_method'] ?? 'N/A',
-            ':matched_product_id' => (string) ($plagiarism['matched_product_id'] ?? 'N/A'),
-            ':matched_producer_id' => (string) ($plagiarism['matched_producer_id'] ?? 'N/A'),
-            ':matched_image_id' => (string) ($plagiarism['matched_image_id'] ?? 'N/A'),
-            ':matched_image_url' => (string) ($plagiarism['matched_image_url'] ?? 'N/A'),
-            ':text_image_status' => $coherence['status'] ?? 'no_evaluada',
-            ':text_image_score' => $coherence['score'] ?? 0.0,
-            ':artisan_status' => $artisan['status'] ?? 'no_evaluada',
-            ':artisan_score' => $artisan['score'] ?? 0.0,
-            ':provider_used' => $result['provider_used'] ?? '',
-            ':decision_model' => $result['models']['decision_model'] ?? '',
-            ':fallback_used' => (bool) ($result['fallback_used'] ?? false),
-            ':reason' => $result['motivo_general'] ?? '',
-        ]);
+        $decision = $result['decision'] ?? 'pending_validacion_ia';
+        $newStatus = match ($decision) {
+            'approved' => 'approved',
+            'revision_humana' => 'pending_review',
+            'rejected' => 'rejected',
+            default => 'pending_review',
+        };
 
-        return (int) $stmt->fetchColumn();
+        $db = Database::getInstance();
+        $conn = $db->connection;
+        $conn->beginTransaction();
+
+        try {
+            $plagiarism = $result['plagio_visual'] ?? [];
+            $coherence = $result['coherencia_texto_imagen'] ?? [];
+            $artisan = $result['artesanalidad'] ?? [];
+            $stmt = $db->ejecutar('ai.fun_c_validation_result', [
+                ':product_id' => $productId,
+                ':producer_id' => $producerId,
+                ':decision' => $decision,
+                ':plagiarism_status' => $plagiarism['status'] ?? 'none',
+                ':plagiarism_score' => $plagiarism['score'] ?? 0.0,
+                ':plagiarism_method' => $plagiarism['detection_method'] ?? 'N/A',
+                ':matched_product_id' => (string) ($plagiarism['matched_product_id'] ?? 'N/A'),
+                ':matched_producer_id' => (string) ($plagiarism['matched_producer_id'] ?? 'N/A'),
+                ':matched_image_id' => (string) ($plagiarism['matched_image_id'] ?? 'N/A'),
+                ':matched_image_url' => (string) ($plagiarism['matched_image_url'] ?? 'N/A'),
+                ':text_image_status' => $coherence['status'] ?? 'no_evaluada',
+                ':text_image_score' => $coherence['score'] ?? 0.0,
+                ':artisan_status' => $artisan['status'] ?? 'no_evaluada',
+                ':artisan_score' => $artisan['score'] ?? 0.0,
+                ':provider_used' => $result['provider_used'] ?? '',
+                ':decision_model' => $result['models']['decision_model'] ?? '',
+                ':fallback_used' => (bool) ($result['fallback_used'] ?? false),
+                ':reason' => $result['motivo_general'] ?? '',
+            ]);
+            $resultId = (int) $stmt->fetchColumn();
+
+            $isActive = in_array($decision, ['approved'], true) ? 'true' : 'false';
+            $db->ejecutar('actualizarValidacionStatus', [
+                ':id_producto' => $productId,
+                ':validation_status' => $newStatus,
+                ':is_active' => $isActive,
+            ]);
+
+            $conn->commit();
+            return $resultId;
+        } catch (Throwable $e) {
+            $conn->rollBack();
+            error_log('[ProductValidationService] Error transaccional en saveResult: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     private static function pendingResult(int $productId, int $producerId, array $result, string $reason): array
@@ -547,5 +633,22 @@ class ProductValidationService
     {
         $primary = strtolower((string) ($_ENV['AI_PRIMARY_PROVIDER'] ?? 'openrouter'));
         return $provider !== '' && strtolower($provider) !== $primary;
+    }
+
+    private static function vectorLiteral(array $embedding): string
+    {
+        if ($embedding === []) {
+            throw new InvalidArgumentException('El embedding no puede estar vacío.');
+        }
+
+        $values = [];
+        foreach ($embedding as $value) {
+            if (!is_int($value) && !is_float($value) && !is_numeric($value)) {
+                throw new InvalidArgumentException('El embedding contiene valores no numéricos.');
+            }
+            $values[] = (string) (float) $value;
+        }
+
+        return '[' . implode(',', $values) . ']';
     }
 }

@@ -104,7 +104,7 @@ class AIProviderRouter
      * @return array{content: string, provider: string, model: string, response_time: float}
      * @throws AIProviderException
      */
-    public static function callChat(array $messages, ?string $model = null, ?array $providerOrder = null): array
+    public static function callChat(array $messages, ?string $model = null, ?array $providerOrder = null, ?array $extraBody = null): array
     {
         if ($messages === []) {
             throw new AIProviderException('Los mensajes para chat no pueden estar vacíos.', 'input');
@@ -123,6 +123,9 @@ class AIProviderRouter
             'temperature' => 0.1,
             'max_tokens' => 1500,
         ];
+        if (is_array($extraBody)) {
+            $payload = array_merge($payload, $extraBody);
+        }
         $providers = $providerOrder ?? [self::getPrimaryProvider(), self::getSecondaryProvider()];
         $lastException = null;
 
@@ -158,14 +161,12 @@ class AIProviderRouter
      */
     public static function callDecisionModel(string $systemPrompt, string $userPrompt): array
     {
-        // Decision model: NVIDIA first (OpenRouter doesn't serve nemotron-3-nano-omni)
-        $response = self::callChat([
+        return self::callChat([
             ['role' => 'system', 'content' => $systemPrompt],
             ['role' => 'user', 'content' => $userPrompt],
-        ], self::getDecisionModel(), ['nvidia', 'openrouter']);
-        $response['parsed'] = self::parseDecisionJson($response['content']);
-
-        return $response;
+        ], self::getDecisionModel(), ['nvidia', 'openrouter'], [
+            'chat_template_kwargs' => ['enable_thinking' => false],
+        ]);
     }
 
     /**
@@ -247,8 +248,11 @@ class AIProviderRouter
             throw new AIProviderException('NVIDIA_API_KEY no configurada.', 'nvidia');
         }
 
-        // Add required input_type for NVIDIA embeddings
-        $payload['input_type'] = $payload['input_type'] ?? 'passage';
+        // NV-CLIP rejects input_type; older NVIDIA embedding models require it.
+        $model = $payload['model'] ?? '';
+        if (!str_contains((string) $model, 'nvclip')) {
+            $payload['input_type'] = $payload['input_type'] ?? 'passage';
+        }
 
         return self::postJson('nvidia', self::NVIDIA_EMBED_ENDPOINT, $apiKey, $payload);
     }
@@ -340,7 +344,11 @@ class AIProviderRouter
      */
     private static function extractChatContentFromResponse(array $response): string
     {
-        $content = $response['choices'][0]['message']['content'] ?? null;
+        $message = $response['choices'][0]['message'] ?? [];
+        $content = $message['content']
+            ?? $message['reasoning']
+            ?? $message['reasoning_content']
+            ?? null;
         if (!is_string($content) || trim($content) === '') {
             throw new AIProviderException('La respuesta no contiene contenido de chat.', 'response');
         }

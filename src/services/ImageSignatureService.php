@@ -108,6 +108,79 @@ class ImageSignatureService
     }
 
     /**
+     * @param array $embedding
+     * @param string $status approved|rejected|pending_review
+     * @param float $threshold
+     * @param int $limit
+     * @return array
+     * @throws Exception
+     */
+    public static function findSimilarByStatus(array $embedding, string $status, float $threshold = 0.75, int $limit = 5): array
+    {
+        self::assertPgvectorAvailable();
+
+        $stmt = Database::getInstance()->ejecutar('ai.fun_val_similar_by_status', [
+            ':embedding' => self::vectorLiteral($embedding),
+            ':status' => $status,
+            ':threshold' => $threshold,
+            ':limit' => max(1, $limit),
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
+     * @param array $productIds
+     * @return array
+     */
+    public static function getEmbeddingsByProductIds(array $productIds): array
+    {
+        $ids = [];
+        foreach ($productIds as $productId) {
+            if (is_int($productId) || is_float($productId) || is_numeric($productId)) {
+                $ids[] = (int) $productId;
+            }
+        }
+
+        $ids = array_values(array_unique(array_filter($ids, static fn (int $id): bool => $id > 0)));
+        if ($ids === []) {
+            return [];
+        }
+
+        try {
+            $stmt = Database::getInstance()->ejecutar('ai.fun_val_visual_embeddings_by_products', [
+                ':p_product_ids' => self::numericArrayLiteral($ids),
+            ]);
+
+            $grouped = [];
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            foreach ($rows as $row) {
+                $productId = (int) ($row['id_producto'] ?? 0);
+                if ($productId <= 0) {
+                    continue;
+                }
+
+                $embedding = self::parseVector((string) ($row['visual_embedding'] ?? ''));
+                if ($embedding === []) {
+                    continue;
+                }
+
+                $grouped[$productId][] = [
+                    'id_imagen' => (int) ($row['id_imagen'] ?? 0),
+                    'url_imagen' => (string) ($row['url_imagen'] ?? ''),
+                    'embedding' => $embedding,
+                    'visual_embedding' => $embedding,
+                ];
+            }
+
+            return $grouped;
+        } catch (Throwable $exception) {
+            error_log('[ImageSignatureService] No se pudieron obtener embeddings visuales por producto: ' . $exception->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * @return void
      * @throws Exception
      */
@@ -140,5 +213,39 @@ class ImageSignatureService
         }
 
         return '[' . implode(',', $values) . ']';
+    }
+
+    /**
+     * @param int[] $values
+     * @return string
+     */
+    private static function numericArrayLiteral(array $values): string
+    {
+        return '{' . implode(',', array_map(static fn (int $value): string => (string) $value, $values)) . '}';
+    }
+
+    /**
+     * @return float[]
+     */
+    private static function parseVector(string $value): array
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return [];
+        }
+
+        if ($value[0] === '[') {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return array_map('floatval', $decoded);
+            }
+        }
+
+        $trimmed = trim($value, '()[]{}');
+        if ($trimmed === '') {
+            return [];
+        }
+
+        return array_map('floatval', explode(',', $trimmed));
     }
 }

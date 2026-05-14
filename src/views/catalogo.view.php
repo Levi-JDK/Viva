@@ -12,7 +12,13 @@ $min_precio = $filtros['min_price'] ?? null;
 $max_precio = $filtros['max_price'] ?? null;
 ?>
     <style>
-        @media(min-width:768px){#catalog-sidebar{width:280px;flex-shrink:0;max-width:280px!important;}}
+        @media(min-width:768px){#catalog-sidebar{width:280px;flex-shrink:0;max-width:280px!important;max-height:calc(100vh - 7rem);overflow-y:auto;}}
+        #catalog-sidebar::-webkit-scrollbar{width:4px;}
+        #catalog-sidebar::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px;}
+        #catalog-sidebar::-webkit-scrollbar-track{background:transparent;}
+        #catalog-sidebar.active{display:block;}
+        @keyframes slide-up{from{transform:translateY(100%);}to{transform:translateY(0);}}
+        .animate-slide-up{animation:slide-up .25s ease-out;}
     </style>
     
     <!-- Reuse Header -->
@@ -38,8 +44,26 @@ $max_precio = $filtros['max_price'] ?? null;
         <!-- Layout: Sidebar + Productos -->
         <div class="flex flex-col md:flex-row gap-8">
 
+            <!-- ── TOGGLE FILTROS (mobile) ── -->
+            <div class="flex md:hidden gap-2">
+                <button id="btn-toggle-filtros"
+                        class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-sliders-h"></i> Filtros
+                    <?php if ($search || $categoria || $oficio || $materia || $min_precio || $max_precio): ?>
+                        <span class="w-2 h-2 rounded-full bg-naranja-artesanal"></span>
+                    <?php endif; ?>
+                </button>
+                <?php if ($search || $categoria || $oficio || $materia || $min_precio || $max_precio): ?>
+                <a href="<?= BASE_URL ?>catalogo"
+                   class="flex items-center justify-center gap-2 text-sm text-gray-400 border border-gray-200 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-times-circle"></i>
+                </a>
+                <?php endif; ?>
+            </div>
+            <div id="catalog-sidebar-mobile-overlay" class="fixed inset-0 bg-black/30 z-40 hidden" style="top:80px;"></div>
+
             <!-- ── SIDEBAR DE FILTROS ── -->
-            <aside class="w-full md:sticky md:top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8" style="flex:0 0 auto;max-width:100%;" id="catalog-sidebar">
+            <aside class="w-full md:sticky md:top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-8 hidden md:block" style="flex:0 0 auto;max-width:100%;" id="catalog-sidebar">
 
                 <!-- Categorías -->
                 <div>
@@ -131,6 +155,15 @@ $max_precio = $filtros['max_price'] ?? null;
                     </form>
                 </div>
 
+                <?php if ($search || $categoria || $oficio || $materia || $min_precio || $max_precio): ?>
+                <div class="pt-2">
+                    <a href="<?= BASE_URL ?>catalogo"
+                       class="flex items-center justify-center gap-2 w-full text-sm text-gray-400 border border-gray-200 px-4 py-2.5 rounded-lg hover:bg-gray-50 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times-circle"></i> Limpiar filtros
+                    </a>
+                </div>
+                <?php endif; ?>
+
             </aside>
 
             <!-- ── ÁREA DE PRODUCTOS ── -->
@@ -151,7 +184,7 @@ $max_precio = $filtros['max_price'] ?? null;
 
                 <?php else: ?>
                     <!-- Grilla de productos -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                         <?php
                         $show_price = true;
                         foreach ($productos as $product):
@@ -169,5 +202,65 @@ $max_precio = $filtros['max_price'] ?? null;
     
     <?php require_once __DIR__ . '/partials/footer.php'; ?>
     <?php require_once __DIR__ . '/partials/carrito.php'; ?>
+
+<script>
+(function() {
+    const sidebar = document.getElementById('catalog-sidebar');
+    const btnToggle = document.getElementById('btn-toggle-filtros');
+    const overlay = document.getElementById('catalog-sidebar-mobile-overlay');
+
+    if (!sidebar || !btnToggle) return;
+
+    function openSidebar() {
+        sidebar.classList.remove('hidden');
+        sidebar.classList.add('active', 'fixed', 'inset-x-0', 'bottom-0', 'z-50', 'rounded-b-none', 'rounded-t-2xl',
+            'max-h-[85vh]', 'overflow-y-auto', 'shadow-2xl', 'animate-slide-up');
+        sidebar.style.top = '80px';
+        if (overlay) overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.add('hidden');
+        sidebar.classList.remove('active', 'fixed', 'inset-x-0', 'bottom-0', 'z-50', 'rounded-b-none', 'rounded-t-2xl',
+            'max-h-[85vh]', 'overflow-y-auto', 'shadow-2xl', 'animate-slide-up');
+        sidebar.style.top = '';
+        if (overlay) overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    btnToggle.addEventListener('click', function() {
+        if (sidebar.classList.contains('active')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Cerrar al hacer click en un link de filtro (navegación)
+    sidebar.querySelectorAll('a').forEach(function(link) {
+        link.addEventListener('click', function() {
+            // Solo cerrar si NO es el toggle de precio y estamos en mobile
+            if (window.innerWidth < 768) {
+                closeSidebar();
+            }
+        });
+    });
+
+    // Cerrar al hacer submit en el form de precio
+    const priceForm = sidebar.querySelector('form');
+    if (priceForm) {
+        priceForm.addEventListener('submit', function() {
+            if (window.innerWidth < 768) {
+                closeSidebar();
+            }
+        });
+    }
+})();
+</script>
 </body>
 </html>

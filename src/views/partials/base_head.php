@@ -9,6 +9,8 @@
     <link rel="icon" href="<?= base_url_path('images/Logo_thumb.webp') ?>" type="image/webp">
     
     <script>
+        document.documentElement.classList.add('js');
+
         const BASE_URL = '<?= defined('BASE_URL') ? BASE_URL : '/' ?>';
         window.BASE_URL = BASE_URL; // Exponer explícitamente al DOM para ES6 modules
         

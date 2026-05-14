@@ -18,7 +18,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS ai.product_image_embeddings(
     id_producto      DECIMAL(12,0)               NOT NULL,
     id_imagen        DECIMAL(12,0)               NOT NULL,
-    visual_embedding VECTOR(2048)                NOT NULL,
+    visual_embedding VECTOR(1024)                NOT NULL,
     embedding_model  VARCHAR(100)                NOT NULL DEFAULT 'Sin modelo',
     created_at       TIMESTAMP WITH TIME ZONE    NOT NULL DEFAULT NOW(),
     PRIMARY KEY(id_producto, id_imagen),
@@ -40,12 +40,22 @@ CREATE TABLE IF NOT EXISTS ai.product_text_embeddings(
     product_id      DECIMAL(12,0)               NOT NULL,
     producer_id     DECIMAL(10,0)               NOT NULL,
     content         TEXT                        NOT NULL,
-    text_embedding  VECTOR(2048)                NOT NULL,
+    text_embedding  VECTOR(1024)                NOT NULL,
     created_at      TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     PRIMARY KEY(id),
     FOREIGN KEY(product_id) REFERENCES tab_productos(id_producto),
     FOREIGN KEY(producer_id) REFERENCES tab_productores(id_productor)
+);
+
+CREATE TABLE IF NOT EXISTS ai.product_visual_descriptions(
+    product_id          DECIMAL(12,0)               NOT NULL,
+    description         TEXT                        NOT NULL,
+    embedding           VECTOR(2048)                NOT NULL,
+    model               VARCHAR(100)                NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE    NOT NULL    DEFAULT NOW(),
+    PRIMARY KEY(product_id),
+    FOREIGN KEY(product_id) REFERENCES tab_productos(id_producto)
 );
 
 -- ════════════════════════════════════════════════════════════════════════════
