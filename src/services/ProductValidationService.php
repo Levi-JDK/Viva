@@ -283,8 +283,8 @@ class ProductValidationService
         }
         $result['rag_evidence'] = count($ragRules);
 
-        // Buscar productos similares por embedding (solo título) y traer sus decisiones previas
-        $ragContextText = trim((string) ($productData['title'] ?? ''));
+        // Buscar productos similares por embedding y traer sus decisiones previas
+        $ragContextText = trim((string) (($productData['title'] ?? '') . ' ' . ($productData['description'] ?? '')));
         if ($ragContextText !== '' && $textEmbedding !== null) {
             try {
                 $similarProducts = TextEmbeddingService::searchSimilarTextExcludingProducer(
