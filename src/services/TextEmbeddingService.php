@@ -13,25 +13,20 @@ class TextEmbeddingService
      * @return array{id:int, embedding:array<int,float>, provider:string, model:string}
      * @throws AIProviderException
      * @throws Exception
+     *
+     * Embebe solo el título del producto. La descripción no se incluye
+     * porque suele repetir o expandir el título, generando duplicados en el embedding.
      */
     public static function embedAndSaveProductData(int $productId, array $data): array
     {
         $producerId = isset($data['producer_id']) ? (int) $data['producer_id'] : throw new InvalidArgumentException('Falta producer_id');
 
-        $parts = [];
-        if (!empty($data['title'])) {
-            $parts[] = trim((string) $data['title']);
-        }
-        if (!empty($data['description'])) {
-            $parts[] = trim((string) $data['description']);
+        $title = trim((string) ($data['title'] ?? ''));
+        if ($title === '') {
+            throw new InvalidArgumentException('No hay título de producto para embeber.');
         }
 
-        $content = implode(". ", $parts);
-        if ($content === '') {
-            throw new InvalidArgumentException('No hay datos de producto para embeber.');
-        }
-
-        return self::embedAndPersist($content, $productId, $producerId);
+        return self::embedAndPersist($title, $productId, $producerId);
     }
 
     /**
