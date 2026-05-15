@@ -62,12 +62,17 @@ class ProductValidationService
             self::saveImageHashes($imageHashes, $productId);
 
             [$visualDescription, $visualDescriptionEmbedding] = self::generateAndSaveVisualDescription($productId, $imageHashes);
-            $result['visual_description'] = $visualDescription;
-            $result['visual_description_embedding'] = $visualDescriptionEmbedding;
 
+            $textData = null;
             try {
-                TextEmbeddingService::embedAndSaveProductData($productId, $productData);
+                $textData = TextEmbeddingService::embedAndSaveProductData($productId, $productData);
+                if (!empty($textData['model'])) {
+                    $result['models']['embedding_model'] = $textData['model'];
+                }
             } catch (Throwable $e) {
+                if ($e instanceof AIProviderException) {
+                    $result['fallback_used'] = true;
+                }
                 // Non-fatal: el texto embedding se reintentará en la siguiente validación
             }
 
@@ -86,7 +91,14 @@ class ProductValidationService
                 return $result;
             }
 
-            [$coherence, $ragRules, $exampleDecisions, $ragContextText, $visualDescMatches] = self::buildRagContext($productId, $productData, $result);
+            $textEmbedding = is_array($textData) && is_array($textData['embedding'] ?? null) ? $textData['embedding'] : null;
+            [$coherence, $ragRules, $exampleDecisions, $ragContextText, $visualDescMatches] = self::buildRagContext(
+                $productId,
+                $productData,
+                $result,
+                $textEmbedding,
+                $visualDescriptionEmbedding
+            );
             $result['coherencia_texto_imagen'] = $coherence;
 
             // ── Pre-LLM Rules: decisiones sin llamar al modelo ──
@@ -99,7 +111,7 @@ class ProductValidationService
             // ── LLM Decision ──
             $evidence = self::buildEvidence($productData, $hashMatches,
                 $result['coherencia_texto_imagen'], $ragRules, $result['artesanalidad'],
-                $exampleDecisions, $result['visual_description'] ?? null, $visualDescMatches);
+                $exampleDecisions, $visualDescription, $visualDescMatches);
             self::applyDecisionModel($result, $evidence);
 
             self::saveResult($productId, $producerId, $result);
@@ -138,8 +150,6 @@ class ProductValidationService
             ],
             'coherencia_texto_imagen' => ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Aún no evaluada'],
             'artesanalidad' => ['status' => 'no_evaluada', 'score' => 0.0, 'reason' => 'Aún no evaluada'],
-            'visual_description' => null,
-            'visual_description_embedding' => null,
             'rag_evidence' => 0,
             'provider_used' => null,
             'fallback_used' => false,
@@ -256,8 +266,18 @@ class ProductValidationService
             if (!is_array($visualDescriptionEmbedding) || $visualDescriptionEmbedding === []) {
                 return [null, null];
             }
+            $visualDescriptionEmbedding = self::normalizeEmbedding($visualDescriptionEmbedding);
 
-            self::saveVisualDescription($productId, $semanticDesc, $visualDescriptionEmbedding, self::VISUAL_DESC_MODEL);
+            $imageId = (int) ($firstImage['id_imagen'] ?? $firstImage['image_id'] ?? 0);
+            if ($imageId <= 0) {
+                $imageId = self::resolveImageId($productId, (string) ($firstImage['path'] ?? $firstImage['url_imagen'] ?? ''));
+            }
+            if ($imageId <= 0) {
+                error_log('[ProductValidation] No se pudo guardar descripción visual: falta id_imagen.');
+                return [$semanticDesc, $visualDescriptionEmbedding];
+            }
+
+            self::saveVisualDescription($productId, $imageId, $semanticDesc, $visualDescriptionEmbedding, self::VISUAL_DESC_MODEL);
             return [$semanticDesc, $visualDescriptionEmbedding];
         } catch (Throwable $e) {
             error_log('[ProductValidation] Error generando descripción visual: ' . $e->getMessage());
@@ -268,44 +288,23 @@ class ProductValidationService
     /**
      * @param array<int,float> $embedding
      */
-    private static function saveVisualDescription(int $productId, string $description, array $embedding, string $model): void
+    private static function saveVisualDescription(int $productId, int $imageId, string $description, array $embedding, string $model): void
     {
-        $db = Database::getInstance();
-        $stmt = $db->connection->prepare(
-            'INSERT INTO ai.product_visual_descriptions (product_id, description, embedding, model)
-             VALUES (:pid, :description, CAST(:embedding AS vector(2048)), :model)
-             ON CONFLICT (product_id) DO UPDATE SET
-                 description = EXCLUDED.description,
-                 embedding = EXCLUDED.embedding,
-                 model = EXCLUDED.model,
-                 created_at = NOW()'
-        );
-        $stmt->execute([
-            ':pid' => $productId,
-            ':description' => $description,
-            ':embedding' => self::vectorLiteral($embedding),
-            ':model' => $model,
-        ]);
+        ImageSignatureService::saveVisualEmbedding($productId, $imageId, $embedding, $model, $description);
     }
 
-    private static function buildRagContext(int $productId, array $productData, array &$result): array
+    private static function buildRagContext(
+        int $productId,
+        array $productData,
+        array &$result,
+        ?array $textEmbedding = null,
+        ?array $visualDescriptionEmbedding = null
+    ): array
     {
         $ragRules = [];
         $exampleDecisions = [];
         $visualDescMatches = [];
-        $textEmbedding = null;
 
-        try {
-            $textData = TextEmbeddingService::embedAndSaveProductData($productId, $productData);
-            $textEmbedding = $textData['embedding'] ?? null;
-            if (!empty($textData['model'])) {
-                $result['models']['embedding_model'] = $textData['model'];
-            }
-        } catch (AIProviderException $exception) {
-            $result['fallback_used'] = true;
-        }
-
-        $visualDescriptionEmbedding = $result['visual_description_embedding'] ?? null;
         if ($textEmbedding !== null && is_array($visualDescriptionEmbedding) && $visualDescriptionEmbedding !== []) {
             $coherence = TextEmbeddingService::computeTextImageCoherenceEmbedding($textEmbedding, [$visualDescriptionEmbedding]);
         } else {
@@ -326,8 +325,8 @@ class ProductValidationService
         $ragContextText = trim((string) (($productData['title'] ?? '') . ' ' . ($productData['description'] ?? '')));
         if ($ragContextText !== '' && $textEmbedding !== null) {
             try {
-                $similarProducts = TextEmbeddingService::searchSimilarTextExcludingProducer(
-                    $ragContextText,
+                $similarProducts = TextEmbeddingService::searchSimilarTextByEmbeddingExcludingProducer(
+                    $textEmbedding,
                     (int) ($productData['producer_id'] ?? 0),
                     5
                 );
@@ -650,5 +649,26 @@ class ProductValidationService
         }
 
         return '[' . implode(',', $values) . ']';
+    }
+
+    private static function normalizeEmbedding(array $embedding, int $targetDim = 2048): array
+    {
+        $values = [];
+        foreach ($embedding as $value) {
+            if (!is_int($value) && !is_float($value) && !is_numeric($value)) {
+                throw new InvalidArgumentException('El embedding contiene valores no numéricos.');
+            }
+            $values[] = (float) $value;
+        }
+
+        if (count($values) > $targetDim) {
+            return array_slice($values, 0, $targetDim);
+        }
+
+        while (count($values) < $targetDim) {
+            $values[] = 0.0;
+        }
+
+        return $values;
     }
 }

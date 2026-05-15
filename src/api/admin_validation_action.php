@@ -45,8 +45,8 @@ try {
         exit;
     }
 
-    $productId = (int) ($input['product_id'] ?? 0);
     $action = (string) ($input['action'] ?? '');
+    $productId = (int) ($input['product_id'] ?? 0);
 
     if ($productId <= 0) {
         http_response_code(400);

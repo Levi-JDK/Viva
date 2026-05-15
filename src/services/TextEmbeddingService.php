@@ -55,6 +55,24 @@ class TextEmbeddingService
     }
 
     /**
+     * @param array<int,float> $embedding
+     * @return array<int,array>
+     * @throws Exception
+     */
+    public static function searchSimilarTextByEmbeddingExcludingProducer(array $embedding, int $producerId, int $limit = 5): array
+    {
+        self::assertPgvectorAvailable();
+        $stmt = Database::getInstance()->ejecutar('ai.fun_val_search_similar_text_exclude', [
+            ':embedding' => self::vectorLiteral(self::normalizeEmbedding($embedding)),
+            ':producer_id' => $producerId,
+            ':threshold' => self::SIMILARITY_THRESHOLD,
+            ':limit' => max(1, $limit),
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    /**
      * @throws AIProviderException
      * @throws Exception
      */
@@ -177,7 +195,7 @@ class TextEmbeddingService
 
         return [
             'id' => (int) $stmt->fetchColumn(),
-            'embedding' => $embeddingResult['embedding'],
+            'embedding' => $embedding,
             'provider' => (string) ($embeddingResult['provider'] ?? ''),
             'model' => (string) ($embeddingResult['model'] ?? ''),
         ];

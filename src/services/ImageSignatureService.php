@@ -5,6 +5,8 @@ require_once __DIR__ . '/AIProviderRouter.php';
 
 class ImageSignatureService
 {
+    private const VECTOR_DIMENSION = 2048;
+
     /**
      * @param string $fileHash
      * @param string|null $phashBin
@@ -55,13 +57,14 @@ class ImageSignatureService
      * @param array $embedding
      * @throws Exception
      */
-    public static function saveVisualEmbedding(int $productId, int $imageId, array $embedding, string $model): void
+    public static function saveVisualEmbedding(int $productId, int $imageId, array $embedding, string $model, string $semanticDescription = ''): void
     {
         Database::getInstance()->ejecutar('ai.fun_c_visual_embedding', [
             ':id_producto' => $productId,
             ':id_imagen' => $imageId,
-            ':visual_embedding' => self::vectorLiteral($embedding),
+            ':visual_embedding' => self::vectorLiteral(self::normalizeEmbedding($embedding)),
             ':embedding_model' => $model,
+            ':semantic_description' => $semanticDescription,
         ]);
     }
 
@@ -213,6 +216,27 @@ class ImageSignatureService
         }
 
         return '[' . implode(',', $values) . ']';
+    }
+
+    private static function normalizeEmbedding(array $embedding): array
+    {
+        $values = [];
+        foreach ($embedding as $value) {
+            if (!is_int($value) && !is_float($value) && !is_numeric($value)) {
+                throw new InvalidArgumentException('El embedding contiene valores no numéricos.');
+            }
+            $values[] = (float) $value;
+        }
+
+        if (count($values) > self::VECTOR_DIMENSION) {
+            return array_slice($values, 0, self::VECTOR_DIMENSION);
+        }
+
+        while (count($values) < self::VECTOR_DIMENSION) {
+            $values[] = 0.0;
+        }
+
+        return $values;
     }
 
     /**

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../functions/auth_helper.php';
 require_once __DIR__ . '/../functions/database.php';
 require_once __DIR__ . '/../functions/error_handler.php';
-require_once __DIR__ . '/../workers/Config/RedisConfig.php';
+require_once __DIR__ . '/../functions/menu_cache_helper.php';
 require_once __DIR__ . '/../utils/image_uploader.php';
 
 AuthHelper::checkAccess(8);
@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             }
 
             $stmt = $db->ejecutar('asignarMenuUsuario', [':id_user' => $id_user, ':id_menu' => $id_menu]);
-            try { RedisConfig::getConnection()->del(RedisConfig::getPrefix() . "user:{$id_user}:menus"); } catch (Exception $e) {}
+            invalidate_user_menu_cache($id_user, 'admin.assign_menu');
             echo json_encode(['success' => true, 'data' => $stmt->fetchColumn()]);
             exit;
         }
@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['ajax'])) {
             }
 
             $stmt = $db->ejecutar('revocarMenuUsuario', [':id_user' => $id_user, ':id_menu' => $id_menu]);
-            try { RedisConfig::getConnection()->del(RedisConfig::getPrefix() . "user:{$id_user}:menus"); } catch (Exception $e) {}
+            invalidate_user_menu_cache($id_user, 'admin.revoke_menu');
             echo json_encode(['success' => true, 'data' => $stmt->fetchColumn()]);
             exit;
         }

@@ -466,8 +466,8 @@ class AIProviderRouter
      */
     private static function getTimeout(): float
     {
-        $timeout = (float) ($_ENV['AI_PROVIDER_TIMEOUT'] ?? 30);
-        return $timeout > 0 ? $timeout : 30.0;
+        $timeout = (float) ($_ENV['AI_PROVIDER_TIMEOUT'] ?? 120);
+        return $timeout > 0 ? $timeout : 120.0;
     }
 
     /**

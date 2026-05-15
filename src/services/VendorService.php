@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../functions/database.php';
+require_once __DIR__ . '/../functions/menu_cache_helper.php';
 
 class VendorService
 {
@@ -128,6 +129,7 @@ class VendorService
         $db->ejecutar('asignarMenuUsuario', [':id_user' => $userId, ':id_menu' => 10]); // Mis Productos
         $db->ejecutar('asignarMenuUsuario', [':id_user' => $userId, ':id_menu' => 11]); // Mi Stand
         $db->ejecutar('revocarMenuUsuario', [':id_user' => $userId, ':id_menu' => 9]);  // Vender en VIVA
+        invalidate_user_menu_cache($userId, 'vendor.registrarVendedor');
 
         return [
             'success' => true,

@@ -715,62 +715,6 @@ return [
         WHERE p.is_deleted = FALSE
           AND ('' = :validation_status OR p.validation_status = :validation_status)
     ",
-    'seleccionarProductosSeedRag' => "
-        SELECT
-            p.id_producto,
-            p.id_productor,
-            p.nom_producto,
-            p.descripcion_producto,
-            p.id_categoria,
-            p.id_oficio,
-            p.id_materia,
-            i.url_imagen
-        FROM tab_productos p
-        INNER JOIN tab_imagenes i ON i.id_producto = p.id_producto
-        WHERE p.is_deleted = FALSE
-          AND COALESCE(i.url_imagen, '') <> ''
-        ORDER BY p.id_productor ASC, p.id_producto ASC
-        LIMIT :limit
-    ",
-    'insertarImagenEmbeddingRag' => "
-        SELECT fun_insert_imagen_embedding(
-            :id_producto,
-            :id_productor,
-            :url_imagen,
-            :hash_phash,
-            :hash_dhash,
-            :embedding_visual,
-            :modelo_embedding,
-            :validado_admin
-        ) AS id_imagen_embedding
-    ",
-    'marcarProductoSeedValidado' => "
-        UPDATE tab_productos
-        SET validado_admin = TRUE,
-            estado_producto = 'artesanal_verificado',
-            updated_at = CURRENT_TIMESTAMP,
-            updated_by = current_user
-        WHERE id_producto = :id_producto
-    ",
-    'insertarValidacionIaInicialRag' => "
-        SELECT fun_insert_validacion_ia(
-            :id_producto,
-            :id_productor,
-            :score_artesanal,
-            :score_comercial,
-            :score_plagio_interno,
-            :score_duplicado_visual,
-            :score_coherencia,
-            :clasificacion_producto,
-            :riesgo_imagen,
-            :decision_operativa,
-            :motivo_principal,
-            :explicacion_ia,
-            :evidencia_json,
-            :modelo_decision,
-            :version_prompt
-        ) AS id_validacion
-    ",
     'ai.fun_val_unified_hash_search' => "
         SELECT *
         FROM ai.fun_val_unified_hash_search(
@@ -780,15 +724,21 @@ return [
         )
     ",
     'ai.fun_c_visual_embedding' => "
-        SELECT ai.fun_c_visual_embedding(:id_producto, :id_imagen, CAST(:visual_embedding AS vector), :embedding_model)
+        SELECT ai.fun_c_visual_embedding(
+            :id_producto,
+            :id_imagen,
+            CAST(:visual_embedding AS vector(2048)),
+            :embedding_model,
+            :semantic_description
+        )
     ",
     'ai.fun_val_similar_by_vector' => "
         SELECT *
-        FROM ai.fun_val_similar_by_vector(CAST(:embedding AS vector), :threshold, :limit)
+        FROM ai.fun_val_similar_by_vector(CAST(:embedding AS vector(2048)), :threshold, :limit)
     ",
     'ai.fun_val_similar_by_vector_exclude' => "
         SELECT *
-        FROM ai.fun_val_similar_by_vector_exclude(CAST(:embedding AS vector), :producer_id, :threshold, :limit)
+        FROM ai.fun_val_similar_by_vector_exclude(CAST(:embedding AS vector(2048)), :producer_id, :threshold, :limit)
     ",
     'ai.fun_val_similar_by_status' => "
         SELECT *
@@ -811,25 +761,26 @@ return [
     ",
     'ai.fun_c_text_embedding' => "
         SELECT ai.fun_c_text_embedding(
-            :product_id, :producer_id, :content, CAST(:text_embedding AS vector)
+            :product_id, :producer_id, :content, CAST(:text_embedding AS vector(2048))
         )
     ",
     'ai.fun_val_search_similar_text' => "
         SELECT *
-        FROM ai.fun_val_search_similar_text(CAST(:embedding AS vector), :threshold, :limit)
+        FROM ai.fun_val_search_similar_text(CAST(:embedding AS vector(2048)), :threshold, :limit)
     ",
     'ai.fun_val_search_similar_text_exclude' => "
         SELECT *
-        FROM ai.fun_val_search_similar_text_exclude(CAST(:embedding AS vector), :producer_id, :threshold, :limit)
+        FROM ai.fun_val_search_similar_text_exclude(CAST(:embedding AS vector(2048)), :producer_id, :threshold, :limit)
     ",
     'ai.fun_val_search_by_visual_desc' => "
-        SELECT d.product_id,
-               d.description,
-               1 - (d.embedding <=> CAST(:vec AS vector(2048))) AS similarity,
+        SELECT e.id_producto AS product_id,
+               e.semantic_description AS description,
+               1 - (e.visual_embedding <=> CAST(:vec AS vector(2048))) AS similarity,
                vr.decision
-        FROM ai.product_visual_descriptions d
-        LEFT JOIN ai.product_validation_results vr ON vr.product_id = d.product_id
-        WHERE d.product_id <> :pid
+        FROM ai.product_image_embeddings e
+        LEFT JOIN ai.product_validation_results vr ON vr.product_id = e.id_producto
+        WHERE e.id_producto <> :pid
+          AND e.semantic_description <> ''
           AND vr.decision IS NOT NULL
         ORDER BY similarity DESC
         LIMIT :limit
