@@ -9,8 +9,33 @@ require_once __DIR__ . '/TextEmbeddingService.php';
 
 class ProductValidationService
 {
+    // ═══════════════════════════════════════════════════════════════
+    //  CONSTANTES
+    // ═══════════════════════════════════════════════════════════════
+
     private const VISUAL_DESC_MODEL = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning';
-    private const VISUAL_DESC_PROMPT = "Eres un experto en artesanías colombianas y clasificación visual de productos para e-commerce.\n\nAnaliza la imagen del producto y genera una descripción semántica útil para búsqueda por embeddings.\n\nInstrucciones:\n1. Identifica el objeto principal.\n2. Si el producto parece una artesanía conocida, menciona su nombre común y nombre cultural.\n3. No te quedes solo en colores o formas; describe tipo de producto, material probable, técnica artesanal, patrón, uso y categoría.\n4. Si el objeto se parece a un sombrero vueltiao, mochila wayuu, ruana, canasto, cerámica, talla en madera u otra artesanía tradicional, indícalo explícitamente con nivel de confianza.\n5. Si no estás seguro, usa frases como \"posible\", \"parece\", \"similar a\", pero no inventes.\n6. Responde en español.\n7. Devuelve una descripción optimizada para embeddings, no una descripción para humanos.\n\nFormato JSON:\n{\"categoria_visual\": \"...\", \"producto_probable\": \"...\", \"descripcion_semantica\": \"...\", \"etiquetas\": [], \"confianza\": \"baja|media|alta\"}\n\nSOLO responde con el JSON, sin texto adicional, sin markdown.";
+    private const VISUAL_DESC_PROMPT = "Eres un experto en artesanías colombianas y clasificación visual de productos para e-commerce.
+
+Analiza la imagen del producto y genera una descripción semántica útil para búsqueda por embeddings.
+
+Instrucciones:
+1. Identifica el objeto principal.
+2. Si el producto parece una artesanía conocida, menciona su nombre común y nombre cultural.
+3. No te quedes solo en colores o formas; describe tipo de producto, material probable, técnica artesanal, patrón, uso y categoría.
+4. Si el objeto se parece a un sombrero vueltiao, mochila wayuu, ruana, canasto, cerámica, talla en madera u otra artesanía tradicional, indícalo explícitamente con nivel de confianza.
+5. Si no estás seguro, usa frases como \"posible\", \"parece\", \"similar a\", pero no inventes.
+6. Responde en español.
+7. Devuelve una descripción optimizada para embeddings, no una descripción para humanos.
+
+Formato JSON:
+{\"categoria_visual\": \"...\", \"producto_probable\": \"...\", \"descripcion_semantica\": \"...\", \"etiquetas\": [], \"confianza\": \"baja|media|alta\"}
+
+SOLO responde con el JSON, sin texto adicional, sin markdown.";
+
+    // ═══════════════════════════════════════════════════════════════
+    //  MAIN: Punto de entrada de la validación
+    //  Flujo: hashes → descripción visual → embeddings → RAG → LLM
+    // ═══════════════════════════════════════════════════════════════
 
     /**
      * @param array<int,array>|array<string,mixed> $productData
@@ -135,6 +160,10 @@ class ProductValidationService
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  RESULTADO BASE: estructura por defecto del resultado
+    // ═══════════════════════════════════════════════════════════════
+
     private static function baseResult(): array
     {
         return [
@@ -157,6 +186,10 @@ class ProductValidationService
             'motivo_general' => '',
         ];
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  HASHING: detección de plagio por hash exacto y perceptual
+    // ═══════════════════════════════════════════════════════════════
 
     private static function hashImages(array $images): array
     {
@@ -212,6 +245,11 @@ class ProductValidationService
             self::saveImageSignature($productId, $hashData);
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  DESCRIPCIÓN VISUAL: llama a NVIDIA Nemo 30B para describir
+    //  la imagen y genera embedding vectorial de esa descripción
+    // ═══════════════════════════════════════════════════════════════
 
     /**
      * @param array<int,array> $imageHashes
@@ -293,6 +331,14 @@ class ProductValidationService
         ImageSignatureService::saveVisualEmbedding($productId, $imageId, $embedding, $model, $description);
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  RAG CONTEXT: construye el contexto para el modelo de decisión
+    //   - Coherencia texto-imagen (cosine similarity)
+    //   - Reglas RAG (artisan_policy, plagiarism_policy)
+    //   - Decisiones previas de productos similares
+    //   - Matches por descripción visual
+    // ═══════════════════════════════════════════════════════════════
+
     private static function buildRagContext(
         int $productId,
         array $productData,
@@ -362,6 +408,10 @@ class ProductValidationService
         return [$coherence, $ragRules, $exampleDecisions, $ragContextText, $visualDescMatches];
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Helpers de RAG
+    // ─────────────────────────────────────────────────────────────
+
     private static function getLatestDecision(int $productId): ?array
     {
         try {
@@ -374,6 +424,10 @@ class ProductValidationService
             return null;
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  HELPERS: firmas de imágenes, resolución de IDs, utilidades
+    // ═══════════════════════════════════════════════════════════════
 
     private static function appendExternalMatch(array &$matches, array $match, int $producerId, string $method, float $score): void
     {
@@ -454,6 +508,10 @@ class ProductValidationService
         return null;
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  PRE-LLM: decide si alcanza con reglas sin llamar al modelo
+    // ═══════════════════════════════════════════════════════════════
+
     private static function shouldCallDecisionModel(array $plagiarism, array $coherence, array $artisan, array $ragRules = [], array $exampleDecisions = []): bool
     {
         // Siempre llamar al modelo si hay contexto RAG disponible
@@ -479,6 +537,11 @@ class ProductValidationService
     {
         return null;
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  LLM DECISION: construye evidencia y llama al modelo de
+    //  decisión con todo el contexto RAG
+    // ═══════════════════════════════════════════════════════════════
 
     private static function buildEvidence(array $productData, array $hashResults, array $coherence, array $ragRules, array $artisanNotes, array $exampleDecisions = [], $visualDescription = null, array $visualDescMatches = []): array
     {
@@ -563,6 +626,10 @@ class ProductValidationService
         return ['decision' => 'revision_humana', 'motivo_general' => 'La IA no devolvió JSON válido.'];
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  PERSISTENCIA: guarda resultado + actualiza estado del producto
+    // ═══════════════════════════════════════════════════════════════
+
     private static function saveResult(int $productId, int $producerId, array $result): int
     {
         $decision = $result['decision'] ?? 'pending_validacion_ia';
@@ -633,6 +700,10 @@ class ProductValidationService
         $primary = strtolower((string) ($_ENV['AI_PRIMARY_PROVIDER'] ?? 'openrouter'));
         return $provider !== '' && strtolower($provider) !== $primary;
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  UTILIDADES: formateo de vectores para pgvector
+    // ═══════════════════════════════════════════════════════════════
 
     private static function vectorLiteral(array $embedding): string
     {

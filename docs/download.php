@@ -5,7 +5,7 @@
  * Prevents directory traversal and restricts to allowed extensions.
  */
 
-$allowed_exts = ['xlsx', 'xls', 'csv', 'pdf', 'md', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'pptx', 'sql'];
+$allowed_exts = ['xlsx', 'xls', 'csv', 'pdf', 'md', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'pptx', 'sql', 'docx'];
 $docs_dir = __DIR__;
 $file = $_GET['file'] ?? '';
 
@@ -43,6 +43,7 @@ $mime_types = [
     'webp' => 'image/webp',
     'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'sql'  => 'text/plain',
+    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
 $mime = $mime_types[$ext] ?? 'application/octet-stream';

@@ -666,6 +666,19 @@ return [
         ORDER BY quantity DESC, revenue DESC
         LIMIT :limit
     ",
+    'producerShippingStatus' => "
+        SELECT
+            COALESCE(f.envio_estado, 'PENDIENTE') AS label,
+            CAST(COUNT(*) AS integer) AS total
+        FROM tab_enc_fact f
+        INNER JOIN tab_det_fact df ON df.id_factura = f.id_factura
+        WHERE df.id_productor = :id_productor
+          AND f.is_deleted = FALSE
+          AND df.is_deleted = FALSE
+          AND COALESCE(f.epayco_estado, 'Aceptada') <> 'Rechazada'
+        GROUP BY f.envio_estado
+        ORDER BY total DESC
+    ",
     'productosPorValidacionStatus' => "
         SELECT p.id_producto, p.nom_producto, p.id_productor,
                p.precio_producto, p.stock_productor, p.validation_status,

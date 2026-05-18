@@ -104,7 +104,7 @@
         
         <div class="file-list">
             <?php
-$files = glob("*.{md,xlsx,xls,csv,png,jpeg,gif,svg,webp,pptx,sql}", GLOB_BRACE);
+$files = glob("*.{md,xlsx,xls,csv,png,jpeg,gif,svg,webp,pptx,sql,docx}", GLOB_BRACE);
             if (empty($files)) {
                 echo '<div class="empty">No hay archivos de documentación en esta carpeta.</div>';
             } else {

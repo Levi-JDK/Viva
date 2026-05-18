@@ -10,9 +10,9 @@ DROP VIEW IF EXISTS materias_view;
 -- DROP DE TABLAS
 DROP TABLE IF EXISTS tab_reset_tokens;
 DROP TABLE IF EXISTS tab_kardex;
-DROP TABLE IF EXISTS tab_clientes;
 DROP TABLE IF EXISTS tab_det_fact;
 DROP TABLE IF EXISTS tab_enc_fact;
+DROP TABLE IF EXISTS tab_clientes;
 DROP TABLE IF EXISTS tab_formas_pago;
 DROP TABLE IF EXISTS tab_carrito;
 DROP TABLE IF EXISTS tab_favoritos;
@@ -470,62 +470,52 @@ CREATE TABLE IF NOT EXISTS tab_formas_pago
 
 
 -- -----------------------------------------------------------------------------
--- Tabla de clientes compradores
--- Almacena información de envío/facturación del usuario que realiza la compra.
+-- Tabla de perfil del comprador
+-- Datos básicos de identificación del comprador (persona natural).
+-- La dirección de envío y datos del pago se almacenan en tab_enc_fact.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tab_clientes (
     id_user                   INTEGER                         NOT NULL                      ,                -- tab_users.id_user
-    id_client                 VARCHAR(20)                     NOT NULL                                ,  -- Documento del cliente
-    nom_client                VARCHAR                         NOT NULL            DEFAULT 'Sin dato',    -- Nombre completo
-    mail_client               VARCHAR                         NOT NULL            DEFAULT 'Sin dato',    -- Email
-    tel_client                VARCHAR(20)                                         DEFAULT '123',         -- Teléfono (de ePayco)
-    id_tipo_doc               DECIMAL(1,0)                                        DEFAULT 1,             -- Tipo de documento (de ePayco)
-    nro_doc                   VARCHAR(20)                                         DEFAULT '123',         -- Número de documento (de ePayco)
-    --                        Dirección de envío capturada en el formulario del checkout
-    id_pais                   DECIMAL(3,0)                    NOT NULL            DEFAULT 1,             -- Colombia por defecto
-    id_departamento           DECIMAL(2,0)                    NOT NULL,
-    id_ciudad                 DECIMAL(5,0)                    NOT NULL,
-    dir_envio                 VARCHAR                         NOT NULL            DEFAULT 'Sin dato',    -- Ej: "Calle 10 # 5-20 Apto 301"
-    barrio_envio              VARCHAR                                             DEFAULT 'N/A',         -- Barrio (opcional)
-    --                        Último pago ePayco (se sobreescribe en cada compra del mismo cliente)
-    epayco_ref                VARCHAR                                             DEFAULT 'N/A',         -- x_ref_payco
-    epayco_txn_id             VARCHAR                                             DEFAULT 'N/A',         -- x_transaction_id
-    epayco_banco              VARCHAR                                             DEFAULT 'N/A',         -- x_bank_name
-    epayco_cod_resp           DECIMAL(1,0)                                        DEFAULT 1,             -- 1=Aceptada|2=Rechazada|3=Pendiente|4=Fallida
+    id_client                 VARCHAR(20)                     NOT NULL                                ,  -- Número de documento (PK)
+    tel_client                DECIMAL(10,0)                   NOT NULL            DEFAULT 123,
+    id_tipo_doc               DECIMAL(1,0)                    NOT NULL            DEFAULT 1,             -- Tipo de documento (FK → tab_tipos_doc)
     -- Auditoría
     created_by                VARCHAR                         NOT NULL            DEFAULT current_user,
     created_at                TIMESTAMP WITHOUT TIME ZONE     NOT NULL            DEFAULT CURRENT_TIMESTAMP,
     updated_by                VARCHAR                         NOT NULL            DEFAULT 'N/A',
     updated_at                TIMESTAMP WITHOUT TIME ZONE     NOT NULL            DEFAULT '1900-01-01 00:00:00',
     is_deleted                BOOLEAN                         NOT NULL            DEFAULT FALSE,
-    --                        Restricciones
+    -- Restricciones
     PRIMARY KEY (id_client),
     FOREIGN KEY (id_user)                              REFERENCES tab_users(id_user),
-    FOREIGN KEY (id_pais, id_departamento, id_ciudad)    REFERENCES tab_ciudades(id_pais, id_departamento, id_ciudad),
     FOREIGN KEY (id_tipo_doc)                            REFERENCES tab_tipos_doc(id_tipo_doc)
 );
 CREATE INDEX IF NOT EXISTS idx_clientes_mail   ON tab_clientes(mail_client);
-CREATE INDEX IF NOT EXISTS idx_clientes_ciudad ON tab_clientes(id_pais, id_ciudad);
 -- -----------------------------------------------------------------------------
 -- Tabla de encabezado de factura
+-- Una factura pertenece a un cliente (tab_clientes) y registra la dirección
+-- de envío específica de la transacción (puede diferir entre compras).
+-- También concentra todos los datos de trazabilidad del pago (ePayco).
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tab_enc_fact
 (
     id_factura                DECIMAL(7,0)                    NOT NULL CHECK(id_factura >= 1),           -- Número de factura
     fec_factura               DATE                            NOT NULL            DEFAULT '1900-01-01 00:00:00',  -- Fecha de emisión
     val_hora_fact             TIME WITHOUT TIME ZONE          NOT NULL            DEFAULT '1900-01-01 00:00:00',  -- Hora de emisión
-    id_client                 VARCHAR                         NOT NULL            DEFAULT 'Sin dato',    -- Cliente (id_user como texto)
-    id_pais                   DECIMAL(3,0)                    NOT NULL,                                  -- País destino
-    id_departamento           DECIMAL(2,0)                    NOT NULL,                                  -- Departamento destino
-    id_ciudad                 DECIMAL(5,0)                    NOT NULL,                                  -- Ciudad destino
+    id_client                 VARCHAR(20)                     NOT NULL                                ,  -- FK → tab_clientes(id_client)
+    id_pais                   DECIMAL(3,0)                    NOT NULL,                                  -- País destino del envío
+    id_departamento           DECIMAL(2,0)                    NOT NULL,                                  -- Departamento destino del envío
+    id_ciudad                 DECIMAL(5,0)                    NOT NULL,                                  -- Ciudad destino del envío
     dir_envio                 VARCHAR                                             DEFAULT 'Sin dato',    -- Dirección de envío (texto libre)
     val_tot_fact              DECIMAL(12,2)                   NOT NULL            DEFAULT 0,             -- Total factura
     ind_estado                BOOLEAN                         NOT NULL            DEFAULT FALSE,         -- Activa/Anulada
     id_pago                   VARCHAR                         NOT NULL                                ,  -- Forma de pago
-    --                        Datos de trazabilidad ePayco
+    --                        Trazabilidad del pago (ePayco)
     epayco_ref                VARCHAR                                             DEFAULT 'Sin dato',    -- x_ref_payco
     epayco_txn_id             VARCHAR                                             DEFAULT 'Sin dato',    -- x_transaction_id
     epayco_estado             VARCHAR                                             DEFAULT 'Sin dato',    -- "Aceptada" / "Rechazada" / "Pendiente"
+    epayco_banco              VARCHAR                                             DEFAULT 'N/A',         -- x_bank_name
+    epayco_cod_resp           DECIMAL(1,0)                                        DEFAULT 1,             -- 1=Aceptada|2=Rechazada|3=Pendiente|4=Fallida
     num_guia                  VARCHAR                                             DEFAULT 'Sin dato',    -- PuntoEnvio package ID (tracking/guía number)
     envio_estado              VARCHAR(20)                                         DEFAULT 'PENDIENTE',
     -- Auditoría
@@ -538,7 +528,8 @@ CREATE TABLE IF NOT EXISTS tab_enc_fact
     FOREIGN KEY(id_pago)     REFERENCES tab_formas_pago(id_pago),
     FOREIGN KEY(id_pais)     REFERENCES tab_paises(id_pais),
     FOREIGN KEY(id_pais, id_departamento, id_ciudad)
-    REFERENCES                tab_ciudades(id_pais, id_departamento, id_ciudad)
+    REFERENCES                tab_ciudades(id_pais, id_departamento, id_ciudad),
+    FOREIGN KEY(id_client)   REFERENCES tab_clientes(id_client)
 );
 
 -- Tabla de detalle de factura
